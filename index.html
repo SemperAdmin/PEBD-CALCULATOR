@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marine Corps PEBD Calculator by Semper Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .title {
+            color: #1e3a8a;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #1e3a8a;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        input, select {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background-color: #f8fafc;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 0.85rem;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        td input, td select {
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            width: 100%;
+            min-width: 120px;
+        }
+        
+        .creditable-yes {
+            color: #059669;
+            font-weight: bold;
+        }
+        
+        .creditable-no {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: #1e40af;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+        
+        .btn-success {
+            background-color: #059669;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #047857;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-success:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .result-highlight {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .pebd-result {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        
+        .calc-table {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        
+        .calc-table th, .calc-table td {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .normalized-row {
+            background-color: #eff6ff;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATOR</h1>
+            <p class="subtitle">by Semper Admin - PAA 04-25 Compliant</p>
+            <p style="font-size: 0.9rem; color: #64748b;">
+                Reference: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD
+            </p>
+        </div>
+
+        <!-- Marine Information -->
+        <div class="section">
+            <h2 class="section-title">👤 MARINE INFORMATION</h2>
+            <div class="grid grid-3">
+                <div class="form-group">
+                    <label for="foundationalPEBD">Foundational PEBD (YYYYMMDD):</label>
+                    <input type="text" id="foundationalPEBD" placeholder="YYYYMMDD" maxlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="marineStatus">Marine Status:</label>
+                    <select id="marineStatus">
+                        <option value="Enlisted">Enlisted</option>
+                        <option value="Officer">Officer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pathwayType">Pathway Type:</label>
+                    <select id="pathwayType">
+                        <option value="Enlisted DEP/Direct/Reenlisted/Prior Service">Enlisted DEP/Direct/Reenlisted/Prior Service</option>
+                        <option value="Officer OCC/PLC/NROTC/Academy">Officer OCC/PLC/NROTC/Academy</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Periods -->
+        <div class="section">
+            <h2 class="section-title">📋 SERVICE PERIODS (Up to 10)</h2>
+            <div class="table-container">
+                <table id="periodsTable">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Service Type</th>
+                            <th>Start Date<br>(YYYYMMDD)</th>
+                            <th>End Date<br>(YYYYMMDD)</th>
+                            <th>Creditable?</th>
+                            <th>Days</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="periodsBody">
+                        <!-- Periods will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="button-container">
+            <button class="btn-primary" onclick="calculatePEBD()">
+                🧮 Calculate PEBD
+            </button>
+            <button class="btn-success" id="printBtn" onclick="printReport()" disabled>
+                🖨️ Print Report
+            </button>
+            <button class="btn-secondary" onclick="resetAll()">
+                🔄 Reset All
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden">
+            <div class="results">
+                <h2 class="section-title">📊 CALCULATION BREAKDOWN</h2>
+                
+                <!-- Summary -->
+                <div class="result-highlight">
+                    <div class="grid grid-3" style="align-items: center;">
+                        <div>
+                            <strong>Foundational PEBD:</strong><br>
+                            <span id="resultFoundational"></span>
+                        </div>
+                        <div>
+                            <strong>Calculated PEBD:</strong><br>
+                            <span class="pebd-result" id="resultCalculated"></span>
+                        </div>
+                        <div>
+                            <strong>Total Creditable Service:</strong><br>
+                            <span id="resultService"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculation Table -->
+                <h3 style="margin: 30px 0 15px 0;">PAA 04-25 Calculation Method:</h3>
+                <table class="calc-table">
+                    <thead>
+                        <tr>
+                            <th>Calculation Step</th>
+                            <th>Years</th>
+                            <th>Months</th>
+                            <th>Days</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calcTableBody">
+                        <!-- Calculation rows will be filled by JavaScript -->
+                    </tbody>
+                </table>
+
+                <!-- Service Periods Analysis -->
+                <h3 style="margin: 30px 0 15px 0;">Service Periods Analysis:</h3>
+                <div class="table-container">
+                    <table id="analysisTable">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Service Type</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Creditable</th>
+                                <th>Days</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analysisBody">
+                            <!-- Analysis will be filled by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Service Type Definitions from PAA 04-25
+        const SERVICE_TYPES = {
+            "Regular Army": { creditable: true, category: "Active" },
+            "Regular Navy": { creditable: true, category: "Active" },
+            "Regular Marine Corps": { creditable: true, category: "Active" },
+            "Regular Air Force": { creditable: true, category: "Active" },
+            "Regular Space Force": { creditable: true, category: "Active" },
+            "Regular Coast Guard": { creditable: true, category: "Active" },
+            "Army Reserve": { creditable: true, category: "Reserve" },
+            "Navy Reserve": { creditable: true, category: "Reserve" },
+            "Marine Corps Reserve": { creditable: true, category: "Reserve" },
+            "Air Force Reserve": { creditable: true, category: "Reserve" },
+            "Army National Guard": { creditable: true, category: "Reserve" },
+            "Air National Guard": { creditable: true, category: "Reserve" },
+            "PHS Commissioned Corps": { creditable: true, category: "Other" },
+            "NOAA": { creditable: true, category: "Other" },
+            "Military Academy Service": { creditable: true, category: "Academy" },
+            "ROTC (Post 1979 w/Reserve)": { creditable: true, category: "ROTC" },
+            "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
+            "Philippine Army Officer": { creditable: false, category: "Excluded" },
+            "State Guard": { creditable: false, category: "Excluded" },
+            "AFHPSP/FAP (Post 1981)": { creditable: false, category: "Excluded" },
+            "Delayed Entry Program (<January 1985)": { creditable: true, category: "DEP" },
+            "Delayed Entry Program (>=January 1985)": { creditable: false, category: "DEP" }
+        };
+
+        let calculationResult = null;
+
+        // Initialize the periods table
+        function initializePeriods() {
+            const tbody = document.getElementById('periodsBody');
+            tbody.innerHTML = '';
+            
+            for (let i = 0; i < 10; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>
+                        <select onchange="updatePeriod(${i})" data-period="${i}" data-field="serviceType">
+                            <option value="">Select Service Type</option>
+                            ${Object.keys(SERVICE_TYPES).map(type => 
+                                `<option value="${type}">${type}</option>`
+                            ).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" placeholder="YYYMMDD" maxlength="8" 
+                               onkeyup="updatePeriod(${i})" data-period="${i}" data-field="startDate">
+                    </td>
+                    <td>
+                        <input type="text" placeholder="YYYMMDD" maxlength="8" 
+                               onkeyup="updatePeriod(${i})" data-period="${i}" data-field="endDate">
+                    </td>
+                    <td id="creditable-${i}"></td>
+                    <td id="days-${i}"></td>
+                    <td>
+                        <input type="text" placeholder="Notes..." 
+                               data-period="${i}" data-field="notes">
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        // Parse YYYYMMDD date
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr.length !== 8) return null;
+            try {
+                const year = parseInt(dateStr.substring(0, 4));
+                const month = parseInt(dateStr.substring(4, 6)) - 1;
+                const day = parseInt(dateStr.substring(6, 8));
+                return new Date(year, month, day);
+            } catch {
+                return null;
+            }
+        }
+
+        // Calculate days between dates
+        function calculateDays(startDate, endDate) {
+            const start = parseDate(startDate);
+            const end = parseDate(endDate);
+            if (!start || !end || end < start) return 0;
+            return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        // Update period info when fields change
+        function updatePeriod(periodIndex) {
+            const serviceSelect = document.querySelector(`select[data-period="${periodIndex}"][data-field="serviceType"]`);
+            const startInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="startDate"]`);
+            const endInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="endDate"]`);
+            
+            const serviceType = serviceSelect.value;
+            const startDate = startInput.value;
+            const endDate = endInput.value;
+            
+            const creditableCell = document.getElementById(`creditable-${periodIndex}`);
+            const daysCell = document.getElementById(`days-${periodIndex}`);
+            
+            // Update creditable status
+            if (serviceType) {
+                const isCreditable = SERVICE_TYPES[serviceType]?.creditable || false;
+                creditableCell.innerHTML = `<span class="${isCreditable ? 'creditable-yes' : 'creditable-no'}">${isCreditable ? 'Yes' : 'No'}</span>`;
+            } else {
+                creditableCell.innerHTML = '';
+            }
+            
+            // Update days
+            if (startDate && endDate && startDate.length === 8 && endDate.length === 8) {
+                const days = calculateDays(startDate, endDate);
+                daysCell.textContent = days > 0 ? days : 'Invalid';
+            } else {
+                daysCell.textContent = '';
+            }
+        }
+
+        // Calculate PEBD
+        function calculatePEBD() {
+            try {
+                const foundationalPEBD = document.getElementById('foundationalPEBD').value.trim();
+                const marineStatus = document.getElementById('marineStatus').value;
+                const pathwayType = document.getElementById('pathwayType').value;
+                
+                if (!foundationalPEBD || foundationalPEBD.length !== 8) {
+                    alert('Foundational PEBD is required in YYYYMMDD format');
+                    return;
+                }
+
+                const periods = [];
+                const beginningDates = [];
+                const endingDates = [];
+                const periodDetails = [];
+
+                // Collect all periods
+                for (let i = 0; i < 10; i++) {
+                    const serviceSelect = document.querySelector(`select[data-period="${i}"][data-field="serviceType"]`);
+                    const startInput = document.querySelector(`input[data-period="${i}"][data-field="startDate"]`);
+                    const endInput = document.querySelector(`input[data-period="${i}"][data-field="endDate"]`);
+                    const notesInput = document.querySelector(`input[data-period="${i}"][data-field="notes"]`);
+                    
+                    const serviceType = serviceSelect.value;
+                    const startDate = startInput.value;
+                    const endDate = endInput.value;
+                    const notes = notesInput.value;
+                    
+                    if (serviceType && startDate && endDate) {
+                        const serviceInfo = SERVICE_TYPES[serviceType];
+                        const isCreditable = serviceInfo?.creditable || false;
+                        const days = calculateDays(startDate, endDate);
+                        
+                        if (days > 0) {
+                            periodDetails.push({
+                                period: i + 1,
+                                serviceType,
+                                startDate,
+                                endDate,
+                                creditable: isCreditable,
+                                days,
+                                notes
+                            });
+                            
+                            if (isCreditable) {
+                                const startYear = parseInt(startDate.substring(0, 4));
+                                const startMonth = parseInt(startDate.substring(4, 6));
+                                const startDay = parseInt(startDate.substring(6, 8));
+                                
+                                let endYear = parseInt(endDate.substring(0, 4));
+                                let endMonth = parseInt(endDate.substring(4, 6));
+                                let endDay = parseInt(endDate.substring(6, 8));
+                                
+                                // Apply PAA 04-25 ending date adjustments
+                                if (endDay === 31) endDay = 30;
+                                if (endMonth === 2 && (endDay === 28 || endDay === 29)) endDay = 30;
+                                
+                                beginningDates.push({ year: startYear, month: startMonth, day: startDay });
+                                endingDates.push({ year: endYear, month: endMonth, day: endDay });
+                            }
+                        }
+                    }
+                }
+
+                let beginTotals = { years: 0, months: 0, days: 0 };
+                let endTotals = { years: 0, months: 0, days: 0 };
+                let calculatedPEBD = foundationalPEBD;
+
+                if (beginningDates.length > 0 && endingDates.length > 0) {
+                    // Add up components
+                    beginTotals = beginningDates.reduce((totals, date) => ({
+                        years: totals.years + date.year,
+                        months: totals.months + date.month,
+                        days: totals.days + date.day
+                    }), { years: 0, months: 0, days: 0 });
+
+                    endTotals = endingDates.reduce((totals, date) => ({
+                        years: totals.years + date.year,
+                        months: totals.months + date.month,
+                        days: totals.days + date.day
+                    }), { years: 0, months: 0, days: 0 });
+
+                    // Calculate difference
+                    const difference = {
+                        years: endTotals.years - beginTotals.years,
+                        months: endTotals.months - beginTotals.months,
+                        days: endTotals.days - beginTotals.days
+                    };
+
+                    // Add inclusive days
+                    const inclusiveAdjusted = {
+                        years: difference.years,
+                        months: difference.months,
+                        days: difference.days + beginningDates.length
+                    };
+
+                    // Normalize
+                    let normalized = { ...inclusiveAdjusted };
+                    
+                    // Handle negative days
+                    while (normalized.days < 0) {
+                        normalized.days += 30;
+                        normalized.months -= 1;
+                    }
+                    
+                    // Handle negative months
+                    while (normalized.months < 0) {
+                        normalized.months += 12;
+                        normalized.years -= 1;
+                    }
+                    
+                    // Handle excess days
+                    while (normalized.days >= 30) {
+                        normalized.days -= 30;
+                        normalized.months += 1;
+                    }
+                    
+                    // Handle excess months
+                    while (normalized.months >= 12) {
+                        normalized.months -= 12;
+                        normalized.years += 1;
+                    }
+
+                    // Calculate final PEBD
+                    calculatedPEBD = subtractServiceFromDate(foundationalPEBD, normalized.years, normalized.months, normalized.days);
+
+                    calculationResult = {
+                        foundationalPEBD,
+                        calculatedPEBD,
+                        marineStatus,
+                        pathwayType,
+                        periodDetails,
+                        beginTotals,
+                        endTotals,
+                        difference,
+                        inclusiveAdjusted,
+                        normalized,
+                        numPeriods: beginningDates.length,
+                        calculationDate: new Date().toLocaleString()
+                    };
+
+                    displayResults();
+                    document.getElementById('printBtn').disabled = false;
+                }
+            } catch (error) {
+                alert('Error in calculation: ' + error.message);
+            }
+        }
+
+        // Subtract service from date
+        function subtractServiceFromDate(dateStr, years, months, days) {
+            const date = parseDate(dateStr);
+            if (!date) return dateStr;
+            
+            let resultYear = date.getFullYear() - years;
+            let resultMonth = date.getMonth() + 1 - months;
+            let resultDay = date.getDate() - days;
+            
+            // Handle negative days
+            while (resultDay <= 0) {
+                resultMonth -= 1;
+                resultDay += 30;
+            }
+            
+            // Handle negative months
+            while (resultMonth <= 0) {
+                resultYear -= 1;
+                resultMonth += 12;
+            }
+            
+            // Create result date and format
+            const resultDate = new Date(resultYear, resultMonth - 1, resultDay);
+            const year = resultDate.getFullYear().toString();
+            const month = (resultDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = resultDate.getDate().toString().padStart(2, '0');
+            
+            return year + month + day;
+        }
+
+        // Display results
+        function displayResults() {
+            const data = calculationResult;
+            
+            document.getElementById('resultFoundational').textContent = data.foundationalPEBD;
+            document.getElementById('resultCalculated').textContent = data.calculatedPEBD;
+            document.getElementById('resultService').textContent = 
+                `${String(data.normalized.years).padStart(2, '0')} years, ${String(data.normalized.months).padStart(2, '0')} months, ${String(data.normalized.days).padStart(2, '0')} days`;
+
+            // Fill calculation table
+            const calcTableBody = document.getElementById('calcTableBody');
+            calcTableBody.innerHTML = `
+                <tr>
+                    <td>Begin Totals</td>
+                    <td>${data.beginTotals.years}</td>
+                    <td>${data.beginTotals.months}</td>
+                    <td>${data.beginTotals.days}</td>
+                </tr>
+                <tr>
+                    <td>End Totals</td>
+                    <td>${data.endTotals.years}</td>
+                    <td>${data.endTotals.months}</td>
+                    <td>${data.endTotals.days}</td>
+                </tr>
+                <tr>
+                    <td>Difference</td>
+                    <td>${data.difference.years}</td>
+                    <td>${data.difference.months}</td>
+                    <td>${data.difference.days}</td>
+                </tr>
+                <tr>
+                    <td>Plus Inclusive (${data.numPeriods} periods)</td>
+                    <td>${data.inclusiveAdjusted.years}</td>
+                    <td>${data.inclusiveAdjusted.months}</td>
+                    <td>${data.inclusiveAdjusted.days}</td>
+                </tr>
+                <tr class="normalized-row">
+                    <td><strong>Normalized</strong></td>
+                    <td><strong>${data.normalized.years}</strong></td>
+                    <td><strong>${data.normalized.months}</strong></td>
+                    <td><strong>${data.normalized.days}</strong></td>
+                </tr>
+            `;
+
+            // Fill analysis table
+            const analysisBody = document.getElementById('analysisBody');
+            analysisBody.innerHTML = data.periodDetails.map(detail => `
+                <tr>
+                    <td>${detail.period}</td>
+                    <td>${detail.serviceType}</td>
+                    <td>${detail.startDate}</td>
+                    <td>${detail.endDate}</td>
+                    <td class="${detail.creditable ? 'creditable-yes' : 'creditable-no'}">
+                        ${detail.creditable ? 'Yes' : 'No'}
+                    </td>
+                    <td>${detail.days}</td>
+                    <td>${detail.notes}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        // Print report
+        function printReport() {
+            if (!calculationResult) {
+                alert('Please calculate PEBD first before printing.');
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(generateHTMLReport());
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => printWindow.print(), 250);
+        }
+
+        // Generate HTML report
+        function generateHTMLReport() {
+            const data = calculationResult;
+            
+            const periodsHTML = data.periodDetails.map(detail => `
+                <tr>
+                    <td>${detail.period}</td>
+                    <td>${detail.serviceType}</td>
+                    <td>${detail.startDate}</td>
+                    <td>${detail.endDate}</td>
+                    <td style="color: ${detail.creditable ? 'green' : 'red'}; font-weight: bold;">${detail.creditable ? 'Yes' : 'No'}</td>
+                    <td>${detail.days}</td>
+                    <td>${detail.notes}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Marine Corps PEBD Calculation Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; line-height: 1.3; }
+                        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid navy; padding-bottom: 10px; }
+                        .title { color: navy; font-size: 18px; font-weight: bold; margin: 0; }
+                        .subtitle { color: #666; font-size: 12px; margin: 5px 0; }
+                        .section { margin: 15px 0; border: 1px solid #ccc; padding: 10px; }
+                        .section-title { background-color: #f0f0f0; font-weight: bold; padding: 5px; margin: -10px -10px 10px -10px; color: navy; }
+                        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
+                        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+                        th { background-color: #f0f0f0; font-weight: bold; }
+                        .calc-table { width: 60%; }
+                        .calc-table th, .calc-table td { text-align: center; }
+                        .summary { background-color: #f9f9f9; padding: 10px; border-left: 4px solid navy; }
+                        @media print { body { margin: 0.5in; font-size: 10px; } .section { page-break-inside: avoid; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATION REPORT</h1>
+                        <p class="subtitle">Reference: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</p>
+                        <p class="subtitle">Generated: ${data.calculationDate}</p>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">MARINE INFORMATION</div>
+                        <table class="calc-table">
+                            <tr><th>Field</th><th>Value</th></tr>
+                            <tr><td>Marine Status</td><td>${data.marineStatus}</td></tr>
+                            <tr><td>Pathway Type</td><td>${data.pathwayType}</td></tr>
+                            <tr><td>Foundational PEBD</td><td>${data.foundationalPEBD}</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="section summary">
+                        <div class="section-title">CALCULATION RESULTS</div>
+                        <table class="calc-table">
+                            <tr><th>Calculated PEBD</th><td style="font-size: 14px; font-weight: bold; color: navy;">${data.calculatedPEBD}</td></tr>
+                            <tr><th>Total Creditable Service</th><td>${String(data.normalized.years).padStart(2, '0')} years, ${String(data.normalized.months).padStart(2, '0')} months, ${String(data.normalized.days).padStart(2, '0')} days</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">PAA 04-25 CALCULATION BREAKDOWN</div>
+                        <table class="calc-table">
+                            <tr><th></th><th>Years</th><th>Months</th><th>Days</th></tr>
+                            <tr><td>Begin Totals</td><td>${data.beginTotals.years}</td><td>${data.beginTotals.months}</td><td>${data.beginTotals.days}</td></tr>
+                            <tr><td>End Totals</td><td>${data.endTotals.years}</td><td>${data.endTotals.months}</td><td>${data.endTotals.days}</td></tr>
+                            <tr><td>Difference</td><td>${data.difference.years}</td><td>${data.difference.months}</td><td>${data.difference.days}</td></tr>
+                            <tr><td>Plus Inclusive (${data.numPeriods} periods)</td><td>${data.inclusiveAdjusted.years}</td><td>${data.inclusiveAdjusted.months}</td><td>${data.inclusiveAdjusted.days}</td></tr>
+                            <tr style="background-color: #e8f4f8;"><td><strong>Normalized</strong></td><td><strong>${data.normalized.years}</strong></td><td><strong>${data.normalized.months}</strong></td><td><strong>${data.normalized.days}</strong></td></tr>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">SERVICE PERIODS ANALYSIS</div>
+                        <table>
+                            <tr><th>Period</th><th>Service Type</th><th>Start Date</th><th>End Date</th><th>Creditable</th><th>Days</th><th>Notes</th></tr>
+                            ${periodsHTML}
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 9px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
+                        <p><strong>IMPORTANT NOTES:</strong> This calculation is for reference only. Official PEBD adjustments require proper channels. Verify against source documents (DD Form 4, DD Form 214, NAVMC 763).</p>
+                        <p style="text-align: center;"><em>Generated by Marine Corps PEBD Calculator by Semper Admin</em></p>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        // Reset all
+        function resetAll() {
+            document.getElementById('foundationalPEBD').value = '';
+            document.getElementById('marineStatus').value = 'Enlisted';
+            document.getElementById('pathwayType').value = 'Enlisted DEP/Direct/Reenlisted/Prior Service';
+            
+            // Clear all period inputs
+            for (let i = 0; i < 10; i++) {
+                document.querySelector(`select[data-period="${i}"][data-field="serviceType"]`).value = '';
+                document.querySelector(`input[data-period="${i}"][data-field="startDate"]`).value = '';
+                document.querySelector(`input[data-period="${i}"][data-field="endDate"]`).value = '';
+                document.querySelector(`input[data-period="${i}"][data-field="notes"]`).value = '';
+                document.getElementById(`creditable-${i}`).innerHTML = '';
+                document.getElementById(`days-${i}`).innerHTML = '';
+            }
+            
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('printBtn').disabled = true;
+            calculationResult = null;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePeriods();
+        });
+    </script>
+</body>
+</html>
