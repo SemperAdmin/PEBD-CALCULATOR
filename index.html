@@ -275,7 +275,7 @@
             <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATOR</h1>
             <p class="subtitle">by Semper Admin - PAA 04-25 Compliant</p>
             <p style="font-size: 0.9rem; color: #64748b;">
-                Reference: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD
+                Reference: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD (Not for time loss)
             </p>
         </div>
 
@@ -284,8 +284,9 @@
             <h2 class="section-title">👤 MARINE INFORMATION</h2>
             <div class="grid grid-3">
                 <div class="form-group">
-                    <label for="foundationalPEBD">Foundational PEBD (YYYYMMDD):</label>
+                    <label for="foundationalPEBD">(YYYYMMDD):</label>
                     <input type="text" id="foundationalPEBD" placeholder="YYYYMMDD" maxlength="8">
+                     <label for="foundationalPEBD">Begining date of most recent period of continuous sevice for pay</label>
                 </div>
                 <div class="form-group">
                     <label for="marineStatus">Marine Status:</label>
@@ -338,6 +339,12 @@
             <button class="btn-secondary" onclick="resetAll()">
                 🔄 Reset All
             </button>
+        </div>
+
+        <div style="display: flex; justify-content: center;">
+            <p style="font-size: 0.9rem; color: #e40b0b;">
+              Follow Semper Admin on all platforms: <a href="https://linktr.ee/semperadmin" target="_blank" style="color: #1e40af; text-decoration: underline;">https://linktr.ee/semperadmin</a>
+            </p>
         </div>
 
         <!-- Results -->
@@ -426,8 +433,8 @@
             "Philippine Army Officer": { creditable: false, category: "Excluded" },
             "State Guard": { creditable: false, category: "Excluded" },
             "AFHPSP/FAP (Post 1981)": { creditable: false, category: "Excluded" },
-            "Delayed Entry Program (<January 1985)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (>=January 1985)": { creditable: false, category: "DEP" }
+            "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
+            "Delayed Entry Program (on or after January 1985)": { creditable: false, category: "DEP" }
         };
 
         let calculationResult = null;
