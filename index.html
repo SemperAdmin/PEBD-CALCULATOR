@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marine Corps PEBD Calculator by Semper Admin</title>
     <style>
+        :root {
+            --marine-red: #c41e3a;
+            --marine-gold: #ffd700;
+            --marine-dark: #0f1419;
+            --marine-gray: #2c3e50;
+            --success-green: #28a745;
+            --warning-orange: #fd7e14;
+            --info-blue: #17a2b8;
+            --danger-red: #dc3545;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -25,25 +36,106 @@
         }
         
         .header {
-            background: white;
+            background: linear-gradient(135deg, var(--marine-red) 0%, #8B0000 100%);
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
             padding: 30px;
             margin-bottom: 30px;
             text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .logo-container {
+            background-image: url('assets/images/logo.png');
+            width: 80px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .header-text {
+            flex: 1;
+            min-width: 300px;
         }
         
         .title {
-            color: #1e3a8a;
             font-size: 2.5rem;
             font-weight: bold;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .subtitle {
-            color: #64748b;
             font-size: 1.1rem;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .security-notice {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .security-notice h4 {
+            margin-bottom: 8px;
+            color: var(--marine-gold);
+        }
+        
+        .mode-selector {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--marine-gray);
+            background: white;
+            color: var(--marine-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .mode-btn.active {
+            background: var(--marine-red);
+            color: white;
+            border-color: var(--marine-red);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .section {
@@ -55,12 +147,17 @@
         }
         
         .section-title {
-            color: #1e3a8a;
+            color: var(--marine-red);
             font-size: 1.5rem;
             font-weight: bold;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
+            gap: 10px;
+        }
+
+        .section-title.time-loss {
+            color: var(--danger-red);
         }
         
         .grid {
@@ -70,6 +167,10 @@
         
         .grid-3 {
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
         
         .form-group {
@@ -89,37 +190,79 @@
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 0.95rem;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
+        }
+
+        input[type="date"] {
+            position: relative;
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--marine-red);
+            box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+        }
+
+        .date-input-group {
+            position: relative;
+        }
+
+        .date-display {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--marine-gray);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .warning-message {
+            color: var(--warning-orange);
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: none;
         }
         
         .table-container {
             overflow-x: auto;
             margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-width: 800px;
         }
         
         th {
-            background-color: #f8fafc;
+            background: linear-gradient(135deg, var(--marine-gray) 0%, #34495e 100%);
+            color: white;
             padding: 12px 8px;
             text-align: left;
             font-weight: 600;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
             font-size: 0.85rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .time-loss-table th {
+            background: linear-gradient(135deg, var(--danger-red) 0%, #a71d2a 100%);
         }
         
         td {
@@ -132,16 +275,43 @@
             font-size: 0.8rem;
             width: 100%;
             min-width: 120px;
+            border: 1px solid #d1d5db;
+        }
+
+        td input[type="date"] {
+            min-width: 140px;
         }
         
         .creditable-yes {
-            color: #059669;
+            color: var(--success-green);
             font-weight: bold;
         }
         
         .creditable-no {
             color: #dc2626;
             font-weight: bold;
+        }
+
+        .time-loss-yes {
+            color: var(--danger-red);
+            font-weight: bold;
+        }
+
+        .validation-icon {
+            margin-left: 8px;
+            font-size: 1.2rem;
+        }
+
+        .validation-valid {
+            color: var(--success-green);
+        }
+
+        .validation-invalid {
+            color: #dc2626;
+        }
+
+        .validation-warning {
+            color: var(--warning-orange);
         }
         
         .button-container {
@@ -159,46 +329,78 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
         .btn-primary {
-            background-color: #1e40af;
+            background: linear-gradient(135deg, var(--marine-red) 0%, #8B0000 100%);
             color: white;
         }
         
         .btn-primary:hover {
-            background-color: #1d4ed8;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(196, 30, 58, 0.4);
         }
         
         .btn-success {
-            background-color: #059669;
+            background: linear-gradient(135deg, var(--success-green) 0%, #1e7e34 100%);
             color: white;
         }
         
         .btn-success:hover {
-            background-color: #047857;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
         }
         
         .btn-secondary {
-            background-color: #6b7280;
+            background: linear-gradient(135deg, var(--marine-gray) 0%, #34495e 100%);
             color: white;
         }
         
         .btn-secondary:hover {
-            background-color: #4b5563;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, var(--info-blue) 0%, #138496 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-red) 0%, #a71d2a 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
         }
         
-        .btn-success:disabled {
-            background-color: #9ca3af;
+        .btn-success:disabled, .btn-info:disabled {
+            background: #9ca3af;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .add-period-container {
+            text-align: center;
+            margin: 15px 0;
         }
         
         .results {
@@ -211,32 +413,146 @@
         
         .result-highlight {
             background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border: 2px solid #3b82f6;
+            border: 2px solid var(--info-blue);
             border-radius: 12px;
             padding: 20px;
             margin: 20px 0;
         }
         
         .pebd-result {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #1e40af;
+            color: var(--marine-red);
         }
         
         .calc-table {
             width: 100%;
-            max-width: 600px;
+            max-width: 700px;
             margin: 20px auto;
         }
         
         .calc-table th, .calc-table td {
             text-align: center;
             padding: 10px;
+            border: 1px solid #d1d5db;
         }
         
         .normalized-row {
-            background-color: #eff6ff;
+            background-color: #e8f5e9;
             font-weight: bold;
+        }
+
+        .lost-time-row {
+            background-color: #ffe8e8;
+            font-weight: bold;
+        }
+
+        .net-service-row {
+            background-color: #e3f2fd;
+            font-weight: bold;
+        }
+
+        .saved-calculations {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .saved-item-info {
+            flex: 1;
+        }
+
+        .saved-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .import-export-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .file-input-group {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--info-blue);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+        .advanced-features {
+            display: none;
+        }
+
+        .advanced-features.show {
+            display: block;
+        }
+
+        .basic-features.hide {
+            display: none;
+        }
+
+        .validation-summary {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .validation-summary.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .validation-summary.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .time-loss-section {
+            border-left: 4px solid var(--danger-red);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-style: italic;
         }
         
         @media (max-width: 768px) {
@@ -246,6 +562,20 @@
             
             .title {
                 font-size: 1.8rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .logo-container {
+                width: 60px;
+                height: 60px;
+            }
+
+            .header-text {
+                min-width: auto;
             }
             
             .section {
@@ -261,10 +591,64 @@
                 width: 100%;
                 max-width: 300px;
             }
+
+            .mode-buttons {
+                flex-direction: column;
+            }
+
+            .mode-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
         }
         
         .hidden {
             display: none;
+        }
+
+        /* Accessibility improvements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus indicators */
+        button:focus, input:focus, select:focus {
+            outline: 3px solid var(--marine-gold);
+            outline-offset: 2px;
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: "Processing...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -272,9 +656,83 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATOR</h1>
-            <p class="subtitle">by Semper Admin - PAA 04-25 Compliant (Not for time loss)</p>
-            <p><a href="https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2" target="_blank" style="font-size: 0.9rem; color: #64748b; text-decoration: underline;">PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</a></p>
+            <div class="header-content">
+                <div class="logo-container" role="img" aria-label="Semper Admin Logo"></div>
+                <div class="header-text">
+                    <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATOR</h1>
+                    <p class="subtitle">by Semper Admin - PAA 04-25 Compliant (Enhanced Enterprise Edition with Time Loss)</p>
+                    <p><a href="https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2" target="_blank" style="color: white; text-decoration: underline;">PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</a></p>
+                </div>
+            </div>
+            
+            <div class="security-notice">
+                <h4>🔒 OFFICIAL USE NOTICE</h4>
+                <p>This tool provides estimates only. Official PEBD determinations must be validated through proper Marine Corps channels per PAA 04-25. Do not input classified or sensitive personal information.</p>
+            </div>
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="mode-selector">
+            <h3 style="margin-bottom: 15px;">Select Calculation Mode</h3>
+            <div class="mode-buttons">
+                <button class="mode-btn active" onclick="setMode('basic')" id="basicModeBtn">
+                    📱 Basic Mode
+                </button>
+                <button class="mode-btn" onclick="setMode('advanced')" id="advancedModeBtn">
+                    🔧 Advanced Mode
+                </button>
+                <button class="mode-btn" onclick="setMode('bulk')" id="bulkModeBtn">
+                    📊 Bulk Processing
+                </button>
+            </div>
+        </div>
+
+        <!-- Save/Load Section -->
+        <div class="section advanced-features">
+            <h2 class="section-title">💾 Save/Load Calculations</h2>
+            <div class="grid grid-4">
+                <div class="form-group">
+                    <label for="calculationName">Calculation Name:</label>
+                    <input type="text" id="calculationName" placeholder="Marine Name or Reference">
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-info" onclick="saveCalculation()">💾 Save Current</button>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-secondary" onclick="showSavedCalculations()">📋 View Saved</button>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-secondary" onclick="clearAllSaved()">🗑️ Clear All</button>
+                </div>
+            </div>
+            <div id="savedCalculations" class="saved-calculations hidden"></div>
+        </div>
+
+        <!-- Import/Export Section -->
+        <div class="section advanced-features">
+            <h2 class="section-title">📁 Import/Export Data</h2>
+            <div class="import-export-section">
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label>Import from CSV:</label>
+                        <div class="file-input-group">
+                            <input type="file" class="file-input" id="csvImport" accept=".csv" onchange="importCSV(event)">
+                            <label for="csvImport" class="file-input-label">📄 Select CSV File</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn-info" onclick="exportToCSV()">📤 Export to CSV</button>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn-info" onclick="downloadTemplate()">📋 Download Template</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Marine Information -->
@@ -282,20 +740,24 @@
             <h2 class="section-title">👤 MARINE INFORMATION</h2>
             <div class="grid grid-3">
                 <div class="form-group">
-                    <label for="foundationalPEBD">(YYYYMMDD):</label>
-                    <input type="text" id="foundationalPEBD" placeholder="YYYYMMDD" maxlength="8">
-                     <label for="foundationalPEBD">Begining date of most recent period of continuous sevice for pay</label>
+                    <label for="foundationalPEBD">Foundational PEBD:</label>
+                    <div class="date-input-group">
+                        <input type="date" id="foundationalPEBD" onchange="updateDateDisplay('foundationalPEBD')" aria-label="Foundational PEBD date">
+                        <div class="date-display" id="foundationalPEBDDisplay"></div>
+                    </div>
+                    <div class="error-message" id="foundationalPEBDError"></div>
+                    <small>Beginning date of most recent period of continuous service for pay</small>
                 </div>
                 <div class="form-group">
                     <label for="marineStatus">Marine Status:</label>
-                    <select id="marineStatus" onchange="updateAllPeriods()">
+                    <select id="marineStatus" onchange="updateAllPeriods()" aria-label="Marine status selection">
                         <option value="Enlisted">Enlisted</option>
                         <option value="Officer">Officer</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="pathwayType">Pathway Type:</label>
-                    <select id="pathwayType" onchange="updateAllPeriods()">
+                    <select id="pathwayType" onchange="updateAllPeriods()" aria-label="Pathway type selection">
                         <option value="Enlisted DEP/Direct/Reenlisted/Prior Service">Enlisted DEP/Direct/Reenlisted/Prior Service</option>
                         <option value="Officer OCC/PLC/NROTC/Academy">Officer OCC/PLC/NROTC/Academy</option>
                     </select>
@@ -303,26 +765,67 @@
             </div>
         </div>
 
+        <!-- Validation Summary -->
+        <div id="validationSummary" class="validation-summary hidden">
+            <h4>⚠️ Validation Issues Found:</h4>
+            <ul id="validationIssues"></ul>
+        </div>
+
         <!-- Service Periods -->
         <div class="section">
-            <h2 class="section-title">📋 SERVICE PERIODS (Up to 10)</h2>
+            <h2 class="section-title">📋 CREDITABLE SERVICE PERIODS</h2>
             <div class="table-container">
-                <table id="periodsTable">
+                <table id="periodsTable" role="table" aria-label="Service periods entry table">
                     <thead>
-                        <tr>
-                            <th>Period</th>
-                            <th>Service Type</th>
-                            <th>Start Date<br>(YYYYMMDD)</th>
-                            <th>End Date<br>(YYYYMMDD)</th>
-                            <th>Creditable?</th>
-                            <th>Days</th>
-                            <th>Notes</th>
+                        <tr role="row">
+                            <th role="columnheader">Period</th>
+                            <th role="columnheader">Service Type</th>
+                            <th role="columnheader">Start Date</th>
+                            <th role="columnheader">End Date</th>
+                            <th role="columnheader">Creditable?</th>
+                            <th role="columnheader">Days</th>
+                            <th role="columnheader">Notes</th>
+                            <th role="columnheader">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="periodsBody">
+                    <tbody id="periodsBody" role="rowgroup">
                         <!-- Periods will be generated by JavaScript -->
                     </tbody>
                 </table>
+            </div>
+            <div class="add-period-container">
+                <button class="btn-info" onclick="addServicePeriod()">➕ Add Service Period</button>
+                <button class="btn-secondary advanced-features" onclick="validateAllPeriods()">✅ Validate All</button>
+            </div>
+        </div>
+
+        <!-- Time Loss Periods -->
+        <div class="section time-loss-section">
+            <h2 class="section-title time-loss">⏱️ TIME LOSS PERIODS</h2>
+            <p style="margin-bottom: 20px; color: var(--danger-red); font-weight: 600;">
+                Record periods of lost time (AWOL, confinement, suspension, etc.) that reduce creditable service
+            </p>
+            <div class="table-container">
+                <table id="timeLossTable" class="time-loss-table" role="table" aria-label="Time loss periods entry table">
+                    <thead>
+                        <tr role="row">
+                            <th role="columnheader">Period</th>
+                            <th role="columnheader">Loss Type</th>
+                            <th role="columnheader">Start Date</th>
+                            <th role="columnheader">End Date</th>
+                            <th role="columnheader">Deductible?</th>
+                            <th role="columnheader">Days</th>
+                            <th role="columnheader">Notes</th>
+                            <th role="columnheader">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timeLossBody" role="rowgroup">
+                        <!-- Time loss periods will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="add-period-container">
+                <button class="btn-danger" onclick="addTimeLossPeriod()">➕ Add Time Loss Period</button>
             </div>
         </div>
 
@@ -334,9 +837,20 @@
             <button class="btn-success" id="printBtn" onclick="printReport()" disabled>
                 🖨️ Print Report
             </button>
+            <button class="btn-info" id="exportBtn" onclick="exportCalculation()" disabled>
+                📤 Export Results
+            </button>
             <button class="btn-secondary" onclick="resetAll()">
                 🔄 Reset All
             </button>
+        </div>
+
+        <!-- Calculation History -->
+        <div class="section advanced-features">
+            <h2 class="section-title">📈 Calculation History</h2>
+            <div id="calculationHistory" class="saved-calculations">
+                <p>No calculations performed yet.</p>
+            </div>
         </div>
 
         <div style="display: flex; justify-content: center;">
@@ -362,7 +876,7 @@
                             <span class="pebd-result" id="resultCalculated"></span>
                         </div>
                         <div>
-                            <strong>Total Creditable Service:</strong><br>
+                            <strong>Net Creditable Service:</strong><br>
                             <span id="resultService"></span>
                         </div>
                     </div>
@@ -370,16 +884,16 @@
 
                 <!-- Calculation Table -->
                 <h3 style="margin: 30px 0 15px 0;">PAA 04-25 Calculation Method:</h3>
-                <table class="calc-table">
+                <table class="calc-table" role="table" aria-label="Calculation breakdown">
                     <thead>
-                        <tr>
-                            <th>Calculation Step</th>
-                            <th>Years</th>
-                            <th>Months</th>
-                            <th>Days</th>
+                        <tr role="row">
+                            <th role="columnheader">Calculation Step</th>
+                            <th role="columnheader">Years</th>
+                            <th role="columnheader">Months</th>
+                            <th role="columnheader">Days</th>
                         </tr>
                     </thead>
-                    <tbody id="calcTableBody">
+                    <tbody id="calcTableBody" role="rowgroup">
                         <!-- Calculation rows will be filled by JavaScript -->
                     </tbody>
                 </table>
@@ -387,29 +901,52 @@
                 <!-- Service Periods Analysis -->
                 <h3 style="margin: 30px 0 15px 0;">Service Periods Analysis:</h3>
                 <div class="table-container">
-                    <table id="analysisTable">
+                    <table id="analysisTable" role="table" aria-label="Service periods analysis">
                         <thead>
-                            <tr>
-                                <th>Period</th>
-                                <th>Service Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Creditable</th>
-                                <th>Days</th>
-                                <th>Notes</th>
+                            <tr role="row">
+                                <th role="columnheader">Period</th>
+                                <th role="columnheader">Service Type</th>
+                                <th role="columnheader">Start Date</th>
+                                <th role="columnheader">End Date</th>
+                                <th role="columnheader">Creditable</th>
+                                <th role="columnheader">Days</th>
+                                <th role="columnheader">Notes</th>
                             </tr>
                         </thead>
-                        <tbody id="analysisBody">
+                        <tbody id="analysisBody" role="rowgroup">
                             <!-- Analysis will be filled by JavaScript -->
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Time Loss Analysis -->
+                <div id="timeLossAnalysis" class="hidden">
+                    <h3 style="margin: 30px 0 15px 0;">Time Loss Analysis:</h3>
+                    <div class="table-container">
+                        <table id="timeLossAnalysisTable" role="table" aria-label="Time loss analysis">
+                            <thead>
+                                <tr role="row">
+                                    <th role="columnheader">Period</th>
+                                    <th role="columnheader">Loss Type</th>
+                                    <th role="columnheader">Start Date</th>
+                                    <th role="columnheader">End Date</th>
+                                    <th role="columnheader">Deductible</th>
+                                    <th role="columnheader">Days</th>
+                                    <th role="columnheader">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timeLossAnalysisBody" role="rowgroup">
+                                <!-- Time loss analysis will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Service Type Definitions from PAA 04-25
+        // Enhanced Service Type Definitions from PAA 04-25 (Complete List)
         const SERVICE_TYPES = {
             "Regular Army": { creditable: true, category: "Active" },
             "Regular Navy": { creditable: true, category: "Active" },
@@ -424,18 +961,65 @@
             "Army National Guard": { creditable: true, category: "Reserve" },
             "Air National Guard": { creditable: true, category: "Reserve" },
             "PHS Commissioned Corps": { creditable: true, category: "Other" },
-            "NOAA": { creditable: true, category: "Other" },
+            "PHS Reserve Corps": { creditable: true, category: "Other" },
+            "NOAA Officer Service": { creditable: true, category: "Other" },
+            "NOAA Deck Officer Service": { creditable: true, category: "Other" },
             "Military Academy Service": { creditable: true, category: "Academy" },
+            "Fleet Reserve": { creditable: true, category: "Reserve" },
+            "Fleet Marine Corps Reserve": { creditable: true, category: "Reserve" },
+            "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
+            "Temporary Coast Guard Reserve": { creditable: true, category: "Reserve" },
             "ROTC (Post 1979 w/Reserve)": { creditable: true, category: "ROTC" },
             "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
+            "ROTC (Pre-1964)": { creditable: false, category: "ROTC" },
+            "Service with Retired Pay": { creditable: true, category: "Retired" },
+            "Medical Retention Service": { creditable: true, category: "Medical" },
+            "Under-age Service (Valid Enlistment)": { creditable: true, category: "Special" },
+            "Service Terminated by Desertion": { creditable: true, category: "Special" },
+            "Detailed Service (Other Agency)": { creditable: true, category: "Special" },
+            "Service Before 10 Jan 1962": { creditable: true, category: "Historical" },
             "Philippine Army Officer": { creditable: false, category: "Excluded" },
             "State Guard": { creditable: false, category: "Excluded" },
+            "Territorial Guard": { creditable: false, category: "Excluded" },
+            "Home Guard": { creditable: false, category: "Excluded" },
+            "Emergency Officers Retired List": { creditable: false, category: "Excluded" },
             "AFHPSP/FAP (Post 1981)": { creditable: false, category: "Excluded" },
-            "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (on or after January 1985)": { creditable: false, category: "DEP" }
+            "USUHS Student (DOM)": { creditable: false, category: "Excluded" },
+            "Inactive National Guard": { creditable: false, category: "Excluded" },
+            "Delayed Entry Program (Before January 1985)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
+            "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" }
         };
 
+        // Time Loss Types from PAA 04-25
+        const TIME_LOSS_TYPES = {
+            "AWOL (Absence Without Leave)": { deductible: true, category: "Unauthorized Absence" },
+            "Desertion": { deductible: true, category: "Unauthorized Absence" },
+            "Confinement (Court-Martial)": { deductible: true, category: "Disciplinary" },
+            "Confinement (Civil)": { deductible: true, category: "Disciplinary" },
+            "Suspension from Duty": { deductible: true, category: "Disciplinary" },
+            "Administrative Leave (Pending Investigation)": { deductible: false, category: "Administrative" },
+            "Emergency Leave": { deductible: false, category: "Administrative" },
+            "Ordinary Leave": { deductible: false, category: "Administrative" },
+            "Medical Leave": { deductible: false, category: "Administrative" },
+            "Maternity/Paternity Leave": { deductible: false, category: "Administrative" },
+            "TDY/TAD": { deductible: false, category: "Duty" },
+            "Training": { deductible: false, category: "Duty" },
+            "Hospitalization": { deductible: false, category: "Medical" },
+            "Unauthorized Absence (Other)": { deductible: true, category: "Unauthorized Absence" },
+            "Dropped from Rolls": { deductible: true, category: "Administrative" },
+            "Excess Leave": { deductible: true, category: "Administrative" }
+        };
+
+        // Global variables
         let calculationResult = null;
+        let currentMode = 'basic';
+        let calculationHistory = [];
+        let savedCalculations = JSON.parse(localStorage.getItem('pebdCalculations') || '[]');
+        let validationErrors = [];
+        let servicePeriodCount = 0;
+        let timeLossPeriodCount = 0;
 
         // Helper function to determine if service type is creditable
         function isServiceCreditable(serviceType, pathwayType) {
@@ -443,7 +1027,6 @@
             
             // Special logic for Military Academy Service
             if (serviceType === "Military Academy Service") {
-                // If pathway is officer, Military Academy Service is NOT creditable
                 if (pathwayType && pathwayType.includes("Officer")) {
                     isCreditable = false;
                 } else {
@@ -454,61 +1037,161 @@
             return isCreditable;
         }
 
-        // Initialize the periods table
-        function initializePeriods() {
-            const tbody = document.getElementById('periodsBody');
-            tbody.innerHTML = '';
+        // Helper function to determine if time loss is deductible
+        function isTimeLossDeductible(lossType) {
+            return TIME_LOSS_TYPES[lossType]?.deductible || false;
+        }
+
+        // Mode management
+        function setMode(mode) {
+            currentMode = mode;
             
-            for (let i = 0; i < 10; i++) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>
-                        <select onchange="updatePeriod(${i})" data-period="${i}" data-field="serviceType">
-                            <option value="">Select Service Type</option>
-                            ${Object.keys(SERVICE_TYPES).map(type => 
-                                `<option value="${type}">${type}</option>`
-                            ).join('')}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="text" placeholder="YYYMMDD" maxlength="8" 
-                               onkeyup="updatePeriod(${i})" data-period="${i}" data-field="startDate">
-                    </td>
-                    <td>
-                        <input type="text" placeholder="YYYMMDD" maxlength="8" 
-                               onkeyup="updatePeriod(${i})" data-period="${i}" data-field="endDate">
-                    </td>
-                    <td id="creditable-${i}"></td>
-                    <td id="days-${i}"></td>
-                    <td>
-                        <input type="text" placeholder="Notes..." 
-                               data-period="${i}" data-field="notes">
-                    </td>
-                `;
-                tbody.appendChild(row);
+            // Update button states
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(mode + 'ModeBtn').classList.add('active');
+            
+            // Show/hide advanced features
+            const advancedFeatures = document.querySelectorAll('.advanced-features');
+            if (mode === 'advanced' || mode === 'bulk') {
+                advancedFeatures.forEach(el => el.classList.add('show'));
+            } else {
+                advancedFeatures.forEach(el => el.classList.remove('show'));
             }
         }
 
-        // Parse YYYYMMDD date
+        // Enhanced date handling
+        function updateDateDisplay(fieldId) {
+            const dateInput = document.getElementById(fieldId);
+            const displayElement = document.getElementById(fieldId + 'Display');
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            if (dateInput.value) {
+                const yyyymmdd = dateInput.value.replace(/-/g, '');
+                displayElement.textContent = yyyymmdd;
+                displayElement.style.display = 'block';
+                
+                // Validate date
+                const selectedDate = new Date(dateInput.value);
+                const today = new Date();
+                
+                if (selectedDate > today) {
+                    errorElement.textContent = 'Warning: Future date selected';
+                    errorElement.style.display = 'block';
+                    errorElement.className = 'warning-message';
+                } else {
+                    errorElement.style.display = 'none';
+                }
+            } else {
+                displayElement.style.display = 'none';
+                errorElement.style.display = 'none';
+            }
+        }
+
+        // Convert date input to YYYYMMDD
+        function dateToYYYYMMDD(dateStr) {
+            if (!dateStr) return '';
+            return dateStr.replace(/-/g, '');
+        }
+
+        // Convert YYYYMMDD to date input format
+        function yyyymmddToDate(yyyymmdd) {
+            if (!yyyymmdd || yyyymmdd.length !== 8) return '';
+            return yyyymmdd.substring(0, 4) + '-' + yyyymmdd.substring(4, 6) + '-' + yyyymmdd.substring(6, 8);
+        }
+
+        // Initialize the periods table with one period
+        function initializePeriods() {
+            const tbody = document.getElementById('periodsBody');
+            tbody.innerHTML = '';
+            servicePeriodCount = 0;
+            
+            // Add one default period
+            addServicePeriod();
+        }
+
+        // Initialize time loss periods table (empty)
+        function initializeTimeLossPeriods() {
+            const tbody = document.getElementById('timeLossBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No time loss periods added. Click "Add Time Loss Period" to begin.</td></tr>';
+            timeLossPeriodCount = 0;
+        }
+
+        // Parse date from various formats
         function parseDate(dateStr) {
-            if (!dateStr || dateStr.length !== 8) return null;
-            try {
+            if (!dateStr) return null;
+            
+            // Handle YYYYMMDD format
+            if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
                 const year = parseInt(dateStr.substring(0, 4));
                 const month = parseInt(dateStr.substring(4, 6)) - 1;
                 const day = parseInt(dateStr.substring(6, 8));
                 return new Date(year, month, day);
-            } catch {
-                return null;
             }
+            
+            // Handle YYYY-MM-DD format
+            if (dateStr.includes('-')) {
+                return new Date(dateStr);
+            }
+            
+            return null;
         }
 
         // Calculate days between dates
         function calculateDays(startDate, endDate) {
-            const start = parseDate(startDate);
-            const end = parseDate(endDate);
+            const start = parseDate(startDate.replace(/-/g, ''));
+            const end = parseDate(endDate.replace(/-/g, ''));
             if (!start || !end || end < start) return 0;
             return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        // Validate service period
+        function validateServicePeriod(periodIndex) {
+            const serviceSelect = document.querySelector(`select[data-period="${periodIndex}"][data-field="serviceType"]`);
+            const startInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="startDate"]`);
+            const endInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="endDate"]`);
+            
+            const errors = [];
+            const warnings = [];
+            
+            if (serviceSelect?.value && startInput?.value && endInput?.value) {
+                const startDate = new Date(startInput.value);
+                const endDate = new Date(endInput.value);
+                
+                if (endDate <= startDate) {
+                    errors.push(`Service Period ${periodIndex + 1}: End date must be after start date`);
+                }
+                
+                if (startDate > new Date()) {
+                    warnings.push(`Service Period ${periodIndex + 1}: Start date is in the future`);
+                }
+            }
+            
+            return { errors, warnings };
+        }
+
+        // Validate time loss period
+        function validateTimeLossPeriod(periodIndex) {
+            const lossSelect = document.querySelector(`select[data-timeloss="${periodIndex}"][data-field="lossType"]`);
+            const startInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="startDate"]`);
+            const endInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="endDate"]`);
+            
+            const errors = [];
+            const warnings = [];
+            
+            if (lossSelect?.value && startInput?.value && endInput?.value) {
+                const startDate = new Date(startInput.value);
+                const endDate = new Date(endInput.value);
+                
+                if (endDate <= startDate) {
+                    errors.push(`Time Loss Period ${periodIndex + 1}: End date must be after start date`);
+                }
+                
+                if (startDate > new Date()) {
+                    warnings.push(`Time Loss Period ${periodIndex + 1}: Start date is in the future`);
+                }
+            }
+            
+            return { errors, warnings };
         }
 
         // Update period info when fields change
@@ -517,66 +1200,400 @@
             const startInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="startDate"]`);
             const endInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="endDate"]`);
             
+            if (!serviceSelect) return;
+            
             const serviceType = serviceSelect.value;
-            const startDate = startInput.value;
-            const endDate = endInput.value;
+            const startDate = startInput?.value;
+            const endDate = endInput?.value;
             
             const creditableCell = document.getElementById(`creditable-${periodIndex}`);
             const daysCell = document.getElementById(`days-${periodIndex}`);
+            
+            // Clear previous validation
+            if (creditableCell) creditableCell.innerHTML = '';
+            if (daysCell) daysCell.innerHTML = '';
             
             // Update creditable status
             if (serviceType) {
                 const pathwayType = document.getElementById('pathwayType').value;
                 const isCreditable = isServiceCreditable(serviceType, pathwayType);
-                creditableCell.innerHTML = `<span class="${isCreditable ? 'creditable-yes' : 'creditable-no'}">${isCreditable ? 'Yes' : 'No'}</span>`;
-            } else {
-                creditableCell.innerHTML = '';
+                if (creditableCell) {
+                    creditableCell.innerHTML = `<span class="${isCreditable ? 'creditable-yes' : 'creditable-no'}">${isCreditable ? 'Yes' : 'No'}</span>`;
+                }
             }
             
-            // Update days
-            if (startDate && endDate && startDate.length === 8 && endDate.length === 8) {
+            // Update days and validation
+            if (startDate && endDate && daysCell) {
+                const validation = validateServicePeriod(periodIndex);
                 const days = calculateDays(startDate, endDate);
-                daysCell.textContent = days > 0 ? days : 'Invalid';
-            } else {
-                daysCell.textContent = '';
+                
+                let dayDisplay = days > 0 ? days.toString() : 'Invalid';
+                let validationIcon = '';
+                
+                if (validation.errors.length > 0) {
+                    validationIcon = '<span class="validation-icon validation-invalid">❌</span>';
+                    dayDisplay = 'Error';
+                } else if (validation.warnings.length > 0) {
+                    validationIcon = '<span class="validation-icon validation-warning">⚠️</span>';
+                } else if (days > 0) {
+                    validationIcon = '<span class="validation-icon validation-valid">✅</span>';
+                }
+                
+                daysCell.innerHTML = dayDisplay + validationIcon;
+            }
+        }
+
+        // Update time loss period info when fields change
+        function updateTimeLossPeriod(periodIndex) {
+            const lossSelect = document.querySelector(`select[data-timeloss="${periodIndex}"][data-field="lossType"]`);
+            const startInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="startDate"]`);
+            const endInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="endDate"]`);
+            
+            if (!lossSelect) return;
+            
+            const lossType = lossSelect.value;
+            const startDate = startInput?.value;
+            const endDate = endInput?.value;
+            
+            const deductibleCell = document.getElementById(`timeloss-deductible-${periodIndex}`);
+            const daysCell = document.getElementById(`timeloss-days-${periodIndex}`);
+            
+            // Clear previous validation
+            if (deductibleCell) deductibleCell.innerHTML = '';
+            if (daysCell) daysCell.innerHTML = '';
+            
+            // Update deductible status
+            if (lossType && deductibleCell) {
+                const isDeductible = isTimeLossDeductible(lossType);
+                deductibleCell.innerHTML = `<span class="${isDeductible ? 'time-loss-yes' : 'creditable-yes'}">${isDeductible ? 'Yes' : 'No'}</span>`;
+            }
+            
+            // Update days and validation
+            if (startDate && endDate && daysCell) {
+                const validation = validateTimeLossPeriod(periodIndex);
+                const days = calculateDays(startDate, endDate);
+                
+                let dayDisplay = days > 0 ? days.toString() : 'Invalid';
+                let validationIcon = '';
+                
+                if (validation.errors.length > 0) {
+                    validationIcon = '<span class="validation-icon validation-invalid">❌</span>';
+                    dayDisplay = 'Error';
+                } else if (validation.warnings.length > 0) {
+                    validationIcon = '<span class="validation-icon validation-warning">⚠️</span>';
+                } else if (days > 0) {
+                    validationIcon = '<span class="validation-icon validation-valid">✅</span>';
+                }
+                
+                daysCell.innerHTML = dayDisplay + validationIcon;
             }
         }
 
         // Update all periods when pathway changes
         function updateAllPeriods() {
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < servicePeriodCount; i++) {
                 updatePeriod(i);
+            }
+            for (let i = 0; i < timeLossPeriodCount; i++) {
+                updateTimeLossPeriod(i);
             }
         }
 
-        // Calculate PEBD
+        // Add service period
+        function addServicePeriod() {
+            const tbody = document.getElementById('periodsBody');
+            
+            if (servicePeriodCount >= 20) {
+                alert('Maximum 20 service periods allowed');
+                return;
+            }
+            
+            // Remove empty state if it exists
+            if (servicePeriodCount === 0) {
+                tbody.innerHTML = '';
+            }
+            
+            const newIndex = servicePeriodCount;
+            const row = document.createElement('tr');
+            row.setAttribute('role', 'row');
+            row.setAttribute('id', `service-period-${newIndex}`);
+            
+            row.innerHTML = `
+                <td role="gridcell">${newIndex + 1}</td>
+                <td role="gridcell">
+                    <select onchange="updatePeriod(${newIndex})" data-period="${newIndex}" data-field="serviceType" aria-label="Service type for period ${newIndex + 1}">
+                        <option value="">Select Service Type</option>
+                        ${Object.keys(SERVICE_TYPES).map(type => 
+                            `<option value="${type}">${type}</option>`
+                        ).join('')}
+                    </select>
+                </td>
+                <td role="gridcell">
+                    <input type="date" onchange="updatePeriod(${newIndex})" data-period="${newIndex}" data-field="startDate" aria-label="Start date for period ${newIndex + 1}">
+                </td>
+                <td role="gridcell">
+                    <input type="date" onchange="updatePeriod(${newIndex})" data-period="${newIndex}" data-field="endDate" aria-label="End date for period ${newIndex + 1}">
+                </td>
+                <td role="gridcell" id="creditable-${newIndex}"></td>
+                <td role="gridcell" id="days-${newIndex}"></td>
+                <td role="gridcell">
+                    <input type="text" placeholder="Notes..." data-period="${newIndex}" data-field="notes" aria-label="Notes for period ${newIndex + 1}">
+                </td>
+                <td role="gridcell">
+                    <button class="btn-small btn-secondary" onclick="removeServicePeriod(${newIndex})" title="Remove this period">🗑️</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+            servicePeriodCount++;
+        }
+
+        // Add time loss period
+        function addTimeLossPeriod() {
+            const tbody = document.getElementById('timeLossBody');
+            
+            if (timeLossPeriodCount >= 10) {
+                alert('Maximum 10 time loss periods allowed');
+                return;
+            }
+            
+            // Remove empty state if it exists
+            if (timeLossPeriodCount === 0) {
+                tbody.innerHTML = '';
+            }
+            
+            const newIndex = timeLossPeriodCount;
+            const row = document.createElement('tr');
+            row.setAttribute('role', 'row');
+            row.setAttribute('id', `timeloss-period-${newIndex}`);
+            
+            row.innerHTML = `
+                <td role="gridcell">${newIndex + 1}</td>
+                <td role="gridcell">
+                    <select onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="lossType" aria-label="Loss type for period ${newIndex + 1}">
+                        <option value="">Select Loss Type</option>
+                        ${Object.keys(TIME_LOSS_TYPES).map(type => 
+                            `<option value="${type}">${type}</option>`
+                        ).join('')}
+                    </select>
+                </td>
+                <td role="gridcell">
+                    <input type="date" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="startDate" aria-label="Start date for time loss period ${newIndex + 1}">
+                </td>
+                <td role="gridcell">
+                    <input type="date" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="endDate" aria-label="End date for time loss period ${newIndex + 1}">
+                </td>
+                <td role="gridcell" id="timeloss-deductible-${newIndex}"></td>
+                <td role="gridcell" id="timeloss-days-${newIndex}"></td>
+                <td role="gridcell">
+                    <input type="text" placeholder="Reason/Details..." data-timeloss="${newIndex}" data-field="notes" aria-label="Notes for time loss period ${newIndex + 1}">
+                </td>
+                <td role="gridcell">
+                    <button class="btn-small btn-danger" onclick="removeTimeLossPeriod(${newIndex})" title="Remove this time loss period">🗑️</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+            timeLossPeriodCount++;
+        }
+
+        // Remove service period
+        function removeServicePeriod(periodIndex) {
+            const row = document.getElementById(`service-period-${periodIndex}`);
+            
+            if (confirm('Remove this service period?')) {
+                row.remove();
+                servicePeriodCount--;
+                
+                // Show empty state if no periods left
+                if (servicePeriodCount === 0) {
+                    const tbody = document.getElementById('periodsBody');
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No service periods added. Click "Add Service Period" to begin.</td></tr>';
+                }
+                
+                // Renumber remaining rows
+                renumberServicePeriods();
+            }
+        }
+
+        // Remove time loss period
+        function removeTimeLossPeriod(periodIndex) {
+            const row = document.getElementById(`timeloss-period-${periodIndex}`);
+            
+            if (confirm('Remove this time loss period?')) {
+                row.remove();
+                timeLossPeriodCount--;
+                
+                // Show empty state if no periods left
+                if (timeLossPeriodCount === 0) {
+                    const tbody = document.getElementById('timeLossBody');
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No time loss periods added. Click "Add Time Loss Period" to begin.</td></tr>';
+                }
+                
+                // Renumber remaining rows
+                renumberTimeLossPeriods();
+            }
+        }
+
+        // Renumber service periods after removal
+        function renumberServicePeriods() {
+            const tbody = document.getElementById('periodsBody');
+            Array.from(tbody.children).forEach((row, index) => {
+                if (!row.querySelector('.empty-state')) {
+                    row.children[0].textContent = index + 1;
+                }
+            });
+        }
+
+        // Renumber time loss periods after removal
+        function renumberTimeLossPeriods() {
+            const tbody = document.getElementById('timeLossBody');
+            Array.from(tbody.children).forEach((row, index) => {
+                if (!row.querySelector('.empty-state')) {
+                    row.children[0].textContent = index + 1;
+                }
+            });
+        }
+
+        // Validate all periods
+        function validateAllPeriods() {
+            validationErrors = [];
+            const validationSummary = document.getElementById('validationSummary');
+            const validationIssues = document.getElementById('validationIssues');
+            
+            let hasErrors = false;
+            let hasWarnings = false;
+            
+            validationIssues.innerHTML = '';
+            
+            // Validate service periods
+            for (let i = 0; i < servicePeriodCount; i++) {
+                const validation = validateServicePeriod(i);
+                
+                validation.errors.forEach(error => {
+                    validationErrors.push(error);
+                    validationIssues.innerHTML += `<li style="color: #dc2626;">${error}</li>`;
+                    hasErrors = true;
+                });
+                
+                validation.warnings.forEach(warning => {
+                    validationIssues.innerHTML += `<li style="color: #fd7e14;">${warning}</li>`;
+                    hasWarnings = true;
+                });
+            }
+            
+            // Validate time loss periods
+            for (let i = 0; i < timeLossPeriodCount; i++) {
+                const validation = validateTimeLossPeriod(i);
+                
+                validation.errors.forEach(error => {
+                    validationErrors.push(error);
+                    validationIssues.innerHTML += `<li style="color: #dc2626;">${error}</li>`;
+                    hasErrors = true;
+                });
+                
+                validation.warnings.forEach(warning => {
+                    validationIssues.innerHTML += `<li style="color: #fd7e14;">${warning}</li>`;
+                    hasWarnings = true;
+                });
+            }
+            
+            if (hasErrors || hasWarnings) {
+                validationSummary.className = hasErrors ? 'validation-summary error' : 'validation-summary';
+                validationSummary.classList.remove('hidden');
+            } else {
+                validationSummary.classList.add('hidden');
+                alert('✅ All periods validated successfully!');
+            }
+            
+            return !hasErrors;
+        }
+
+        // Collect all input data
+        function collectAllInputData() {
+            const data = {
+                foundationalPEBD: dateToYYYYMMDD(document.getElementById('foundationalPEBD').value),
+                marineStatus: document.getElementById('marineStatus').value,
+                pathwayType: document.getElementById('pathwayType').value,
+                periods: [],
+                timeLossPeriods: []
+            };
+            
+            // Collect service periods
+            for (let i = 0; i < servicePeriodCount; i++) {
+                const serviceSelect = document.querySelector(`select[data-period="${i}"][data-field="serviceType"]`);
+                const startInput = document.querySelector(`input[data-period="${i}"][data-field="startDate"]`);
+                const endInput = document.querySelector(`input[data-period="${i}"][data-field="endDate"]`);
+                const notesInput = document.querySelector(`input[data-period="${i}"][data-field="notes"]`);
+                
+                if (serviceSelect?.value) {
+                    data.periods.push({
+                        serviceType: serviceSelect.value,
+                        startDate: startInput?.value || '',
+                        endDate: endInput?.value || '',
+                        notes: notesInput?.value || ''
+                    });
+                }
+            }
+            
+            // Collect time loss periods
+            for (let i = 0; i < timeLossPeriodCount; i++) {
+                const lossSelect = document.querySelector(`select[data-timeloss="${i}"][data-field="lossType"]`);
+                const startInput = document.querySelector(`input[data-timeloss="${i}"][data-field="startDate"]`);
+                const endInput = document.querySelector(`input[data-timeloss="${i}"][data-field="endDate"]`);
+                const notesInput = document.querySelector(`input[data-timeloss="${i}"][data-field="notes"]`);
+                
+                if (lossSelect?.value) {
+                    data.timeLossPeriods.push({
+                        lossType: lossSelect.value,
+                        startDate: startInput?.value || '',
+                        endDate: endInput?.value || '',
+                        notes: notesInput?.value || ''
+                    });
+                }
+            }
+            
+            return data;
+        }
+
+        // Enhanced Calculate PEBD with time loss calculations
         function calculatePEBD() {
             try {
-                const foundationalPEBD = document.getElementById('foundationalPEBD').value.trim();
+                // Show loading state
+                const button = event.target;
+                button.classList.add('loading');
+                
+                const foundationalPEBD = dateToYYYYMMDD(document.getElementById('foundationalPEBD').value);
                 const marineStatus = document.getElementById('marineStatus').value;
                 const pathwayType = document.getElementById('pathwayType').value;
                 
                 if (!foundationalPEBD || foundationalPEBD.length !== 8) {
-                    alert('Foundational PEBD is required in YYYYMMDD format');
-                    return;
+                    throw new Error('Foundational PEBD is required in valid date format');
+                }
+
+                // Validate all periods first
+                if (!validateAllPeriods()) {
+                    throw new Error('Please fix validation errors before calculating');
                 }
 
                 const periods = [];
                 const beginningDates = [];
                 const endingDates = [];
                 const periodDetails = [];
+                const timeLossDetails = [];
+                let totalTimeLossDays = 0;
 
-                // Collect all periods
-                for (let i = 0; i < 10; i++) {
+                // Collect all service periods
+                for (let i = 0; i < servicePeriodCount; i++) {
                     const serviceSelect = document.querySelector(`select[data-period="${i}"][data-field="serviceType"]`);
                     const startInput = document.querySelector(`input[data-period="${i}"][data-field="startDate"]`);
                     const endInput = document.querySelector(`input[data-period="${i}"][data-field="endDate"]`);
                     const notesInput = document.querySelector(`input[data-period="${i}"][data-field="notes"]`);
                     
-                    const serviceType = serviceSelect.value;
-                    const startDate = startInput.value;
-                    const endDate = endInput.value;
-                    const notes = notesInput.value;
+                    const serviceType = serviceSelect?.value;
+                    const startDate = startInput?.value;
+                    const endDate = endInput?.value;
+                    const notes = notesInput?.value || '';
                     
                     if (serviceType && startDate && endDate) {
                         const isCreditable = isServiceCreditable(serviceType, pathwayType);
@@ -586,21 +1603,24 @@
                             periodDetails.push({
                                 period: i + 1,
                                 serviceType,
-                                startDate,
-                                endDate,
+                                startDate: dateToYYYYMMDD(startDate),
+                                endDate: dateToYYYYMMDD(endDate),
                                 creditable: isCreditable,
                                 days,
                                 notes
                             });
                             
                             if (isCreditable) {
-                                const startYear = parseInt(startDate.substring(0, 4));
-                                const startMonth = parseInt(startDate.substring(4, 6));
-                                const startDay = parseInt(startDate.substring(6, 8));
+                                const startYYYYMMDD = dateToYYYYMMDD(startDate);
+                                const endYYYYMMDD = dateToYYYYMMDD(endDate);
                                 
-                                let endYear = parseInt(endDate.substring(0, 4));
-                                let endMonth = parseInt(endDate.substring(4, 6));
-                                let endDay = parseInt(endDate.substring(6, 8));
+                                const startYear = parseInt(startYYYYMMDD.substring(0, 4));
+                                const startMonth = parseInt(startYYYYMMDD.substring(4, 6));
+                                const startDay = parseInt(startYYYYMMDD.substring(6, 8));
+                                
+                                let endYear = parseInt(endYYYYMMDD.substring(0, 4));
+                                let endMonth = parseInt(endYYYYMMDD.substring(4, 6));
+                                let endDay = parseInt(endYYYYMMDD.substring(6, 8));
                                 
                                 // Apply PAA 04-25 ending date adjustments
                                 if (endDay === 31) endDay = 30;
@@ -608,6 +1628,40 @@
                                 
                                 beginningDates.push({ year: startYear, month: startMonth, day: startDay });
                                 endingDates.push({ year: endYear, month: endMonth, day: endDay });
+                            }
+                        }
+                    }
+                }
+
+                // Collect all time loss periods
+                for (let i = 0; i < timeLossPeriodCount; i++) {
+                    const lossSelect = document.querySelector(`select[data-timeloss="${i}"][data-field="lossType"]`);
+                    const startInput = document.querySelector(`input[data-timeloss="${i}"][data-field="startDate"]`);
+                    const endInput = document.querySelector(`input[data-timeloss="${i}"][data-field="endDate"]`);
+                    const notesInput = document.querySelector(`input[data-timeloss="${i}"][data-field="notes"]`);
+                    
+                    const lossType = lossSelect?.value;
+                    const startDate = startInput?.value;
+                    const endDate = endInput?.value;
+                    const notes = notesInput?.value || '';
+                    
+                    if (lossType && startDate && endDate) {
+                        const isDeductible = isTimeLossDeductible(lossType);
+                        const days = calculateDays(startDate, endDate);
+                        
+                        if (days > 0) {
+                            timeLossDetails.push({
+                                period: i + 1,
+                                lossType,
+                                startDate: dateToYYYYMMDD(startDate),
+                                endDate: dateToYYYYMMDD(endDate),
+                                deductible: isDeductible,
+                                days,
+                                notes
+                            });
+                            
+                            if (isDeductible) {
+                                totalTimeLossDays += days;
                             }
                         }
                     }
@@ -645,8 +1699,15 @@
                         days: difference.days + beginningDates.length
                     };
 
+                    // Subtract time loss days
+                    const afterTimeLoss = {
+                        years: inclusiveAdjusted.years,
+                        months: inclusiveAdjusted.months,
+                        days: inclusiveAdjusted.days - totalTimeLossDays
+                    };
+
                     // Normalize
-                    let normalized = { ...inclusiveAdjusted };
+                    let normalized = { ...afterTimeLoss };
                     
                     // Handle negative days
                     while (normalized.days < 0) {
@@ -681,25 +1742,55 @@
                         marineStatus,
                         pathwayType,
                         periodDetails,
+                        timeLossDetails,
                         beginTotals,
                         endTotals,
                         difference,
                         inclusiveAdjusted,
+                        afterTimeLoss,
                         normalized,
                         numPeriods: beginningDates.length,
+                        totalTimeLossDays,
                         calculationDate: new Date().toLocaleString()
                     };
 
+                    // Add to calculation history
+                    calculationHistory.unshift({
+                        timestamp: new Date().toLocaleString(),
+                        pebd: calculatedPEBD,
+                        marine: marineStatus,
+                        periods: beginningDates.length,
+                        timeLoss: totalTimeLossDays
+                    });
+
+                    // Keep only last 10 calculations in history
+                    if (calculationHistory.length > 10) {
+                        calculationHistory = calculationHistory.slice(0, 10);
+                    }
+
+                    updateCalculationHistory();
                     displayResults();
+                    
                     document.getElementById('printBtn').disabled = false;
+                    document.getElementById('exportBtn').disabled = false;
+                } else {
+                    throw new Error('No creditable service periods found');
                 }
+                
+                // Remove loading state
+                button.classList.remove('loading');
+                
             } catch (error) {
+                // Remove loading state
+                if (event.target) event.target.classList.remove('loading');
                 alert('Error in calculation: ' + error.message);
             }
         }
 
-        // Subtract service from date
+        // Subtract service from date (enhanced)
         function subtractServiceFromDate(dateStr, years, months, days) {
+            if (!dateStr || dateStr.length !== 8) return dateStr;
+            
             const date = parseDate(dateStr);
             if (!date) return dateStr;
             
@@ -728,7 +1819,7 @@
             return year + month + day;
         }
 
-        // Display results
+        // Enhanced display results with time loss
         function displayResults() {
             const data = calculationResult;
             
@@ -739,7 +1830,7 @@
 
             // Fill calculation table
             const calcTableBody = document.getElementById('calcTableBody');
-            calcTableBody.innerHTML = `
+            let calcHTML = `
                 <tr>
                     <td>Begin Totals</td>
                     <td>${data.beginTotals.years}</td>
@@ -763,14 +1854,27 @@
                     <td>${data.inclusiveAdjusted.years}</td>
                     <td>${data.inclusiveAdjusted.months}</td>
                     <td>${data.inclusiveAdjusted.days}</td>
-                </tr>
-                <tr class="normalized-row">
-                    <td><strong>Normalized</strong></td>
+                </tr>`;
+            
+            if (data.totalTimeLossDays > 0) {
+                calcHTML += `
+                <tr class="lost-time-row">
+                    <td><strong>Less Time Loss (${data.totalTimeLossDays} days)</strong></td>
+                    <td>${data.afterTimeLoss.years}</td>
+                    <td>${data.afterTimeLoss.months}</td>
+                    <td>${data.afterTimeLoss.days}</td>
+                </tr>`;
+            }
+            
+            calcHTML += `
+                <tr class="net-service-row">
+                    <td><strong>Net Creditable Service</strong></td>
                     <td><strong>${data.normalized.years}</strong></td>
                     <td><strong>${data.normalized.months}</strong></td>
                     <td><strong>${data.normalized.days}</strong></td>
-                </tr>
-            `;
+                </tr>`;
+            
+            calcTableBody.innerHTML = calcHTML;
 
             // Fill analysis table
             const analysisBody = document.getElementById('analysisBody');
@@ -788,10 +1892,365 @@
                 </tr>
             `).join('');
 
+            // Fill time loss analysis if there are time loss periods
+            const timeLossAnalysisSection = document.getElementById('timeLossAnalysis');
+            if (data.timeLossDetails.length > 0) {
+                const timeLossAnalysisBody = document.getElementById('timeLossAnalysisBody');
+                timeLossAnalysisBody.innerHTML = data.timeLossDetails.map(detail => `
+                    <tr>
+                        <td>${detail.period}</td>
+                        <td>${detail.lossType}</td>
+                        <td>${detail.startDate}</td>
+                        <td>${detail.endDate}</td>
+                        <td class="${detail.deductible ? 'time-loss-yes' : 'creditable-yes'}">
+                            ${detail.deductible ? 'Yes' : 'No'}
+                        </td>
+                        <td>${detail.days}</td>
+                        <td>${detail.notes}</td>
+                    </tr>
+                `).join('');
+                timeLossAnalysisSection.classList.remove('hidden');
+            } else {
+                timeLossAnalysisSection.classList.add('hidden');
+            }
+
             document.getElementById('results').classList.remove('hidden');
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Print report
+        // Update calculation history display
+        function updateCalculationHistory() {
+            const container = document.getElementById('calculationHistory');
+            
+            if (calculationHistory.length === 0) {
+                container.innerHTML = '<p>No calculations performed yet.</p>';
+                return;
+            }
+            
+            let html = '';
+            calculationHistory.forEach((calc, index) => {
+                const timeLossText = calc.timeLoss > 0 ? ` | ${calc.timeLoss} days lost` : '';
+                html += `
+                    <div class="saved-item">
+                        <div class="saved-item-info">
+                            <strong>Calculation ${index + 1}</strong><br>
+                            <small>${calc.timestamp}</small><br>
+                            <small>PEBD: ${calc.pebd} | ${calc.marine} | ${calc.periods} periods${timeLossText}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Save calculation (updated for time loss)
+        function saveCalculation() {
+            const name = document.getElementById('calculationName').value.trim();
+            if (!name) {
+                alert('Please enter a name for this calculation');
+                return;
+            }
+            
+            if (!calculationResult) {
+                alert('Please calculate PEBD first before saving');
+                return;
+            }
+            
+            const savedCalc = {
+                id: Date.now(),
+                name: name,
+                timestamp: new Date().toLocaleString(),
+                data: calculationResult,
+                inputData: collectAllInputData()
+            };
+            
+            savedCalculations.push(savedCalc);
+            localStorage.setItem('pebdCalculations', JSON.stringify(savedCalculations));
+            
+            alert('Calculation saved successfully!');
+            document.getElementById('calculationName').value = '';
+        }
+
+        // Show saved calculations
+        function showSavedCalculations() {
+            const container = document.getElementById('savedCalculations');
+            
+            if (savedCalculations.length === 0) {
+                container.innerHTML = '<p>No saved calculations found.</p>';
+                container.classList.remove('hidden');
+                return;
+            }
+            
+            let html = '<h4>Saved Calculations:</h4>';
+            savedCalculations.forEach(calc => {
+                const timeLossText = calc.data.totalTimeLossDays > 0 ? ` | ${calc.data.totalTimeLossDays} days lost` : '';
+                html += `
+                    <div class="saved-item">
+                        <div class="saved-item-info">
+                            <strong>${calc.name}</strong><br>
+                            <small>Saved: ${calc.timestamp}</small><br>
+                            <small>PEBD: ${calc.data.calculatedPEBD}${timeLossText}</small>
+                        </div>
+                        <div class="saved-item-actions">
+                            <button class="btn-small btn-info" onclick="loadCalculation(${calc.id})">Load</button>
+                            <button class="btn-small btn-secondary" onclick="deleteCalculation(${calc.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+        }
+
+        // Load calculation (updated for time loss)
+        function loadCalculation(calcId) {
+            const calc = savedCalculations.find(c => c.id === calcId);
+            if (!calc) return;
+            
+            // Load input data
+            const data = calc.inputData;
+            document.getElementById('foundationalPEBD').value = yyyymmddToDate(data.foundationalPEBD);
+            document.getElementById('marineStatus').value = data.marineStatus;
+            document.getElementById('pathwayType').value = data.pathwayType;
+            
+            updateDateDisplay('foundationalPEBD');
+            
+            // Clear existing periods
+            resetAll();
+            
+            // Load service periods
+            data.periods.forEach((period, index) => {
+                if (index === 0 && servicePeriodCount === 0) {
+                    // Use the default period
+                    addServicePeriod();
+                } else {
+                    addServicePeriod();
+                }
+                
+                const serviceSelect = document.querySelector(`select[data-period="${index}"][data-field="serviceType"]`);
+                const startInput = document.querySelector(`input[data-period="${index}"][data-field="startDate"]`);
+                const endInput = document.querySelector(`input[data-period="${index}"][data-field="endDate"]`);
+                const notesInput = document.querySelector(`input[data-period="${index}"][data-field="notes"]`);
+                
+                if (serviceSelect) serviceSelect.value = period.serviceType;
+                if (startInput) startInput.value = period.startDate;
+                if (endInput) endInput.value = period.endDate;
+                if (notesInput) notesInput.value = period.notes;
+                
+                updatePeriod(index);
+            });
+            
+            // Load time loss periods if they exist
+            if (data.timeLossPeriods) {
+                data.timeLossPeriods.forEach((period, index) => {
+                    addTimeLossPeriod();
+                    
+                    const lossSelect = document.querySelector(`select[data-timeloss="${index}"][data-field="lossType"]`);
+                    const startInput = document.querySelector(`input[data-timeloss="${index}"][data-field="startDate"]`);
+                    const endInput = document.querySelector(`input[data-timeloss="${index}"][data-field="endDate"]`);
+                    const notesInput = document.querySelector(`input[data-timeloss="${index}"][data-field="notes"]`);
+                    
+                    if (lossSelect) lossSelect.value = period.lossType;
+                    if (startInput) startInput.value = period.startDate;
+                    if (endInput) endInput.value = period.endDate;
+                    if (notesInput) notesInput.value = period.notes;
+                    
+                    updateTimeLossPeriod(index);
+                });
+            }
+            
+            alert('Calculation loaded successfully!');
+        }
+
+        // Delete calculation
+        function deleteCalculation(calcId) {
+            if (confirm('Delete this saved calculation?')) {
+                savedCalculations = savedCalculations.filter(c => c.id !== calcId);
+                localStorage.setItem('pebdCalculations', JSON.stringify(savedCalculations));
+                showSavedCalculations();
+            }
+        }
+
+        // Clear all saved calculations
+        function clearAllSaved() {
+            if (confirm('Delete ALL saved calculations? This cannot be undone.')) {
+                savedCalculations = [];
+                localStorage.removeItem('pebdCalculations');
+                document.getElementById('savedCalculations').classList.add('hidden');
+            }
+        }
+
+        // Export to CSV (updated for time loss)
+        function exportToCSV() {
+            if (!calculationResult) {
+                alert('Please calculate PEBD first before exporting');
+                return;
+            }
+            
+            const csvData = [
+                ['Field', 'Value'],
+                ['Marine Status', calculationResult.marineStatus],
+                ['Pathway Type', calculationResult.pathwayType],
+                ['Foundational PEBD', calculationResult.foundationalPEBD],
+                ['Calculated PEBD', calculationResult.calculatedPEBD],
+                ['Total Creditable Service', `${calculationResult.normalized.years} years, ${calculationResult.normalized.months} months, ${calculationResult.normalized.days} days`],
+                ['Total Time Loss Days', calculationResult.totalTimeLossDays],
+                [''],
+                ['Service Periods', '', '', '', '', '', ''],
+                ['Period', 'Service Type', 'Start Date', 'End Date', 'Creditable', 'Days', 'Notes']
+            ];
+            
+            calculationResult.periodDetails.forEach(detail => {
+                csvData.push([
+                    detail.period,
+                    detail.serviceType,
+                    detail.startDate,
+                    detail.endDate,
+                    detail.creditable ? 'Yes' : 'No',
+                    detail.days,
+                    detail.notes
+                ]);
+            });
+            
+            if (calculationResult.timeLossDetails.length > 0) {
+                csvData.push([''], ['Time Loss Periods', '', '', '', '', '', '']);
+                csvData.push(['Period', 'Loss Type', 'Start Date', 'End Date', 'Deductible', 'Days', 'Notes']);
+                
+                calculationResult.timeLossDetails.forEach(detail => {
+                    csvData.push([
+                        detail.period,
+                        detail.lossType,
+                        detail.startDate,
+                        detail.endDate,
+                        detail.deductible ? 'Yes' : 'No',
+                        detail.days,
+                        detail.notes
+                    ]);
+                });
+            }
+            
+            const csvContent = csvData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PEBD_Calculation_${calculationResult.calculatedPEBD}.csv`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Download template (updated for time loss)
+        function downloadTemplate() {
+            const templateData = [
+                ['Marine Status', 'Pathway Type', 'Foundational PEBD (YYYYMMDD)', 'Service Type', 'Start Date (YYYYMMDD)', 'End Date (YYYYMMDD)', 'Notes', 'Loss Type', 'Loss Start (YYYYMMDD)', 'Loss End (YYYYMMDD)', 'Loss Notes'],
+                ['Enlisted', 'Enlisted DEP/Direct/Reenlisted/Prior Service', '20250525', 'Regular Marine Corps', '20120730', '20250524', 'Example period', 'AWOL (Absence Without Leave)', '20140101', '20140105', 'Example time loss'],
+                ['', '', '', 'Military Academy Service', '20080801', '20120529', 'Academy training', '', '', '', '']
+            ];
+            
+            const csvContent = templateData.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'PEBD_Calculator_Template_with_TimeLoss.csv';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Import from CSV (updated for time loss)
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvData = e.target.result;
+                    const lines = csvData.split('\n');
+                    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+                    
+                    if (lines.length > 1) {
+                        const firstDataRow = lines[1].split(',').map(cell => cell.replace(/"/g, '').trim());
+                        
+                        // Load marine information
+                        if (headers.includes('Marine Status') && firstDataRow[0]) {
+                            document.getElementById('marineStatus').value = firstDataRow[0];
+                        }
+                        if (headers.includes('Pathway Type') && firstDataRow[1]) {
+                            document.getElementById('pathwayType').value = firstDataRow[1];
+                        }
+                        if (headers.includes('Foundational PEBD (YYYYMMDD)') && firstDataRow[2]) {
+                            document.getElementById('foundationalPEBD').value = yyyymmddToDate(firstDataRow[2]);
+                            updateDateDisplay('foundationalPEBD');
+                        }
+                        
+                        // Clear and reset
+                        resetAll();
+                        
+                        // Load data rows
+                        for (let i = 1; i < lines.length; i++) {
+                            const row = lines[i].split(',').map(cell => cell.replace(/"/g, '').trim());
+                            if (row.length >= 6) {
+                                // Check for service period data
+                                if (row[3]) { // Has service type
+                                    if (servicePeriodCount === 0) {
+                                        addServicePeriod();
+                                    } else {
+                                        addServicePeriod();
+                                    }
+                                    
+                                    const periodIndex = servicePeriodCount - 1;
+                                    const serviceSelect = document.querySelector(`select[data-period="${periodIndex}"][data-field="serviceType"]`);
+                                    const startInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="startDate"]`);
+                                    const endInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="endDate"]`);
+                                    const notesInput = document.querySelector(`input[data-period="${periodIndex}"][data-field="notes"]`);
+                                    
+                                    if (serviceSelect) serviceSelect.value = row[3];
+                                    if (startInput && row[4]) startInput.value = yyyymmddToDate(row[4]);
+                                    if (endInput && row[5]) endInput.value = yyyymmddToDate(row[5]);
+                                    if (notesInput && row[6]) notesInput.value = row[6];
+                                    
+                                    updatePeriod(periodIndex);
+                                }
+                                
+                                // Check for time loss data
+                                if (row.length >= 10 && row[7]) { // Has loss type
+                                    addTimeLossPeriod();
+                                    
+                                    const timeLossIndex = timeLossPeriodCount - 1;
+                                    const lossSelect = document.querySelector(`select[data-timeloss="${timeLossIndex}"][data-field="lossType"]`);
+                                    const startInput = document.querySelector(`input[data-timeloss="${timeLossIndex}"][data-field="startDate"]`);
+                                    const endInput = document.querySelector(`input[data-timeloss="${timeLossIndex}"][data-field="endDate"]`);
+                                    const notesInput = document.querySelector(`input[data-timeloss="${timeLossIndex}"][data-field="notes"]`);
+                                    
+                                    if (lossSelect) lossSelect.value = row[7];
+                                    if (startInput && row[8]) startInput.value = yyyymmddToDate(row[8]);
+                                    if (endInput && row[9]) endInput.value = yyyymmddToDate(row[9]);
+                                    if (notesInput && row[10]) notesInput.value = row[10];
+                                    
+                                    updateTimeLossPeriod(timeLossIndex);
+                                }
+                            }
+                        }
+                        
+                        alert('CSV imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error importing CSV: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Enhanced print report (updated for time loss)
         function printReport() {
             if (!calculationResult) {
                 alert('Please calculate PEBD first before printing.');
@@ -805,7 +2264,33 @@
             setTimeout(() => printWindow.print(), 250);
         }
 
-        // Generate HTML report
+        // Export calculation (enhanced)
+        function exportCalculation() {
+            if (!calculationResult) {
+                alert('Please calculate PEBD first before exporting.');
+                return;
+            }
+            
+            const exportData = {
+                calculationInfo: calculationResult,
+                inputData: collectAllInputData(),
+                exportTimestamp: new Date().toISOString(),
+                version: 'Semper Admin PEBD Calculator v2.1 with Time Loss'
+            };
+            
+            const jsonContent = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PEBD_Export_${calculationResult.calculatedPEBD}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Enhanced HTML report generation with time loss
         function generateHTMLReport() {
             const data = calculationResult;
             
@@ -821,33 +2306,74 @@
                 </tr>
             `).join('');
 
+            const timeLossHTML = data.timeLossDetails.length > 0 ? `
+                <div class="section">
+                    <div class="section-title">TIME LOSS PERIODS ANALYSIS</div>
+                    <table>
+                        <tr><th>Period</th><th>Loss Type</th><th>Start Date</th><th>End Date</th><th>Deductible</th><th>Days</th><th>Notes</th></tr>
+                        ${data.timeLossDetails.map(detail => `
+                            <tr>
+                                <td>${detail.period}</td>
+                                <td>${detail.lossType}</td>
+                                <td>${detail.startDate}</td>
+                                <td>${detail.endDate}</td>
+                                <td style="color: ${detail.deductible ? 'red' : 'green'}; font-weight: bold;">${detail.deductible ? 'Yes' : 'No'}</td>
+                                <td>${detail.days}</td>
+                                <td>${detail.notes}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            ` : '';
+
+            const timeLossCalcRow = data.totalTimeLossDays > 0 ? `
+                <tr style="background-color: #ffe8e8;"><td>Less Time Loss (${data.totalTimeLossDays} days)</td><td>${data.afterTimeLoss.years}</td><td>${data.afterTimeLoss.months}</td><td>${data.afterTimeLoss.days}</td></tr>
+            ` : '';
+
             return `
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Marine Corps PEBD Calculation Report</title>
+                    <title>Marine Corps PEBD Calculation Report with Time Loss</title>
                     <style>
                         body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; line-height: 1.3; }
                         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid navy; padding-bottom: 10px; }
                         .title { color: navy; font-size: 18px; font-weight: bold; margin: 0; }
                         .subtitle { color: #666; font-size: 12px; margin: 5px 0; }
-                        .section { margin: 15px 0; border: 1px solid #ccc; padding: 10px; }
+                        .section { margin: 15px 0; border: 1px solid #ccc; padding: 10px; page-break-inside: avoid; }
                         .section-title { background-color: #f0f0f0; font-weight: bold; padding: 5px; margin: -10px -10px 10px -10px; color: navy; }
                         table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
                         th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
                         th { background-color: #f0f0f0; font-weight: bold; }
-                        .calc-table { width: 60%; }
+                        .calc-table { width: 70%; margin: 0 auto; }
                         .calc-table th, .calc-table td { text-align: center; }
                         .summary { background-color: #f9f9f9; padding: 10px; border-left: 4px solid navy; }
-                        @media print { body { margin: 0.5in; font-size: 10px; } .section { page-break-inside: avoid; } }
+                        .security-notice { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; }
+                        .time-loss-notice { background-color: #ffe8e8; border: 1px solid #ffcccc; padding: 10px; margin: 10px 0; }
+                        @media print { 
+                            body { margin: 0.5in; font-size: 10px; } 
+                            .section { page-break-inside: avoid; }
+                            .no-print { display: none; }
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="header">
                         <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATION REPORT</h1>
+                        <p class="subtitle">Semper Admin PEBD Calculator v2.1 - Enhanced Enterprise Edition with Time Loss</p>
                         <p class="subtitle">Reference: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</p>
                         <p class="subtitle">Generated: ${data.calculationDate}</p>
                     </div>
+
+                    <div class="security-notice">
+                        <strong>OFFICIAL USE NOTICE:</strong> This calculation is for reference only. Official PEBD determinations must be validated through proper Marine Corps channels per PAA 04-25.
+                    </div>
+
+                    ${data.totalTimeLossDays > 0 ? `
+                    <div class="time-loss-notice">
+                        <strong>TIME LOSS DETECTED:</strong> This calculation includes ${data.totalTimeLossDays} days of deductible time loss. Verify all time loss periods with supporting documentation.
+                    </div>
+                    ` : ''}
 
                     <div class="section">
                         <div class="section-title">MARINE INFORMATION</div>
@@ -863,7 +2389,9 @@
                         <div class="section-title">CALCULATION RESULTS</div>
                         <table class="calc-table">
                             <tr><th>Calculated PEBD</th><td style="font-size: 14px; font-weight: bold; color: navy;">${data.calculatedPEBD}</td></tr>
-                            <tr><th>Total Creditable Service</th><td>${String(data.normalized.years).padStart(2, '0')} years, ${String(data.normalized.months).padStart(2, '0')} months, ${String(data.normalized.days).padStart(2, '0')} days</td></tr>
+                            <tr><th>Net Creditable Service</th><td>${String(data.normalized.years).padStart(2, '0')} years, ${String(data.normalized.months).padStart(2, '0')} months, ${String(data.normalized.days).padStart(2, '0')} days</td></tr>
+                            <tr><th>Number of Periods</th><td>${data.numPeriods}</td></tr>
+                            <tr><th>Total Time Loss Days</th><td style="color: ${data.totalTimeLossDays > 0 ? 'red' : 'green'}; font-weight: bold;">${data.totalTimeLossDays}</td></tr>
                         </table>
                     </div>
 
@@ -875,7 +2403,8 @@
                             <tr><td>End Totals</td><td>${data.endTotals.years}</td><td>${data.endTotals.months}</td><td>${data.endTotals.days}</td></tr>
                             <tr><td>Difference</td><td>${data.difference.years}</td><td>${data.difference.months}</td><td>${data.difference.days}</td></tr>
                             <tr><td>Plus Inclusive (${data.numPeriods} periods)</td><td>${data.inclusiveAdjusted.years}</td><td>${data.inclusiveAdjusted.months}</td><td>${data.inclusiveAdjusted.days}</td></tr>
-                            <tr style="background-color: #e8f4f8;"><td><strong>Normalized</strong></td><td><strong>${data.normalized.years}</strong></td><td><strong>${data.normalized.months}</strong></td><td><strong>${data.normalized.days}</strong></td></tr>
+                            ${timeLossCalcRow}
+                            <tr style="background-color: #e3f2fd;"><td><strong>Net Creditable Service</strong></td><td><strong>${data.normalized.years}</strong></td><td><strong>${data.normalized.months}</strong></td><td><strong>${data.normalized.days}</strong></td></tr>
                         </table>
                     </div>
 
@@ -887,39 +2416,109 @@
                         </table>
                     </div>
 
+                    ${timeLossHTML}
+
                     <div style="margin-top: 20px; font-size: 9px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                        <p><strong>IMPORTANT NOTES:</strong> This calculation is for reference only. Official PEBD adjustments require proper channels. Verify against source documents (DD Form 4, DD Form 214, NAVMC 763).</p>
-                        <p style="text-align: center;"><em>Generated by Marine Corps PEBD Calculator by Semper Admin</em></p>
+                        <p><strong>REGULATORY COMPLIANCE:</strong></p>
+                        <ul>
+                            <li>Calculation follows PAA 04-25 methodology exactly</li>
+                            <li>30-day month calculations with proper date adjustments</li>
+                            <li>Ending dates adjusted per Section 6.b.2 (31st→30th, Feb 28/29→Feb 30)</li>
+                            <li>Each service period gets +1 inclusive day per Section 6.b.4</li>
+                            <li>Time loss periods properly deducted from creditable service</li>
+                            <li>Military Academy Service handling per pathway type</li>
+                        </ul>
+                        <p><strong>VERIFICATION REQUIREMENTS:</strong></p>
+                        <ul>
+                            <li>Verify all dates against source documents (DD Form 4, DD Form 214, NAVMC 763)</li>
+                            <li>Confirm service type classifications with official records</li>
+                            <li>Validate time loss periods with disciplinary records, court records, or leave documentation</li>
+                            <li>Review special circumstances and unusual service types</li>
+                            <li>Submit for official PEBD determination through proper channels</li>
+                        </ul>
+                        <p style="text-align: center; margin-top: 15px;">
+                            <em>Generated by Semper Admin PEBD Calculator v2.1 - Enhanced Enterprise Edition with Time Loss</em><br>
+                            <em>https://linktr.ee/semperadmin</em>
+                        </p>
                     </div>
                 </body>
                 </html>
             `;
         }
 
-        // Reset all
+        // Enhanced reset function (updated for time loss)
         function resetAll() {
-            document.getElementById('foundationalPEBD').value = '';
-            document.getElementById('marineStatus').value = 'Enlisted';
-            document.getElementById('pathwayType').value = 'Enlisted DEP/Direct/Reenlisted/Prior Service';
-            
-            // Clear all period inputs
-            for (let i = 0; i < 10; i++) {
-                document.querySelector(`select[data-period="${i}"][data-field="serviceType"]`).value = '';
-                document.querySelector(`input[data-period="${i}"][data-field="startDate"]`).value = '';
-                document.querySelector(`input[data-period="${i}"][data-field="endDate"]`).value = '';
-                document.querySelector(`input[data-period="${i}"][data-field="notes"]`).value = '';
-                document.getElementById(`creditable-${i}`).innerHTML = '';
-                document.getElementById(`days-${i}`).innerHTML = '';
+            if (confirm('Reset all data? This will clear all inputs and results.')) {
+                // Clear main inputs
+                document.getElementById('foundationalPEBD').value = '';
+                document.getElementById('marineStatus').value = 'Enlisted';
+                document.getElementById('pathwayType').value = 'Enlisted DEP/Direct/Reenlisted/Prior Service';
+                document.getElementById('calculationName').value = '';
+                
+                // Clear date displays
+                document.getElementById('foundationalPEBDDisplay').style.display = 'none';
+                document.querySelectorAll('.error-message, .warning-message').forEach(el => el.style.display = 'none');
+                
+                // Reset periods
+                initializePeriods();
+                initializeTimeLossPeriods();
+                
+                // Hide results and validation
+                document.getElementById('results').classList.add('hidden');
+                document.getElementById('validationSummary').classList.add('hidden');
+                document.getElementById('savedCalculations').classList.add('hidden');
+                document.getElementById('timeLossAnalysis').classList.add('hidden');
+                
+                // Reset buttons
+                document.getElementById('printBtn').disabled = true;
+                document.getElementById('exportBtn').disabled = true;
+                
+                // Clear calculation result
+                calculationResult = null;
+                validationErrors = [];
             }
-            
-            document.getElementById('results').classList.add('hidden');
-            document.getElementById('printBtn').disabled = true;
-            calculationResult = null;
         }
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with one service period and empty time loss
             initializePeriods();
+            initializeTimeLossPeriods();
+            
+            // Initialize with basic mode
+            setMode('basic');
+            
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    if (calculationResult) saveCalculation();
+                }
+                if (e.ctrlKey && e.key === 'p') {
+                    e.preventDefault();
+                    if (calculationResult) printReport();
+                }
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    addServicePeriod();
+                }
+                if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                    e.preventDefault();
+                    addTimeLossPeriod();
+                }
+            });
+            
+            // Load calculation history from localStorage
+            const storedHistory = localStorage.getItem('pebdCalculationHistory');
+            if (storedHistory) {
+                calculationHistory = JSON.parse(storedHistory);
+                updateCalculationHistory();
+            }
+        });
+
+        // Save calculation history to localStorage
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('pebdCalculationHistory', JSON.stringify(calculationHistory));
         });
     </script>
 </body>
