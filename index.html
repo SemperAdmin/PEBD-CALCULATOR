@@ -274,9 +274,7 @@
         <div class="header">
             <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATOR</h1>
             <p class="subtitle">by Semper Admin - PAA 04-25 Compliant (Not for time loss)</p>
-            <p Reference:><a href="https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2" target="_blank" style="font-size: 0.9rem; color: #64748b; text-decoration: underline;">PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</a>
-
-            </p>
+            <p><a href="https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2" target="_blank" style="font-size: 0.9rem; color: #64748b; text-decoration: underline;">PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</a></p>
         </div>
 
         <!-- Marine Information -->
@@ -290,14 +288,14 @@
                 </div>
                 <div class="form-group">
                     <label for="marineStatus">Marine Status:</label>
-                    <select id="marineStatus">
+                    <select id="marineStatus" onchange="updateAllPeriods()">
                         <option value="Enlisted">Enlisted</option>
                         <option value="Officer">Officer</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="pathwayType">Pathway Type:</label>
-                    <select id="pathwayType">
+                    <select id="pathwayType" onchange="updateAllPeriods()">
                         <option value="Enlisted DEP/Direct/Reenlisted/Prior Service">Enlisted DEP/Direct/Reenlisted/Prior Service</option>
                         <option value="Officer OCC/PLC/NROTC/Academy">Officer OCC/PLC/NROTC/Academy</option>
                     </select>
@@ -439,6 +437,23 @@
 
         let calculationResult = null;
 
+        // Helper function to determine if service type is creditable
+        function isServiceCreditable(serviceType, pathwayType) {
+            let isCreditable = SERVICE_TYPES[serviceType]?.creditable || false;
+            
+            // Special logic for Military Academy Service
+            if (serviceType === "Military Academy Service") {
+                // If pathway is officer, Military Academy Service is NOT creditable
+                if (pathwayType && pathwayType.includes("Officer")) {
+                    isCreditable = false;
+                } else {
+                    isCreditable = true;
+                }
+            }
+            
+            return isCreditable;
+        }
+
         // Initialize the periods table
         function initializePeriods() {
             const tbody = document.getElementById('periodsBody');
@@ -511,7 +526,8 @@
             
             // Update creditable status
             if (serviceType) {
-                const isCreditable = SERVICE_TYPES[serviceType]?.creditable || false;
+                const pathwayType = document.getElementById('pathwayType').value;
+                const isCreditable = isServiceCreditable(serviceType, pathwayType);
                 creditableCell.innerHTML = `<span class="${isCreditable ? 'creditable-yes' : 'creditable-no'}">${isCreditable ? 'Yes' : 'No'}</span>`;
             } else {
                 creditableCell.innerHTML = '';
@@ -523,6 +539,13 @@
                 daysCell.textContent = days > 0 ? days : 'Invalid';
             } else {
                 daysCell.textContent = '';
+            }
+        }
+
+        // Update all periods when pathway changes
+        function updateAllPeriods() {
+            for (let i = 0; i < 10; i++) {
+                updatePeriod(i);
             }
         }
 
@@ -556,8 +579,7 @@
                     const notes = notesInput.value;
                     
                     if (serviceType && startDate && endDate) {
-                        const serviceInfo = SERVICE_TYPES[serviceType];
-                        const isCreditable = serviceInfo?.creditable || false;
+                        const isCreditable = isServiceCreditable(serviceType, pathwayType);
                         const days = calculateDays(startDate, endDate);
                         
                         if (days > 0) {
