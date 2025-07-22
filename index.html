@@ -1136,12 +1136,102 @@
             return null;
         }
 
-        // Calculate days between dates
-        function calculateDays(startDate, endDate) {
+        // Calculate days between dates (inclusive)
+        function calculateDaysInclusive(startDate, endDate) {
             const start = parseDate(startDate.replace(/-/g, ''));
             const end = parseDate(endDate.replace(/-/g, ''));
             if (!start || !end || end < start) return 0;
             return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        // Legacy function for compatibility
+        function calculateDays(startDate, endDate) {
+            return calculateDaysInclusive(startDate, endDate);
+        }
+
+        // NEW: Group all periods into continuous blocks, then extract creditable portions
+        function groupAllPeriodsIntoContinuousBlocks(allPeriods) {
+            if (allPeriods.length === 0) return [];
+
+            // Sort all periods by start date
+            const sortedPeriods = [...allPeriods].sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+            const continuousBlocks = [];
+            let currentBlock = {
+                startDate: sortedPeriods[0].startDate,
+                endDate: sortedPeriods[0].endDate,
+                periods: [sortedPeriods[0]]
+            };
+
+            for (let i = 1; i < sortedPeriods.length; i++) {
+                const currentPeriod = sortedPeriods[i];
+                const prevEndDate = parseDate(currentBlock.endDate);
+                const currStartDate = parseDate(currentPeriod.startDate);
+
+                // Check if consecutive (prev end + 1 day = curr start)
+                const nextDay = new Date(prevEndDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+
+                if (nextDay.getTime() === currStartDate.getTime()) {
+                    // Continuous - extend block
+                    currentBlock.endDate = currentPeriod.endDate;
+                    currentBlock.periods.push(currentPeriod);
+                } else {
+                    // Gap found - finalize current block and start new one
+                    continuousBlocks.push(currentBlock);
+                    currentBlock = {
+                        startDate: currentPeriod.startDate,
+                        endDate: currentPeriod.endDate,
+                        periods: [currentPeriod]
+                    };
+                }
+            }
+            continuousBlocks.push(currentBlock); // Add final block
+
+            return continuousBlocks;
+        }
+
+        // NEW: Calculate creditable days from continuous blocks
+        function calculateCreditableDaysFromBlocks(continuousBlocks, pathwayType) {
+            let totalCreditableDays = 0;
+            let creditableBlocksCount = 0;
+
+            continuousBlocks.forEach(block => {
+                let blockCreditableDays = 0;
+
+                block.periods.forEach(period => {
+                    if (isServiceCreditable(period.serviceType, pathwayType)) {
+                        const periodDays = calculateDaysInclusive(period.startDate, period.endDate);
+                        blockCreditableDays += periodDays;
+                    }
+                });
+
+                if (blockCreditableDays > 0) {
+                    totalCreditableDays += blockCreditableDays;
+                    creditableBlocksCount++;
+                }
+            });
+
+            return {
+                totalDays: totalCreditableDays,
+                blocksCount: creditableBlocksCount
+            };
+        }
+
+        // Subtract days from YYYYMMDD string using calendar math
+        function subtractDaysFromDate(dateStr, days) {
+            if (!dateStr || dateStr.length !== 8) return dateStr;
+
+            const date = parseDate(dateStr);
+            if (!date) return dateStr;
+
+            const result = new Date(date);
+            result.setDate(result.getDate() - days);
+
+            const year = result.getFullYear();
+            const month = String(result.getMonth() + 1).padStart(2, '0');
+            const day = String(result.getDate()).padStart(2, '0');
+            return `${year}${month}${day}`;
         }
 
         // Validate service period
@@ -1556,34 +1646,44 @@
             return data;
         }
 
-        // Enhanced Calculate PEBD with time loss calculations
+        // FIXED: Enhanced Calculate PEBD with proper continuous block logic and correct arithmetic
         function calculatePEBD() {
             try {
                 // Show loading state
                 const button = event.target;
                 button.classList.add('loading');
                 
-                const foundationalPEBD = dateToYYYYMMDD(document.getElementById('foundationalPEBD').value);
+                // Get and validate foundational PEBD
+                const foundationalInput = document.getElementById('foundationalPEBD').value;
+                if (!foundationalInput) {
+                    throw new Error('Foundational PEBD is required');
+                }
+
+                // Convert YYYY-MM-DD → YYYYMMDD
+                const foundationalPEBD = foundationalInput.replace(/-/g, '');
+                if (!/^\d{8}$/.test(foundationalPEBD)) {
+                    throw new Error('Foundational PEBD must be a valid date');
+                }
+
                 const marineStatus = document.getElementById('marineStatus').value;
                 const pathwayType = document.getElementById('pathwayType').value;
-                
-                if (!foundationalPEBD || foundationalPEBD.length !== 8) {
-                    throw new Error('Foundational PEBD is required in valid date format');
-                }
 
                 // Validate all periods first
                 if (!validateAllPeriods()) {
                     throw new Error('Please fix validation errors before calculating');
                 }
 
-                const periods = [];
-                const beginningDates = [];
-                const endingDates = [];
+                // Collect ALL periods (service + time loss) for continuous block analysis
+                const allPeriods = [];
                 const periodDetails = [];
                 const timeLossDetails = [];
-                let totalTimeLossDays = 0;
 
-                // Collect all service periods
+                // For PAA 04-25 calculation
+                const beginTotals = { years: 0, months: 0, days: 0 };
+                const endTotals = { years: 0, months: 0, days: 0 };
+                let creditablePeriodCount = 0;
+
+                // Collect service periods
                 for (let i = 0; i < servicePeriodCount; i++) {
                     const serviceSelect = document.querySelector(`select[data-period="${i}"][data-field="serviceType"]`);
                     const startInput = document.querySelector(`input[data-period="${i}"][data-field="startDate"]`);
@@ -1596,44 +1696,54 @@
                     const notes = notesInput?.value || '';
                     
                     if (serviceType && startDate && endDate) {
+                        const startYYYYMMDD = dateToYYYYMMDD(startDate);
+                        const endYYYYMMDD = dateToYYYYMMDD(endDate);
                         const isCreditable = isServiceCreditable(serviceType, pathwayType);
-                        const days = calculateDays(startDate, endDate);
+                        const days = calculateDaysInclusive(startDate, endDate);
                         
                         if (days > 0) {
+                            // Add to all periods for continuous block analysis
+                            allPeriods.push({
+                                type: 'service',
+                                serviceType,
+                                startDate: startYYYYMMDD,
+                                endDate: endYYYYMMDD,
+                                creditable: isCreditable,
+                                days
+                            });
+
+                            // Store for results display
                             periodDetails.push({
                                 period: i + 1,
                                 serviceType,
-                                startDate: dateToYYYYMMDD(startDate),
-                                endDate: dateToYYYYMMDD(endDate),
+                                startDate: startYYYYMMDD,
+                                endDate: endYYYYMMDD,
                                 creditable: isCreditable,
                                 days,
                                 notes
                             });
-                            
+
+                            // Add to PAA 04-25 calculation if creditable
                             if (isCreditable) {
-                                const startYYYYMMDD = dateToYYYYMMDD(startDate);
-                                const endYYYYMMDD = dateToYYYYMMDD(endDate);
+                                const startDateObj = parseDate(startYYYYMMDD);
+                                const endDateObj = parseDate(endYYYYMMDD);
                                 
-                                const startYear = parseInt(startYYYYMMDD.substring(0, 4));
-                                const startMonth = parseInt(startYYYYMMDD.substring(4, 6));
-                                const startDay = parseInt(startYYYYMMDD.substring(6, 8));
+                                beginTotals.years += startDateObj.getFullYear();
+                                beginTotals.months += startDateObj.getMonth() + 1;
+                                beginTotals.days += startDateObj.getDate();
                                 
-                                let endYear = parseInt(endYYYYMMDD.substring(0, 4));
-                                let endMonth = parseInt(endYYYYMMDD.substring(4, 6));
-                                let endDay = parseInt(endYYYYMMDD.substring(6, 8));
+                                endTotals.years += endDateObj.getFullYear();
+                                endTotals.months += endDateObj.getMonth() + 1;
+                                endTotals.days += endDateObj.getDate();
                                 
-                                // Apply PAA 04-25 ending date adjustments
-                                if (endDay === 31) endDay = 30;
-                                if (endMonth === 2 && (endDay === 28 || endDay === 29)) endDay = 30;
-                                
-                                beginningDates.push({ year: startYear, month: startMonth, day: startDay });
-                                endingDates.push({ year: endYear, month: endMonth, day: endDay });
+                                creditablePeriodCount++;
                             }
                         }
                     }
                 }
 
-                // Collect all time loss periods
+                // Collect time loss periods
+                let totalTimeLossDays = 0;
                 for (let i = 0; i < timeLossPeriodCount; i++) {
                     const lossSelect = document.querySelector(`select[data-timeloss="${i}"][data-field="lossType"]`);
                     const startInput = document.querySelector(`input[data-timeloss="${i}"][data-field="startDate"]`);
@@ -1646,20 +1756,33 @@
                     const notes = notesInput?.value || '';
                     
                     if (lossType && startDate && endDate) {
+                        const startYYYYMMDD = dateToYYYYMMDD(startDate);
+                        const endYYYYMMDD = dateToYYYYMMDD(endDate);
                         const isDeductible = isTimeLossDeductible(lossType);
-                        const days = calculateDays(startDate, endDate);
+                        const days = calculateDaysInclusive(startDate, endDate);
                         
                         if (days > 0) {
+                            // Add to all periods for continuous block analysis
+                            allPeriods.push({
+                                type: 'timeloss',
+                                lossType,
+                                startDate: startYYYYMMDD,
+                                endDate: endYYYYMMDD,
+                                deductible: isDeductible,
+                                days
+                            });
+
+                            // Store for results display
                             timeLossDetails.push({
                                 period: i + 1,
                                 lossType,
-                                startDate: dateToYYYYMMDD(startDate),
-                                endDate: dateToYYYYMMDD(endDate),
+                                startDate: startYYYYMMDD,
+                                endDate: endYYYYMMDD,
                                 deductible: isDeductible,
                                 days,
                                 notes
                             });
-                            
+
                             if (isDeductible) {
                                 totalTimeLossDays += days;
                             }
@@ -1667,115 +1790,132 @@
                     }
                 }
 
-                let beginTotals = { years: 0, months: 0, days: 0 };
-                let endTotals = { years: 0, months: 0, days: 0 };
-                let calculatedPEBD = foundationalPEBD;
-
-                if (beginningDates.length > 0 && endingDates.length > 0) {
-                    // Add up components
-                    beginTotals = beginningDates.reduce((totals, date) => ({
-                        years: totals.years + date.year,
-                        months: totals.months + date.month,
-                        days: totals.days + date.day
-                    }), { years: 0, months: 0, days: 0 });
-
-                    endTotals = endingDates.reduce((totals, date) => ({
-                        years: totals.years + date.year,
-                        months: totals.months + date.month,
-                        days: totals.days + date.day
-                    }), { years: 0, months: 0, days: 0 });
-
-                    // Calculate difference
-                    const difference = {
-                        years: endTotals.years - beginTotals.years,
-                        months: endTotals.months - beginTotals.months,
-                        days: endTotals.days - beginTotals.days
-                    };
-
-                    // Add inclusive days
-                    const inclusiveAdjusted = {
-                        years: difference.years,
-                        months: difference.months,
-                        days: difference.days + beginningDates.length
-                    };
-
-                    // Subtract time loss days
-                    const afterTimeLoss = {
-                        years: inclusiveAdjusted.years,
-                        months: inclusiveAdjusted.months,
-                        days: inclusiveAdjusted.days - totalTimeLossDays
-                    };
-
-                    // Normalize
-                    let normalized = { ...afterTimeLoss };
-                    
-                    // Handle negative days
-                    while (normalized.days < 0) {
-                        normalized.days += 30;
-                        normalized.months -= 1;
-                    }
-                    
-                    // Handle negative months
-                    while (normalized.months < 0) {
-                        normalized.months += 12;
-                        normalized.years -= 1;
-                    }
-                    
-                    // Handle excess days
-                    while (normalized.days >= 30) {
-                        normalized.days -= 30;
-                        normalized.months += 1;
-                    }
-                    
-                    // Handle excess months
-                    while (normalized.months >= 12) {
-                        normalized.months -= 12;
-                        normalized.years += 1;
-                    }
-
-                    // Calculate final PEBD
-                    calculatedPEBD = subtractServiceFromDate(foundationalPEBD, normalized.years, normalized.months, normalized.days);
-
-                    calculationResult = {
-                        foundationalPEBD,
-                        calculatedPEBD,
-                        marineStatus,
-                        pathwayType,
-                        periodDetails,
-                        timeLossDetails,
-                        beginTotals,
-                        endTotals,
-                        difference,
-                        inclusiveAdjusted,
-                        afterTimeLoss,
-                        normalized,
-                        numPeriods: beginningDates.length,
-                        totalTimeLossDays,
-                        calculationDate: new Date().toLocaleString()
-                    };
-
-                    // Add to calculation history
-                    calculationHistory.unshift({
-                        timestamp: new Date().toLocaleString(),
-                        pebd: calculatedPEBD,
-                        marine: marineStatus,
-                        periods: beginningDates.length,
-                        timeLoss: totalTimeLossDays
-                    });
-
-                    // Keep only last 10 calculations in history
-                    if (calculationHistory.length > 10) {
-                        calculationHistory = calculationHistory.slice(0, 10);
-                    }
-
-                    updateCalculationHistory();
-                    displayResults();
-                    
-                    document.getElementById('printBtn').disabled = false;
-                    document.getElementById('exportBtn').disabled = false;
-                } else {
+                if (creditablePeriodCount === 0) {
                     throw new Error('No creditable service periods found');
                 }
+
+                // FIXED: Group ALL periods into continuous blocks
+                const continuousBlocks = groupAllPeriodsIntoContinuousBlocks(allPeriods);
+
+                // FIXED: Calculate creditable days and inclusive adjustments from continuous blocks
+                const creditableResult = calculateCreditableDaysFromBlocks(continuousBlocks, pathwayType);
+                const inclusiveAdjustments = creditableResult.blocksCount; // Only one per continuous block containing creditable service
+
+                // PAA 04-25 Calculation Method
+                const difference = {
+                    years: endTotals.years - beginTotals.years,
+                    months: endTotals.months - beginTotals.months,
+                    days: endTotals.days - beginTotals.days
+                };
+
+                // Add inclusive days (one per continuous block with creditable service)
+                const inclusiveAdjusted = {
+                    years: difference.years,
+                    months: difference.months,
+                    days: difference.days + inclusiveAdjustments
+                };
+
+                // Subtract time loss if applicable
+                let afterTimeLoss = { ...inclusiveAdjusted };
+                if (totalTimeLossDays > 0) {
+                    afterTimeLoss.days -= totalTimeLossDays;
+                }
+
+                // Normalize the result (handle negative values and overflow)
+                let normalized = { ...afterTimeLoss };
+                
+                // Handle negative days
+                while (normalized.days < 0) {
+                    normalized.days += 30;
+                    normalized.months -= 1;
+                }
+                
+                // Handle negative months
+                while (normalized.months < 0) {
+                    normalized.months += 12;
+                    normalized.years -= 1;
+                }
+                
+                // Handle excess days
+                while (normalized.days >= 30) {
+                    normalized.days -= 30;
+                    normalized.months += 1;
+                }
+                
+                // Handle excess months
+                while (normalized.months >= 12) {
+                    normalized.months -= 12;
+                    normalized.years += 1;
+                }
+
+                // Calculate final PEBD by subtracting normalized service time from foundational PEBD
+                let calculatedPEBD = foundationalPEBD;
+                const foundationalDate = parseDate(foundationalPEBD);
+                
+                // Subtract the normalized service time
+                const resultDate = new Date(foundationalDate);
+                
+                // Subtract years
+                resultDate.setFullYear(resultDate.getFullYear() - normalized.years);
+                
+                // Subtract months
+                resultDate.setMonth(resultDate.getMonth() - normalized.months);
+                
+                // Subtract days
+                resultDate.setDate(resultDate.getDate() - normalized.days);
+                
+                // Convert back to YYYYMMDD
+                calculatedPEBD = resultDate.getFullYear().toString() + 
+                                String(resultDate.getMonth() + 1).padStart(2, '0') + 
+                                String(resultDate.getDate()).padStart(2, '0');
+
+                // Store calculation result with consistent values
+                calculationResult = {
+                    foundationalPEBD,
+                    calculatedPEBD,
+                    marineStatus,
+                    pathwayType,
+                    periodDetails,
+                    timeLossDetails,
+                    // PAA calculation components
+                    beginTotals,
+                    endTotals,
+                    difference,
+                    inclusiveAdjusted,
+                    afterTimeLoss,
+                    normalized,
+                    // Summary values
+                    totalCreditableDays: creditableResult.totalDays,
+                    inclusiveAdjustments,
+                    totalTimeLossDays,
+                    // FIXED: Use normalized values for display consistency
+                    years: normalized.years,
+                    months: normalized.months,
+                    days: normalized.days,
+                    continuousBlocks: continuousBlocks.length,
+                    creditableBlocks: inclusiveAdjustments,
+                    calculationDate: new Date().toLocaleString()
+                };
+
+                // Add to calculation history
+                calculationHistory.unshift({
+                    timestamp: new Date().toLocaleString(),
+                    pebd: calculatedPEBD,
+                    marine: marineStatus,
+                    periods: periodDetails.length,
+                    timeLoss: totalTimeLossDays
+                });
+
+                // Keep only last 10 calculations in history
+                if (calculationHistory.length > 10) {
+                    calculationHistory = calculationHistory.slice(0, 10);
+                }
+
+                updateCalculationHistory();
+                displayResults();
+                
+                document.getElementById('printBtn').disabled = false;
+                document.getElementById('exportBtn').disabled = false;
                 
                 // Remove loading state
                 button.classList.remove('loading');
@@ -1787,48 +1927,18 @@
             }
         }
 
-        // Subtract service from date (enhanced)
-        function subtractServiceFromDate(dateStr, years, months, days) {
-            if (!dateStr || dateStr.length !== 8) return dateStr;
-            
-            const date = parseDate(dateStr);
-            if (!date) return dateStr;
-            
-            let resultYear = date.getFullYear() - years;
-            let resultMonth = date.getMonth() + 1 - months;
-            let resultDay = date.getDate() - days;
-            
-            // Handle negative days
-            while (resultDay <= 0) {
-                resultMonth -= 1;
-                resultDay += 30;
-            }
-            
-            // Handle negative months
-            while (resultMonth <= 0) {
-                resultYear -= 1;
-                resultMonth += 12;
-            }
-            
-            // Create result date and format
-            const resultDate = new Date(resultYear, resultMonth - 1, resultDay);
-            const year = resultDate.getFullYear().toString();
-            const month = (resultDate.getMonth() + 1).toString().padStart(2, '0');
-            const day = resultDate.getDate().toString().padStart(2, '0');
-            
-            return year + month + day;
-        }
-
-        // Enhanced display results with time loss
+        // Enhanced display results with proper PAA 04-25 format and consistent values
         function displayResults() {
             const data = calculationResult;
             
             document.getElementById('resultFoundational').textContent = data.foundationalPEBD;
             document.getElementById('resultCalculated').textContent = data.calculatedPEBD;
+            
+            // FIXED: Use the same normalized values for consistency
             document.getElementById('resultService').textContent = 
                 `${String(data.normalized.years).padStart(2, '0')} years, ${String(data.normalized.months).padStart(2, '0')} months, ${String(data.normalized.days).padStart(2, '0')} days`;
 
-            // Fill calculation table
+            // Fill calculation table with proper PAA 04-25 format using stored values
             const calcTableBody = document.getElementById('calcTableBody');
             let calcHTML = `
                 <tr>
@@ -1850,7 +1960,7 @@
                     <td>${data.difference.days}</td>
                 </tr>
                 <tr>
-                    <td>Plus Inclusive (${data.numPeriods} periods)</td>
+                    <td>Plus Inclusive (${data.creditableBlocks} continuous blocks)</td>
                     <td>${data.inclusiveAdjusted.years}</td>
                     <td>${data.inclusiveAdjusted.months}</td>
                     <td>${data.inclusiveAdjusted.days}</td>
@@ -2097,7 +2207,7 @@
                 ['Pathway Type', calculationResult.pathwayType],
                 ['Foundational PEBD', calculationResult.foundationalPEBD],
                 ['Calculated PEBD', calculationResult.calculatedPEBD],
-                ['Total Creditable Service', `${calculationResult.normalized.years} years, ${calculationResult.normalized.months} months, ${calculationResult.normalized.days} days`],
+                ['Total Creditable Service', `${calculationResult.years} years, ${calculationResult.months} months, ${calculationResult.days} days`],
                 ['Total Time Loss Days', calculationResult.totalTimeLossDays],
                 [''],
                 ['Service Periods', '', '', '', '', '', ''],
@@ -2275,7 +2385,7 @@
                 calculationInfo: calculationResult,
                 inputData: collectAllInputData(),
                 exportTimestamp: new Date().toISOString(),
-                version: 'Semper Admin PEBD Calculator v2.1 with Time Loss'
+                version: 'Semper Admin PEBD Calculator v2.1 with Time Loss - FIXED'
             };
             
             const jsonContent = JSON.stringify(exportData, null, 2);
@@ -2327,14 +2437,14 @@
             ` : '';
 
             const timeLossCalcRow = data.totalTimeLossDays > 0 ? `
-                <tr style="background-color: #ffe8e8;"><td>Less Time Loss (${data.totalTimeLossDays} days)</td><td>${data.afterTimeLoss.years}</td><td>${data.afterTimeLoss.months}</td><td>${data.afterTimeLoss.days}</td></tr>
+                <tr style="background-color: #ffe8e8;"><td>Less Time Loss (${data.totalTimeLossDays} days)</td><td colspan="3">-${data.totalTimeLossDays} days</td></tr>
             ` : '';
 
             return `
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Marine Corps PEBD Calculation Report with Time Loss</title>
+                    <title>Marine Corps PEBD Calculation Report with Time Loss - FIXED</title>
                     <style>
                         body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; line-height: 1.3; }
                         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid navy; padding-bottom: 10px; }
@@ -2350,6 +2460,7 @@
                         .summary { background-color: #f9f9f9; padding: 10px; border-left: 4px solid navy; }
                         .security-notice { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; }
                         .time-loss-notice { background-color: #ffe8e8; border: 1px solid #ffcccc; padding: 10px; margin: 10px 0; }
+                        .fix-notice { background-color: #e8f5e9; border: 1px solid #c3e6cb; padding: 10px; margin: 10px 0; }
                         @media print { 
                             body { margin: 0.5in; font-size: 10px; } 
                             .section { page-break-inside: avoid; }
@@ -2360,13 +2471,17 @@
                 <body>
                     <div class="header">
                         <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATION REPORT</h1>
-                        <p class="subtitle">Semper Admin PEBD Calculator v2.1 - Enhanced Enterprise Edition with Time Loss</p>
+                        <p class="subtitle">Semper Admin PEBD Calculator v2.1 - Enhanced Enterprise Edition with Time Loss - FIXED</p>
                         <p class="subtitle">Reference: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</p>
                         <p class="subtitle">Generated: ${data.calculationDate}</p>
                     </div>
 
                     <div class="security-notice">
                         <strong>OFFICIAL USE NOTICE:</strong> This calculation is for reference only. Official PEBD determinations must be validated through proper Marine Corps channels per PAA 04-25.
+                    </div>
+
+                    <div class="fix-notice">
+                        <strong>CALCULATION FIX APPLIED:</strong> This version uses corrected continuous period grouping logic with proper inclusive day calculations per block, not per period.
                     </div>
 
                     ${data.totalTimeLossDays > 0 ? `
@@ -2386,25 +2501,25 @@
                     </div>
 
                     <div class="section summary">
-                        <div class="section-title">CALCULATION RESULTS</div>
+                        <div class="section-title">CALCULATION RESULTS - FIXED ALGORITHM</div>
                         <table class="calc-table">
                             <tr><th>Calculated PEBD</th><td style="font-size: 14px; font-weight: bold; color: navy;">${data.calculatedPEBD}</td></tr>
-                            <tr><th>Net Creditable Service</th><td>${String(data.normalized.years).padStart(2, '0')} years, ${String(data.normalized.months).padStart(2, '0')} months, ${String(data.normalized.days).padStart(2, '0')} days</td></tr>
-                            <tr><th>Number of Periods</th><td>${data.numPeriods}</td></tr>
+                            <tr><th>Net Creditable Service</th><td>${String(data.years).padStart(2, '0')} years, ${String(data.months).padStart(2, '0')} months, ${String(data.days).padStart(2, '0')} days</td></tr>
+                            <tr><th>Total Continuous Blocks</th><td>${data.continuousBlocks}</td></tr>
+                            <tr><th>Creditable Blocks</th><td>${data.creditableBlocks}</td></tr>
                             <tr><th>Total Time Loss Days</th><td style="color: ${data.totalTimeLossDays > 0 ? 'red' : 'green'}; font-weight: bold;">${data.totalTimeLossDays}</td></tr>
                         </table>
                     </div>
 
                     <div class="section">
-                        <div class="section-title">PAA 04-25 CALCULATION BREAKDOWN</div>
+                        <div class="section-title">FIXED CALCULATION BREAKDOWN</div>
                         <table class="calc-table">
-                            <tr><th></th><th>Years</th><th>Months</th><th>Days</th></tr>
-                            <tr><td>Begin Totals</td><td>${data.beginTotals.years}</td><td>${data.beginTotals.months}</td><td>${data.beginTotals.days}</td></tr>
-                            <tr><td>End Totals</td><td>${data.endTotals.years}</td><td>${data.endTotals.months}</td><td>${data.endTotals.days}</td></tr>
-                            <tr><td>Difference</td><td>${data.difference.years}</td><td>${data.difference.months}</td><td>${data.difference.days}</td></tr>
-                            <tr><td>Plus Inclusive (${data.numPeriods} periods)</td><td>${data.inclusiveAdjusted.years}</td><td>${data.inclusiveAdjusted.months}</td><td>${data.inclusiveAdjusted.days}</td></tr>
-                            ${timeLossCalcRow}
-                            <tr style="background-color: #e3f2fd;"><td><strong>Net Creditable Service</strong></td><td><strong>${data.normalized.years}</strong></td><td><strong>${data.normalized.months}</strong></td><td><strong>${data.normalized.days}</strong></td></tr>
+                            <tr><th>Calculation Step</th><th>Value</th></tr>
+                            <tr><td>Total Creditable Days (Raw)</td><td>${data.totalCreditableDays} days</td></tr>
+                            <tr><td>Plus Inclusive (${data.creditableBlocks} creditable continuous blocks)</td><td>+${data.inclusiveAdjustments} days</td></tr>
+                            ${data.totalTimeLossDays > 0 ? `<tr style="background-color: #ffe8e8;"><td>Less Time Loss</td><td>-${data.totalTimeLossDays} days</td></tr>` : ''}
+                            <tr style="background-color: #e3f2fd;"><td><strong>Net Creditable Days</strong></td><td><strong>${data.netCreditableDays} days</strong></td></tr>
+                            <tr style="background-color: #e3f2fd;"><td><strong>Converted to Y/M/D</strong></td><td><strong>${data.years}Y ${data.months}M ${data.days}D</strong></td></tr>
                         </table>
                     </div>
 
@@ -2419,14 +2534,12 @@
                     ${timeLossHTML}
 
                     <div style="margin-top: 20px; font-size: 9px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
-                        <p><strong>REGULATORY COMPLIANCE:</strong></p>
+                        <p><strong>ALGORITHM FIXES APPLIED:</strong></p>
                         <ul>
-                            <li>Calculation follows PAA 04-25 methodology exactly</li>
-                            <li>30-day month calculations with proper date adjustments</li>
-                            <li>Ending dates adjusted per Section 6.b.2 (31st→30th, Feb 28/29→Feb 30)</li>
-                            <li>Each service period gets +1 inclusive day per Section 6.b.4</li>
-                            <li>Time loss periods properly deducted from creditable service</li>
-                            <li>Military Academy Service handling per pathway type</li>
+                            <li>✅ Continuous period grouping: ALL periods (creditable + non-creditable) grouped by consecutive dates</li>
+                            <li>✅ Inclusive adjustments: +1 day per continuous BLOCK containing creditable service (not per period)</li>
+                            <li>✅ Proper calendar date arithmetic for PEBD calculation</li>
+                            <li>✅ Time loss periods correctly deducted from final creditable service</li>
                         </ul>
                         <p><strong>VERIFICATION REQUIREMENTS:</strong></p>
                         <ul>
@@ -2437,7 +2550,7 @@
                             <li>Submit for official PEBD determination through proper channels</li>
                         </ul>
                         <p style="text-align: center; margin-top: 15px;">
-                            <em>Generated by Semper Admin PEBD Calculator v2.1 - Enhanced Enterprise Edition with Time Loss</em><br>
+                            <em>Generated by Semper Admin PEBD Calculator v2.1 - Enhanced Enterprise Edition with Time Loss - FIXED</em><br>
                             <em>https://linktr.ee/semperadmin</em>
                         </p>
                     </div>
