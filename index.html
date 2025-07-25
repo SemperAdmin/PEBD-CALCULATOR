@@ -662,8 +662,8 @@
                     <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATOR</h1>
                     <p class="subtitle">by Semper Admin - PAA 04-25 Compliant (Enhanced Enterprise Edition with Time Loss)</p>
                     <p><a href="https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2" target="_blank" style="color: white; text-decoration: underline;">PAA 04-25 - Administrative Guidance on Creditable Service and PEBD</a></p>
-                    <p class="subtitle">Last updated: 20250723</p>
-                </div>
+                    <p class="subtitle">bLast Updated: 20250725</p>
+               </div>
             </div>
             
             <div class="security-notice">
@@ -815,6 +815,7 @@
                             <th role="columnheader">Loss Type</th>
                             <th role="columnheader">Start Date</th>
                             <th role="columnheader">End Date</th>
+                            <th role="columnheader">Officer Time?</th>
                             <th role="columnheader">Deductible?</th>
                             <th role="columnheader">Days</th>
                             <th role="columnheader">Notes</th>
@@ -1340,12 +1341,15 @@
             const lossSelect = document.querySelector(`select[data-timeloss="${periodIndex}"][data-field="lossType"]`);
             const startInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="startDate"]`);
             const endInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="endDate"]`);
+            const officerTimeCheckbox = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="officerTime"]`);
             
             if (!lossSelect) return;
             
             const lossType = lossSelect.value;
             const startDate = startInput?.value;
             const endDate = endInput?.value;
+            const marineStatus = document.getElementById('marineStatus').value;
+            const isOfficerTime = officerTimeCheckbox?.checked || false;
             
             const deductibleCell = document.getElementById(`timeloss-deductible-${periodIndex}`);
             const daysCell = document.getElementById(`timeloss-days-${periodIndex}`);
@@ -1354,10 +1358,29 @@
             if (deductibleCell) deductibleCell.innerHTML = '';
             if (daysCell) daysCell.innerHTML = '';
             
-            // Update deductible status
+            // Update deductible status - considers loss type and officer time checkbox
             if (lossType && deductibleCell) {
-                const isDeductible = isTimeLossDeductible(lossType);
-                deductibleCell.innerHTML = `<span class="${isDeductible ? 'time-loss-yes' : 'creditable-yes'}">${isDeductible ? 'Yes' : 'No'}</span>`;
+                const isDeductibleByType = isTimeLossDeductible(lossType);
+                let actuallyDeductible = false;
+                let statusText = '';
+                let statusClass = '';
+                
+                if (!isDeductibleByType) {
+                    // Loss type is not deductible (e.g., ordinary leave)
+                    statusText = 'No';
+                    statusClass = 'creditable-yes';
+                } else if (marineStatus === 'Officer' && isOfficerTime) {
+                    // Officer Time checkbox is checked - don't apply this period
+                    statusText = 'No (Officer Time)';
+                    statusClass = 'creditable-yes';
+                } else {
+                    // Default: Apply time loss for deductible types
+                    statusText = 'Yes';
+                    statusClass = 'time-loss-yes';
+                    actuallyDeductible = true;
+                }
+                
+                deductibleCell.innerHTML = `<span class="${statusClass}">${statusText}</span>`;
             }
             
             // Update days and validation
@@ -1389,6 +1412,129 @@
             for (let i = 0; i < timeLossPeriodCount; i++) {
                 updateTimeLossPeriod(i);
             }
+            
+            // Update time loss table headers and structure based on Marine Status
+            updateTimeLossTableStructure();
+        }
+
+        // Update time loss table structure based on Marine Status
+        function updateTimeLossTableStructure() {
+            const marineStatus = document.getElementById('marineStatus').value;
+            const timeLossTable = document.getElementById('timeLossTable');
+            const headerRow = timeLossTable.querySelector('thead tr');
+            
+            // Show/hide Officer Time column based on Marine Status
+            if (marineStatus === 'Officer') {
+                // Show Officer Time column
+                headerRow.innerHTML = `
+                    <th role="columnheader">Period</th>
+                    <th role="columnheader">Loss Type</th>
+                    <th role="columnheader">Start Date</th>
+                    <th role="columnheader">End Date</th>
+                    <th role="columnheader">Officer Time?</th>
+                    <th role="columnheader">Deductible?</th>
+                    <th role="columnheader">Days</th>
+                    <th role="columnheader">Notes</th>
+                    <th role="columnheader">Actions</th>
+                `;
+            } else {
+                // Hide Officer Time column for Enlisted
+                headerRow.innerHTML = `
+                    <th role="columnheader">Period</th>
+                    <th role="columnheader">Loss Type</th>
+                    <th role="columnheader">Start Date</th>
+                    <th role="columnheader">End Date</th>
+                    <th role="columnheader">Deductible?</th>
+                    <th role="columnheader">Days</th>
+                    <th role="columnheader">Notes</th>
+                    <th role="columnheader">Actions</th>
+                `;
+            }
+            
+            // Update existing rows
+            const tbody = document.getElementById('timeLossBody');
+            Array.from(tbody.children).forEach((row, index) => {
+                if (!row.querySelector('.empty-state')) {
+                    // Re-create the row with correct structure
+                    const periodData = getTimeLossPeriodData(index);
+                    if (periodData) {
+                        row.innerHTML = createTimeLossRowHTML(index, marineStatus);
+                        // Restore data
+                        restoreTimeLossPeriodData(index, periodData);
+                        updateTimeLossPeriod(index);
+                    }
+                }
+            });
+        }
+
+        // Helper function to get current time loss period data
+        function getTimeLossPeriodData(periodIndex) {
+            const lossSelect = document.querySelector(`select[data-timeloss="${periodIndex}"][data-field="lossType"]`);
+            const startInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="startDate"]`);
+            const endInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="endDate"]`);
+            const notesInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="notes"]`);
+            const officerTimeCheckbox = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="officerTime"]`);
+            
+            if (!lossSelect) return null;
+            
+            return {
+                lossType: lossSelect.value,
+                startDate: startInput?.value || '',
+                endDate: endInput?.value || '',
+                notes: notesInput?.value || '',
+                isOfficerTime: officerTimeCheckbox?.checked || false
+            };
+        }
+
+        // Helper function to create time loss row HTML
+        function createTimeLossRowHTML(newIndex, marineStatus) {
+            const officerTimeColumn = marineStatus === 'Officer' ? `
+                <td role="gridcell" style="text-align: center;">
+                    <input type="checkbox" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="officerTime" aria-label="Officer time for period ${newIndex + 1}" title="Check if this time loss occurred during officer service">
+                </td>
+            ` : '';
+            
+            return `
+                <td role="gridcell">${newIndex + 1}</td>
+                <td role="gridcell">
+                    <select onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="lossType" aria-label="Loss type for period ${newIndex + 1}">
+                        <option value="">Select Loss Type</option>
+                        ${Object.keys(TIME_LOSS_TYPES).map(type => 
+                            `<option value="${type}">${type}</option>`
+                        ).join('')}
+                    </select>
+                </td>
+                <td role="gridcell">
+                    <input type="date" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="startDate" aria-label="Start date for time loss period ${newIndex + 1}">
+                </td>
+                <td role="gridcell">
+                    <input type="date" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="endDate" aria-label="End date for time loss period ${newIndex + 1}">
+                </td>
+                ${officerTimeColumn}
+                <td role="gridcell" id="timeloss-deductible-${newIndex}"></td>
+                <td role="gridcell" id="timeloss-days-${newIndex}"></td>
+                <td role="gridcell">
+                    <input type="text" placeholder="Reason/Details..." data-timeloss="${newIndex}" data-field="notes" aria-label="Notes for time loss period ${newIndex + 1}">
+                </td>
+                <td role="gridcell">
+                    <button class="btn-small btn-danger" onclick="removeTimeLossPeriod(${newIndex})" title="Remove this time loss period">🗑️</button>
+                </td>
+            `;
+        }
+
+        // Helper function to restore time loss period data
+        function restoreTimeLossPeriodData(periodIndex, data) {
+            const lossSelect = document.querySelector(`select[data-timeloss="${periodIndex}"][data-field="lossType"]`);
+            const startInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="startDate"]`);
+            const endInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="endDate"]`);
+            const notesInput = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="notes"]`);
+            const officerTimeCheckbox = document.querySelector(`input[data-timeloss="${periodIndex}"][data-field="officerTime"]`);
+            
+            if (lossSelect) lossSelect.value = data.lossType;
+            if (startInput) startInput.value = data.startDate;
+            if (endInput) endInput.value = data.endDate;
+            if (notesInput) notesInput.value = data.notes;
+            if (officerTimeCheckbox) officerTimeCheckbox.checked = data.isOfficerTime;
         }
 
         // Add service period
@@ -1455,35 +1601,12 @@
             }
             
             const newIndex = timeLossPeriodCount;
+            const marineStatus = document.getElementById('marineStatus').value;
             const row = document.createElement('tr');
             row.setAttribute('role', 'row');
             row.setAttribute('id', `timeloss-period-${newIndex}`);
             
-            row.innerHTML = `
-                <td role="gridcell">${newIndex + 1}</td>
-                <td role="gridcell">
-                    <select onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="lossType" aria-label="Loss type for period ${newIndex + 1}">
-                        <option value="">Select Loss Type</option>
-                        ${Object.keys(TIME_LOSS_TYPES).map(type => 
-                            `<option value="${type}">${type}</option>`
-                        ).join('')}
-                    </select>
-                </td>
-                <td role="gridcell">
-                    <input type="date" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="startDate" aria-label="Start date for time loss period ${newIndex + 1}">
-                </td>
-                <td role="gridcell">
-                    <input type="date" onchange="updateTimeLossPeriod(${newIndex})" data-timeloss="${newIndex}" data-field="endDate" aria-label="End date for time loss period ${newIndex + 1}">
-                </td>
-                <td role="gridcell" id="timeloss-deductible-${newIndex}"></td>
-                <td role="gridcell" id="timeloss-days-${newIndex}"></td>
-                <td role="gridcell">
-                    <input type="text" placeholder="Reason/Details..." data-timeloss="${newIndex}" data-field="notes" aria-label="Notes for time loss period ${newIndex + 1}">
-                </td>
-                <td role="gridcell">
-                    <button class="btn-small btn-danger" onclick="removeTimeLossPeriod(${newIndex})" title="Remove this time loss period">🗑️</button>
-                </td>
-            `;
+            row.innerHTML = createTimeLossRowHTML(newIndex, marineStatus);
             
             tbody.appendChild(row);
             timeLossPeriodCount++;
@@ -1634,12 +1757,14 @@
                 const startInput = document.querySelector(`input[data-timeloss="${i}"][data-field="startDate"]`);
                 const endInput = document.querySelector(`input[data-timeloss="${i}"][data-field="endDate"]`);
                 const notesInput = document.querySelector(`input[data-timeloss="${i}"][data-field="notes"]`);
+                const officerTimeCheckbox = document.querySelector(`input[data-timeloss="${i}"][data-field="officerTime"]`);
                 
                 if (lossSelect?.value) {
                     data.timeLossPeriods.push({
                         lossType: lossSelect.value,
                         startDate: startInput?.value || '',
                         endDate: endInput?.value || '',
+                        isOfficerTime: officerTimeCheckbox?.checked || false,
                         notes: notesInput?.value || ''
                     });
                 }
@@ -1751,16 +1876,18 @@
                     const startInput = document.querySelector(`input[data-timeloss="${i}"][data-field="startDate"]`);
                     const endInput = document.querySelector(`input[data-timeloss="${i}"][data-field="endDate"]`);
                     const notesInput = document.querySelector(`input[data-timeloss="${i}"][data-field="notes"]`);
+                    const officerTimeCheckbox = document.querySelector(`input[data-timeloss="${i}"][data-field="officerTime"]`);
                     
                     const lossType = lossSelect?.value;
                     const startDate = startInput?.value;
                     const endDate = endInput?.value;
                     const notes = notesInput?.value || '';
+                    const isOfficerTime = officerTimeCheckbox?.checked || false;
                     
                     if (lossType && startDate && endDate) {
                         const startYYYYMMDD = dateToYYYYMMDD(startDate);
                         const endYYYYMMDD = dateToYYYYMMDD(endDate);
-                        const isDeductible = isTimeLossDeductible(lossType);
+                        const isDeductibleByType = isTimeLossDeductible(lossType);
                         const days = calculateDaysInclusive(startDate, endDate);
                         
                         if (days > 0) {
@@ -1770,7 +1897,8 @@
                                 lossType,
                                 startDate: startYYYYMMDD,
                                 endDate: endYYYYMMDD,
-                                deductible: isDeductible,
+                                deductible: isDeductibleByType,
+                                isOfficerTime: isOfficerTime,
                                 days
                             });
 
@@ -1780,15 +1908,18 @@
                                 lossType,
                                 startDate: startYYYYMMDD,
                                 endDate: endYYYYMMDD,
-                                deductible: isDeductible,
+                                deductible: isDeductibleByType,
+                                isOfficerTime: isOfficerTime,
                                 days,
                                 notes
                             });
 
-                            // DODFMR Chapter 1 Rule: Time loss only affects Enlisted Marines, not Officers
-                            if (isDeductible && marineStatus === 'Enlisted') {
+                            // Apply time loss for all deductible types, regardless of Marine Status
+                            // Exception: Don't apply if "Officer Time?" checkbox is checked for that period
+                            if (isDeductibleByType && !isOfficerTime) {
                                 totalTimeLossDays += days;
                             }
+                            // Note: Time loss is only excluded when "Officer Time?" checkbox is checked
                         }
                     }
                 }
@@ -1975,22 +2106,32 @@
                     <td>${data.inclusiveAdjusted.days}</td>
                 </tr>`;
             
-            // Show time loss row with appropriate messaging
+            // Show time loss row with appropriate messaging based on checkbox logic
             if (data.timeLossDetails.length > 0) {
-                if (data.marineStatus === 'Enlisted' && data.totalTimeLossDays > 0) {
+                const appliedTimeLoss = data.timeLossDetails.filter(detail => 
+                    detail.deductible && !(data.marineStatus === 'Officer' && detail.isOfficerTime)
+                ).reduce((sum, detail) => sum + detail.days, 0);
+                
+                if (appliedTimeLoss > 0) {
                     calcHTML += `
                     <tr class="lost-time-row">
-                        <td><strong>Less Time Loss (${data.totalTimeLossDays} days - Enlisted)</strong></td>
+                        <td><strong>Less Time Loss (${appliedTimeLoss} days applied)</strong></td>
                         <td>${data.afterTimeLoss.years}</td>
                         <td>${data.afterTimeLoss.months}</td>
                         <td>${data.afterTimeLoss.days}</td>
                     </tr>`;
                 } else if (data.marineStatus === 'Officer') {
-                    calcHTML += `
-                    <tr style="background-color: #fff3cd;">
-                        <td><strong>Time Loss Not Applied (Officer - per DODFMR Ch1)</strong></td>
-                        <td colspan="3">Officers: Time loss does not change PEBD</td>
-                    </tr>`;
+                    const excludedTimeLoss = data.timeLossDetails.filter(detail => 
+                        detail.deductible && detail.isOfficerTime
+                    ).reduce((sum, detail) => sum + detail.days, 0);
+                    
+                    if (excludedTimeLoss > 0) {
+                        calcHTML += `
+                        <tr style="background-color: #fff3cd;">
+                            <td><strong>Time Loss Excluded (${excludedTimeLoss} days officer time)</strong></td>
+                            <td colspan="3">Officer time periods not applied</td>
+                        </tr>`;
+                    }
                 }
             }
             
@@ -2026,11 +2167,28 @@
                 const timeLossAnalysisBody = document.getElementById('timeLossAnalysisBody');
                 timeLossAnalysisBody.innerHTML = data.timeLossDetails.map(detail => {
                     // Determine if this time loss period actually affects the calculation
-                    const affectsCalculation = detail.deductible && data.marineStatus === 'Enlisted';
-                    const statusColor = affectsCalculation ? 'time-loss-yes' : 'creditable-yes';
-                    const statusText = data.marineStatus === 'Officer' ? 
-                        (detail.deductible ? 'Yes (Not Applied - Officer)' : 'No') : 
-                        (detail.deductible ? 'Yes' : 'No');
+                    let affectsCalculation = false;
+                    let statusText = '';
+                    let statusClass = '';
+                    
+                    if (!detail.deductible) {
+                        // Loss type is not deductible
+                        statusText = 'No';
+                        statusClass = 'creditable-yes';
+                    } else if (data.marineStatus === 'Officer' && detail.isOfficerTime) {
+                        // Officer Time checkbox is checked - don't apply this period
+                        statusText = 'No (Officer Time)';
+                        statusClass = 'creditable-yes';
+                    } else {
+                        // Default: Apply time loss for deductible types
+                        statusText = 'Yes';
+                        statusClass = 'time-loss-yes';
+                        affectsCalculation = true;
+                    }
+                    
+                    // Only show Officer Time column if Marine is an Officer
+                    const officerTimeColumn = data.marineStatus === 'Officer' ? 
+                        `<td style="text-align: center;">${detail.isOfficerTime ? '✅' : '❌'}</td>` : '';
                     
                     return `
                         <tr>
@@ -2038,7 +2196,8 @@
                             <td>${detail.lossType}</td>
                             <td>${detail.startDate}</td>
                             <td>${detail.endDate}</td>
-                            <td class="${statusColor}">
+                            ${officerTimeColumn}
+                            <td class="${statusClass}">
                                 ${statusText}
                             </td>
                             <td>${detail.days}</td>
@@ -2047,12 +2206,20 @@
                     `;
                 }).join('');
                 
-                // Add explanatory note for officers
+                // Add explanatory note
                 if (data.marineStatus === 'Officer') {
                     timeLossAnalysisBody.innerHTML += `
-                        <tr style="background-color: #fff3cd;">
-                            <td colspan="7" style="text-align: center; font-weight: bold;">
-                                📋 DODFMR Chapter 1: Time loss periods do not change an Officer's PEBD
+                        <tr style="background-color: #e8f5e9;">
+                            <td colspan="8" style="text-align: center; font-weight: bold; padding: 10px;">
+                                📋 Time loss is applied by default. Check "Officer Time?" to exclude specific periods that occurred during officer service.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    timeLossAnalysisBody.innerHTML += `
+                        <tr style="background-color: #e8f5e9;">
+                            <td colspan="7" style="text-align: center; font-weight: bold; padding: 10px;">
+                                📋 Time loss periods are applied for all deductible types.
                             </td>
                         </tr>
                     `;
@@ -2202,11 +2369,13 @@
                     const startInput = document.querySelector(`input[data-timeloss="${index}"][data-field="startDate"]`);
                     const endInput = document.querySelector(`input[data-timeloss="${index}"][data-field="endDate"]`);
                     const notesInput = document.querySelector(`input[data-timeloss="${index}"][data-field="notes"]`);
+                    const officerTimeCheckbox = document.querySelector(`input[data-timeloss="${index}"][data-field="officerTime"]`);
                     
                     if (lossSelect) lossSelect.value = period.lossType;
                     if (startInput) startInput.value = period.startDate;
                     if (endInput) endInput.value = period.endDate;
                     if (notesInput) notesInput.value = period.notes;
+                    if (officerTimeCheckbox) officerTimeCheckbox.checked = period.isOfficerTime || false;
                     
                     updateTimeLossPeriod(index);
                 });
@@ -2464,7 +2633,7 @@
                     </div>
                     ` : ''}
                     <table>
-                        <tr><th>Period</th><th>Loss Type</th><th>Start Date</th><th>End Date</th><th>Deductible</th><th>Days</th><th>Notes</th></tr>
+                                                    <tr><th>Period</th><th>Loss Type</th><th>Start Date</th><th>End Date</th><th>Officer Time</th><th>Deductible</th><th>Days</th><th>Notes</th></tr>
                         ${data.timeLossDetails.map(detail => {
                             const affectsCalculation = detail.deductible && data.marineStatus === 'Enlisted';
                             const statusText = data.marineStatus === 'Officer' ? 
