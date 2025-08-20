@@ -614,6 +614,163 @@
             display: none;
         }
 
+        /* Help button styles */
+.help-button {
+    background: var(--info-blue);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-button:hover {
+    background: #138496;
+    transform: scale(1.1);
+}
+
+.help-button:focus {
+    outline: 2px solid var(--marine-gold);
+    outline-offset: 2px;
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 20px;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal {
+    transform: scale(1);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--marine-red) 0%, #8B0000 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 20px;
+    color: #374151;
+    line-height: 1.6;
+}
+
+.modal-section {
+    margin-bottom: 20px;
+}
+
+.modal-section h4 {
+    color: var(--marine-red);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.modal-section h5 {
+    color: var(--marine-gray);
+    font-size: 1rem;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.modal-section ul {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.modal-section li {
+    margin-bottom: 5px;
+}
+
+.scenario-box {
+    background: #f8f9fa;
+    border-left: 4px solid var(--info-blue);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.scenario-title {
+    font-weight: bold;
+    color: var(--marine-gray);
+    margin-bottom: 8px;
+}
+
+.foundational-highlight {
+    background: var(--marine-gold);
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
         /* Accessibility improvements */
         .sr-only {
             position: absolute;
@@ -742,7 +899,10 @@
             <h2 class="section-title">👤 MARINE INFORMATION</h2>
             <div class="grid grid-3">
                 <div class="form-group">
-                    <label for="foundationalPEBD">Foundational PEBD:</label>
+                    <label for="foundationalPEBD">
+                        Foundational PEBD:
+                        <button type="button" class="help-button" onclick="showFoundationalPEBDHelp()" aria-label="Help: What is Foundational PEBD?" title="Click for detailed explanation">?</button>
+                    </label>
                     <div class="date-input-group">
                         <input type="date" id="foundationalPEBD" onchange="updateDateDisplay('foundationalPEBD')" aria-label="Foundational PEBD date">
                         <div class="date-display" id="foundationalPEBDDisplay"></div>
@@ -751,12 +911,12 @@
                     <small>Beginning date of most recent period of continuous service for pay</small>
                 </div>
                 <div class="form-group">
-                    <label for="marineStatus">Marine Status:</label>
-                    <select id="marineStatus" onchange="updateAllPeriods()" aria-label="Marine status selection">
-                        <option value="Enlisted">Enlisted</option>
-                        <option value="Officer">Officer</option>
-                    </select>
-                </div>
+    <label for="marineStatus">Marine Status:</label>
+    <select id="marineStatus" onchange="updateAllPeriods()" aria-label="Marine status selection">
+        <option value="Enlisted">Enlisted</option>
+        <option value="Officer">Officer</option>
+    </select>
+</div>
                 <div class="form-group">
                     <label for="pathwayType">Pathway Type:</label>
                     <select id="pathwayType" onchange="updateAllPeriods()" aria-label="Pathway type selection">
@@ -948,6 +1108,98 @@
         </div>
     </div>
 
+<!-- Foundational PEBD Help Modal -->
+<div id="foundationalPEBDModal" class="modal-overlay" onclick="closeFoundationalPEBDHelp(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 class="modal-title">📅 Understanding Foundational PEBD</h3>
+            <button class="modal-close" onclick="closeFoundationalPEBDHelp()" aria-label="Close help dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-section">
+                <h4>Key Understanding</h4>
+                <p>The Foundational PEBD represents the <strong>actual start date</strong> of your current uninterrupted period of military service for pay purposes, not just administrative milestones like reenlistment dates.</p>
+            </div>
+
+            <div class="modal-section">
+                <h4>Events That Could Establish Foundational PEBD</h4>
+                
+                <h5>1. Initial Entry/Enlistment</h5>
+                <ul>
+                    <li>First enlistment date</li>
+                    <li>Officer commissioning date</li>
+                    <li>Service academy graduation date</li>
+                </ul>
+
+                <h5>2. Return from Break in Service</h5>
+                <ul>
+                    <li>Date of return after discharge and re-entry</li>
+                    <li>Date of recall to active duty after inactive status</li>
+                    <li>Date of reactivation from Individual Ready Reserve (IRR)</li>
+                </ul>
+
+                <h5>3. Inter-Service Transfers</h5>
+                <ul>
+                    <li>Date of entry when transferring between branches</li>
+                    <li>Date active duty begins after transferring from reserves/guard</li>
+                </ul>
+
+                <h5>4. Status Changes</h5>
+                <ul>
+                    <li>Date of entry on active duty from reserve/guard status</li>
+                    <li>Date of return from extended unpaid leave</li>
+                    <li>Date of return after medical discharge and subsequent re-entry</li>
+                </ul>
+
+                <h5>5. Administrative Corrections</h5>
+                <ul>
+                    <li>Corrected entry date due to administrative errors</li>
+                    <li>Backdated effective date from personnel actions</li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h4>Example Scenarios</h4>
+                
+                <div class="scenario-box">
+                    <div class="scenario-title">Scenario 1: Continuous Service Since Initial Entry</div>
+                    <ul>
+                        <li>Initial Enlistment: 2020-03-15</li>
+                        <li>Current Reenlistment: 2025-01-25</li>
+                        <li><strong>Foundational PEBD:</strong> <span class="foundational-highlight">2020-03-15</span> (continuous since first entry)</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <div class="scenario-title">Scenario 2: Break in Service</div>
+                    <ul>
+                        <li>First Enlistment: 2018-06-01</li>
+                        <li>Discharged: 2022-05-31</li>
+                        <li>Re-enlisted: 2023-08-15</li>
+                        <li>Current Reenlistment: 2025-01-25</li>
+                        <li><strong>Foundational PEBD:</strong> <span class="foundational-highlight">2023-08-15</span> (most recent continuous period)</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <div class="scenario-title">Scenario 3: Reserve to Active Duty</div>
+                    <ul>
+                        <li>Joined Reserves: 2019-04-10</li>
+                        <li>Activated to Active Duty: 2021-02-20</li>
+                        <li>Current Reenlistment: 2025-01-25</li>
+                        <li><strong>Foundational PEBD:</strong> <span class="foundational-highlight">2021-02-20</span> (when continuous active duty pay began)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h4>💡 Quick Tip</h4>
+                <p>If you're unsure about your Foundational PEBD, check your most recent DD Form 4 (Enlistment/Reenlistment Document) or consult with your Personnel Administration team. The date should reflect when your current uninterrupted period of service for pay began.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
         // Enhanced Service Type Definitions from PAA 04-25 (Complete List)
         const SERVICE_TYPES = {
@@ -1023,6 +1275,38 @@
         let validationErrors = [];
         let servicePeriodCount = 0;
         let timeLossPeriodCount = 0;
+
+        // Modal functions for Foundational PEBD help
+function showFoundationalPEBDHelp() {
+    const modal = document.getElementById('foundationalPEBDModal');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    
+    // Focus management for accessibility
+    modal.querySelector('.modal-close').focus();
+}
+
+function closeFoundationalPEBDHelp(event) {
+    // Only close if clicking the overlay or close button
+    if (!event || event.target === event.currentTarget || event.target.classList.contains('modal-close')) {
+        const modal = document.getElementById('foundationalPEBDModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+        
+        // Return focus to help button
+        document.querySelector('.help-button').focus();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('foundationalPEBDModal');
+        if (modal.classList.contains('show')) {
+            closeFoundationalPEBDHelp();
+        }
+    }
+});
 
         // Helper function to determine if service type is creditable
         function isServiceCreditable(serviceType, pathwayType) {
