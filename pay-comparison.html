@@ -1955,32 +1955,46 @@ function exportCSV() {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = (lastInputs.edipi || 'MEMBER') + '-' + lastInputs.pebdA + '-' + lastInputs.pebdB + '.csv';
+  a.download = (getEdipi() || 'MEMBER') + '-' + lastInputs.pebdA + '-' + lastInputs.pebdB + '.csv';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 /* DTMS TTC export. The sign travels in the TTC, not the amount: months
    where Scenario B pays LESS than A (negative difference) are checkages
-   under TTC 693; months where B pays MORE are payments under TTC 694.
-   One row per month per pay code, effective-dated inside that month.
-   Tax code defaults to 4 - change individual rows to 9 in Excel for any
-   month the member was in a combat zone. Purpose code is always I. */
+   under TTC 693 003 CHEK; months where B pays MORE are credits under
+   TTC 694 000 CRED. One row per month per pay code, effective-dated
+   inside that month. The EDIPI is written as a text cell so a leading
+   zero survives. Tax code defaults to 4 - change individual rows to 9
+   in Excel for any month the member was in a combat zone. Purpose code
+   I exists only on 693 003; the 694 000 CRED word carries no purpose
+   code. Word formats:
+     TTC 693 003 CHEK | PAYCODE -$ AMOUNT ( TAXCODE )- PURPOSECD | ED
+     TTC 694 000 CRED | PAYCODE -$ AMOUNT ( TAXCODE ) | ED          */
 var DTMS = {
   taxCode: '4',
   purposeCode: 'I',
-  history: 'PEBD  CHANGE'
+  history: 'PEBD  CHANGE',
+  specs: {
+    '693': { banner: '693-003: CHEK|___-$___(___)-___ ED___|', purpose: true },
+    '694': { banner: '694-000: CRED|___-$___(___) ED___|', purpose: false }
+  }
 };
+
+/* Single source for the EDIPI. Digits only, leading zeros preserved. */
+function getEdipi() {
+  return document.getElementById('edipi').value.trim();
+}
 
 function dtmsPaycode(rank) {
   // 10000 = officer (incl. warrant), 20000 = enlisted
   return /^[OW]/.test(rank) ? 10000 : 20000;
 }
 
-function buildDTMSRows() {
+function buildDTMSRows(engineRows) {
   // Aggregate engine segments into one row per month per pay code.
   var groups = {};
-  lastResult.rows.forEach(function (row) {
+  engineRows.forEach(function (row) {
     var segStart = row.dateRange.split('-')[0];
     var key = segStart.slice(0, 6) + '|' + dtmsPaycode(row.rank);
     if (!groups[key]) {
@@ -2003,22 +2017,23 @@ function buildDTMSRows() {
 }
 
 function dtmsSheetRows(ttc, rows, edipi) {
-  var aoa = [
-    [ttc + '-003: CHEK|___-$___(___)-___ ED___|'],
-    ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE', 'PURPOSE CD', 'ED', 'HISTORY']
-  ];
+  var spec = DTMS.specs[ttc];
+  var header = ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE'];
+  if (spec.purpose) header.push('PURPOSE CD');
+  header.push('ED', 'HISTORY');
+  var aoa = [[spec.banner], header];
   rows.forEach(function (r, i) {
-    aoa.push([
+    var line = [
       i === 0 ? 'Normal' : '',
-      Number(edipi),
+      String(edipi),
       '',
       r.paycode,
       r.amount,
-      DTMS.taxCode,
-      DTMS.purposeCode,
-      r.ed,
-      DTMS.history
-    ]);
+      DTMS.taxCode
+    ];
+    if (spec.purpose) line.push(DTMS.purposeCode);
+    line.push(r.ed, DTMS.history);
+    aoa.push(line);
   });
   return aoa;
 }
@@ -2026,12 +2041,12 @@ function dtmsSheetRows(ttc, rows, edipi) {
 function exportDTMS() {
   if (!lastResult) return;
   clearError();
-  var edipi = document.getElementById('edipi').value.trim();
+  var edipi = getEdipi();
   if (!/^\d{10}$/.test(edipi)) {
     showError('DTMS export needs the member 10-digit EDIPI in Member Information.');
     return;
   }
-  var split = buildDTMSRows();
+  var split = buildDTMSRows(lastResult.rows);
   if (!split.neg.length && !split.pos.length) {
     showError('Every month nets to zero difference - there is nothing to submit to DTMS.');
     return;
@@ -2120,6 +2135,11 @@ document.addEventListener('DOMContentLoaded', function () {
   addTimelineRow();
   ['pebdA', 'pebdB', 'periodStart', 'periodEnd'].forEach(function (id) {
     document.getElementById(id).addEventListener('change', function () { updateBadge(id); });
+  });
+  // EDIPI accepts digits only. Strips letters and special characters on entry, keeps leading zeros.
+  document.getElementById('edipi').addEventListener('input', function () {
+    var cleaned = this.value.replace(/\D/g, '');
+    if (cleaned !== this.value) this.value = cleaned;
   });
   readHandoffParams();
 });

@@ -465,7 +465,144 @@ assertEqual(r.numPeriods, 3, 'PAA example counts three creditable periods');
 assertEqual(r.normalized, { years: 8, months: 7, days: 24 }, 'PAA total prior service 8y 7m 24d');
 assertEqual(r.calculatedPEBD, '19861116', 'PAA adjusted PEBD 1986-11-16');
 
+// ---------- 10. DTMS export row builder ----------
+// Mirrors the DTMS logic shipped in pay-comparison.html: month + pay code
+// grouping, sign routing to TTC 693 003 CHEK / 694 000 CRED, sheet layout,
+// string EDIPI with leading zeros preserved. Word formats:
+//   TTC 693 003 CHEK | PAYCODE -$ AMOUNT ( TAXCODE )- PURPOSECD | ED
+//   TTC 694 000 CRED | PAYCODE -$ AMOUNT ( TAXCODE ) | ED
+console.log('\n[10] DTMS export');
+
+const DTMS = {
+    taxCode: '4',
+    purposeCode: 'I',
+    history: 'PEBD  CHANGE',
+    specs: {
+        '693': { banner: '693-003: CHEK|___-$___(___)-___ ED___|', purpose: true },
+        '694': { banner: '694-000: CRED|___-$___(___) ED___|', purpose: false }
+    }
+};
+
+function dtmsPaycode(rank) {
+    // 10000 = officer (incl. warrant), 20000 = enlisted
+    return /^[OW]/.test(rank) ? 10000 : 20000;
+}
+
+function buildDTMSRows(engineRows) {
+    // Aggregate engine segments into one row per month per pay code.
+    var groups = {};
+    engineRows.forEach(function (row) {
+        var segStart = row.dateRange.split('-')[0];
+        var key = segStart.slice(0, 6) + '|' + dtmsPaycode(row.rank);
+        if (!groups[key]) {
+            groups[key] = { paycode: dtmsPaycode(row.rank), diffCents: 0, ed: segStart };
+        }
+        groups[key].diffCents += row.diff;
+        if (segStart < groups[key].ed) groups[key].ed = segStart;
+    });
+    var neg = [], pos = [];
+    Object.keys(groups).sort().forEach(function (k) {
+        var g = groups[k];
+        if (g.diffCents === 0) return;
+        (g.diffCents < 0 ? neg : pos).push({
+            paycode: g.paycode,
+            amount: Math.abs(g.diffCents) / 100,
+            ed: g.ed
+        });
+    });
+    return { neg: neg, pos: pos };
+}
+
+function dtmsSheetRows(ttc, rows, edipi) {
+    var spec = DTMS.specs[ttc];
+    var header = ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE'];
+    if (spec.purpose) header.push('PURPOSE CD');
+    header.push('ED', 'HISTORY');
+    var aoa = [[spec.banner], header];
+    rows.forEach(function (r, i) {
+        var line = [
+            i === 0 ? 'Normal' : '',
+            String(edipi),
+            '',
+            r.paycode,
+            r.amount,
+            DTMS.taxCode
+        ];
+        if (spec.purpose) line.push(DTMS.purposeCode);
+        line.push(r.ed, DTMS.history);
+        aoa.push(line);
+    });
+    return aoa;
+}
+
+// Pay code routing
+assertEqual(dtmsPaycode('E5'), 20000, 'E5 routes to enlisted pay code 20000');
+assertEqual(dtmsPaycode('E0'), 20000, 'E0 routes to enlisted pay code 20000');
+assertEqual(dtmsPaycode('O3'), 10000, 'O3 routes to officer pay code 10000');
+assertEqual(dtmsPaycode('O1E'), 10000, 'O1E prior-enlisted officer routes to 10000');
+assertEqual(dtmsPaycode('W2'), 10000, 'W2 warrant routes to officer pay code 10000');
+
+// Month grouping
+let dsplit = buildDTMSRows([
+    { dateRange: '20240110-20240119', rank: 'E5', diff: -1500 },
+    { dateRange: '20240120-20240130', rank: 'E6', diff: -2500 }
+]);
+assertEqual(dsplit.neg, [{ paycode: 20000, amount: 40, ed: '20240110' }], 'Same-month enlisted segments merge into one 693 row with summed amount and earliest ED');
+assertEqual(dsplit.pos, [], 'No 694 rows when the month nets negative');
+
+// Sign routing across months
+dsplit = buildDTMSRows([
+    { dateRange: '20240101-20240130', rank: 'E5', diff: -1000 },
+    { dateRange: '20240201-20240228', rank: 'E5', diff: 2000 }
+]);
+assertEqual(dsplit.neg, [{ paycode: 20000, amount: 10, ed: '20240101' }], 'Negative month routes to TTC 693');
+assertEqual(dsplit.pos, [{ paycode: 20000, amount: 20, ed: '20240201' }], 'Positive month routes to TTC 694');
+
+// Zero-net month dropped
+dsplit = buildDTMSRows([
+    { dateRange: '20240101-20240115', rank: 'E5', diff: -750 },
+    { dateRange: '20240116-20240130', rank: 'E5', diff: 750 }
+]);
+assertEqual(dsplit.neg.length + dsplit.pos.length, 0, 'Zero-net month produces no rows');
+
+// Mid-month commissioning splits pay codes inside one month
+dsplit = buildDTMSRows([
+    { dateRange: '20240101-20240114', rank: 'E5', diff: -500 },
+    { dateRange: '20240115-20240130', rank: 'O1E', diff: -800 }
+]);
+assertEqual(dsplit.neg, [
+    { paycode: 10000, amount: 8, ed: '20240115' },
+    { paycode: 20000, amount: 5, ed: '20240101' }
+], 'Mid-month commissioning yields one row per pay code');
+assertEqual(dsplit.neg.every(g => g.ed.slice(0, 6) === '202401'), true, 'Effective dates stay inside the source month');
+
+// Sheet layout, 693 003 CHEK
+let sheet = dtmsSheetRows('693', [
+    { paycode: 20000, amount: 40, ed: '20240110' },
+    { paycode: 20000, amount: 12.5, ed: '20240201' }
+], '0123456789');
+assertEqual(sheet[0], ['693-003: CHEK|___-$___(___)-___ ED___|'], '693 banner reads 693-003 CHEK');
+assertEqual(sheet[1], ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE', 'PURPOSE CD', 'ED', 'HISTORY'], '693 header carries PURPOSE CD');
+assertEqual(sheet[2], ['Normal', '0123456789', '', 20000, 40, '4', 'I', '20240110', 'PEBD  CHANGE'], '693 first data row carries Normal type, tax code 4, purpose I');
+assertEqual(sheet[3][0], '', 'TYPE is blank after the first row');
+assertEqual(typeof sheet[2][1], 'string', 'EDIPI cell stays a string');
+assertEqual(sheet[2][1], '0123456789', 'Leading-zero EDIPI survives intact');
+
+// Sheet layout, 694 000 CRED - no purpose code column
+sheet = dtmsSheetRows('694', [{ paycode: 10000, amount: 5, ed: '20240301' }], '1234567890');
+assertEqual(sheet[0], ['694-000: CRED|___-$___(___) ED___|'], '694 banner reads 694-000 CRED');
+assertEqual(sheet[1], ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE', 'ED', 'HISTORY'], '694 header omits PURPOSE CD');
+assertEqual(sheet[2], ['Normal', '1234567890', '', 10000, 5, '4', '20240301', 'PEBD  CHANGE'], '694 data row has no purpose code field');
+
+// EDIPI validation (mirrors the export gate in pay-comparison.html)
+const EDIPI_RE = /^\d{10}$/;
+assertEqual(EDIPI_RE.test('0123456789'), true, 'EDIPI with leading zero accepted');
+assertEqual(EDIPI_RE.test('123456789'), false, 'Nine-digit EDIPI rejected');
+assertEqual(EDIPI_RE.test('12345678A9'), false, 'EDIPI with a letter rejected');
+assertEqual(EDIPI_RE.test('123-456-78'), false, 'EDIPI with special characters rejected');
+
 // ---------- Summary ----------
+
 console.log('\n============================');
 console.log(`RESULTS: ${passed} passed, ${failed} failed out of ${passed + failed} tests`);
 console.log('============================');
