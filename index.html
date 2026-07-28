@@ -1378,7 +1378,7 @@
             <div class="guide-body">
                 <ol>
                     <li><strong>Enter the Foundational PEBD.</strong> This is the beginning date of the Marine's most recent period of continuous service for pay, in YYYYMMDD format (example: 20240115). Validate it against the DD Form 4 or DD Form 1966.</li>
-                    <li><strong>Select Marine Status and Pathway Type.</strong> The pathway drives special rules - Military Academy service credits only on enlisted pathways (PAA 04-25 para 4.b.4).</li>
+                    <li><strong>Select Marine Status and Pathway Type.</strong> The pathway drives special rules - Military Academy service credits only on enlisted pathways (PAA 04-25 para 4.b.4). Naval Academy Preparatory School (NAPS) time is enlisted service and credits on every pathway, including Officer (PAA 04-25 Note 8).</li>
                     <li><strong>Add each period of prior service.</strong> One row per separate period, with service type and inclusive start/end dates. The Creditable column updates as you type - a green check in the Days column means the dates are valid. Use "Add Service Period" for more rows.</li>
                     <li><strong>Record any time loss.</strong> Add a row for AWOL, confinement, or other lost time. Deductible loss is computed on the 30-day basis per DODFMR Vol 7A Ch 1 and reduces creditable service. Check "Officer Time?" for loss during commissioned service - it is recorded but not deducted.</li>
                     <li><strong>Click Calculate PEBD.</strong> The breakdown shows the PAA 04-25 six-step method: begin totals, end totals, difference, +1 inclusive day per period, time loss, and the normalized result subtracted from the foundational PEBD.</li>
@@ -1426,6 +1426,12 @@
                     <p>Post-1989 DEP without IDT drills is excluded, the active period counts. The analysis table shows Yes/No creditability per row.</p>
                     <div class="example-expect">Expected: 3y 0m 0d creditable, PEBD 20200301</div>
                     <button class="example-load-btn" onclick="loadExample(4)">Load Example</button>
+                </div>
+                <div class="example-card">
+                    <h4>6. NAPS to Naval Academy Officer</h4>
+                    <p>NAPS time is enlisted service and credits even on the Officer pathway (PAA 04-25 Note 8), while the midshipman years at the Academy do not (para 7.b Rule 4).</p>
+                    <div class="example-expect">Expected: 0y 9m 25d creditable, PEBD 20220802. Academy years add nothing</div>
+                    <button class="example-load-btn" onclick="loadExample(5)">Load Example</button>
                 </div>
             </div>
         </details>
@@ -1683,6 +1689,9 @@
         // Service Type Definitions from PAA 04-25.
         // DEP creditability follows DODFMR Vol 7A - before 1 Jan 1985 creditable,
         // on or after only with post-1989 IDT drills.
+        // NAPS is enlisted service (not cadet/midshipman service), so it stays
+        // creditable on the Officer pathway per PAA 04-25 Note 8 - it must NOT
+        // route through the Military Academy pathway exclusion below.
         const SERVICE_TYPES = {
             "Regular Army": { creditable: true, category: "Active" },
             "Regular Navy": { creditable: true, category: "Active" },
@@ -1704,6 +1713,7 @@
             "Fleet Reserve": { creditable: true, category: "Reserve" },
             "Fleet Marine Corps Reserve": { creditable: true, category: "Reserve" },
             "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
+            "Naval Academy Preparatory School (NAPS)": { creditable: true, category: "Academy" },
             "Temporary Coast Guard Reserve": { creditable: true, category: "Reserve" },
             "ROTC (Post 1979 w/Reserve)": { creditable: true, category: "ROTC" },
             "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
@@ -2653,6 +2663,15 @@ ${timeLossSectionHTML}
                 periods: [
                     { type: 'Delayed Entry Program (Post 1989 No IDT)', start: '20190115', end: '20190630', notes: 'No IDT drills - not creditable' },
                     { type: 'Regular Marine Corps', start: '20190701', end: '20220630', notes: 'Active period - creditable' }
+                ],
+                losses: []
+            },
+            {
+                foundational: '20230527', status: 'Officer',
+                pathway: 'Officer OCC/PLC/NROTC/Academy',
+                periods: [
+                    { type: 'Naval Academy Preparatory School (NAPS)', start: '20180723', end: '20190517', notes: 'Enlisted service - credits on all pathways (PAA 04-25 Note 8)' },
+                    { type: 'Military Academy Service', start: '20190628', end: '20230526', notes: 'Midshipman years - no credit on Officer pathway' }
                 ],
                 losses: []
             }

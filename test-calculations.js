@@ -29,6 +29,7 @@ const SERVICE_TYPES = {
     "Fleet Reserve": { creditable: true, category: "Reserve" },
     "Fleet Marine Corps Reserve": { creditable: true, category: "Reserve" },
     "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
+    "Naval Academy Preparatory School (NAPS)": { creditable: true, category: "Academy" },
     "Temporary Coast Guard Reserve": { creditable: true, category: "Reserve" },
     "ROTC (Post 1979 w/Reserve)": { creditable: true, category: "ROTC" },
     "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
@@ -260,11 +261,13 @@ assertEqual(calculateDays('2024010', '20240110'), 0, 'Invalid start returns 0');
 
 // ---------- 3. Service creditability ----------
 console.log('\n[3] Service creditability');
-assertEqual(Object.keys(SERVICE_TYPES).length, 42, 'Service type catalog holds 42 entries');
+assertEqual(Object.keys(SERVICE_TYPES).length, 43, 'Service type catalog holds 43 entries');
 assertEqual(isServiceCreditable('Regular Marine Corps', ENL), true, 'Regular Marine Corps creditable');
 assertEqual(isServiceCreditable('Military Academy Service', OFF), false, 'Academy on Officer pathway NOT creditable');
 assertEqual(isServiceCreditable('Military Academy Service', ENL), true, 'Academy on Enlisted pathway creditable');
 assertEqual(isServiceCreditable('Cadet/Midshipman Service (Non-Commissioned)', OFF), true, 'Non-commissioned cadet service stays creditable');
+assertEqual(isServiceCreditable('Naval Academy Preparatory School (NAPS)', ENL), true, 'NAPS creditable on Enlisted pathway');
+assertEqual(isServiceCreditable('Naval Academy Preparatory School (NAPS)', OFF), true, 'NAPS creditable on Officer pathway (PAA 04-25 Note 8)');
 assertEqual(isServiceCreditable('Delayed Entry Program (Before January 1985)', ENL), true, 'DEP before 1985 creditable (DODFMR Vol 7A)');
 assertEqual(isServiceCreditable('Delayed Entry Program (1985-1989 No IDT)', ENL), false, 'DEP 1985-1989 no IDT not creditable');
 assertEqual(isServiceCreditable('Delayed Entry Program (Post 1989 w/IDT)', ENL), true, 'DEP post-1989 with IDT creditable');
@@ -369,6 +372,17 @@ r = computePEBD('20250101', ENL, [
     { serviceType: 'Regular Marine Corps', startDate: '20240101', endDate: '20240229' }
 ]);
 assertEqual(r.normalized, { years: 0, months: 2, days: 0 }, 'Leap Feb 29 end treated as day 30');
+
+// NAPS + Academy on Officer pathway (PAA 04-25 para 7.b Rule 4, Note 8):
+// NAPS year credits, midshipman years do not.
+// NAPS 20180723-20190517: diff 0y 9m 24d + 1 inclusive = 0y 9m 25d.
+r = computePEBD('20230527', OFF, [
+    { serviceType: 'Naval Academy Preparatory School (NAPS)', startDate: '20180723', endDate: '20190517' },
+    { serviceType: 'Military Academy Service', startDate: '20190628', endDate: '20230526' }
+]);
+assertEqual(r.numPeriods, 1, 'Only the NAPS period counts on Officer pathway');
+assertEqual(r.normalized, { years: 0, months: 9, days: 25 }, 'NAPS year credits 0y 9m 25d');
+assertEqual(r.calculatedPEBD, '20220802', 'Commissioning PEBD recomputed to include NAPS time');
 
 // Partial period: 20200115-20200620 -> diff 0y 5m 5d + 1 = 0y 5m 6d.
 r = computePEBD('20250101', ENL, [
