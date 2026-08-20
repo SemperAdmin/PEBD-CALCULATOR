@@ -6,6 +6,7 @@ COMPLIANCE_CHANGELOG.md
 COMPLIANCE_IMPLEMENTATION_SUMMARY.md
 README.md
 test-calculations.js
+dtms-taxcode-audit.js
 semper-tokens.json
 .claude/
 .github/
