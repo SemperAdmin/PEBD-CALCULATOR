@@ -1289,7 +1289,7 @@
                     <li><strong>Build the career timeline.</strong> One row per rank held, chronological, inclusive dates, using exact pay-table rank codes (E1-E9, W1-W5, O1-O10, O1E-O3E, E0 for the sub-4-month entry rate). Leave the final end date empty for a still-current rank. The timeline must cover the whole period.</li>
                     <li><strong>Click Calculate Comparison.</strong> Every row shows the month, days paid, rank, both YOS values, both monthly rates, both prorated amounts, and the difference. A YOS anniversary or rate change mid-month splits the row.</li>
                     <li><strong>Read the totals.</strong> A negative difference means Scenario B pays less - the Marine was overpaid under the original PEBD. A positive difference means underpayment to be recovered.</li>
-                    <li><strong>Export.</strong> Use Export CSV for the full row-by-row table, or Run Verification Case to confirm the engine against the reviewed Novak fixture before relying on a build.</li>
+                    <li><strong>Export.</strong> Use Export CSV for the full row-by-row table, or Run Verification Case to confirm the engine against the reviewed Novak fixture before relying on a build. Export DTMS produces upload-ready TTC 693 (checkage) and 694 (credit) sheets with tax codes set per DODFMR Vol 7A: credits are tax code 3 (edit combat-zone months to 9 in Excel), checkages are tax code 3 in the current calendar year and tax code 4 for prior years.</li>
                 </ol>
                 <div class="guide-note">
                     <strong>Verify before official use.</strong> Estimates only. Official pay determinations come from DFAS through the chain of command.
@@ -1964,13 +1964,21 @@ function exportCSV() {
    where Scenario B pays LESS than A (negative difference) are checkages
    under TTC 693; months where B pays MORE are payments under TTC 694.
    One row per month per pay code, effective-dated inside that month.
-   Tax code defaults to 4 - change individual rows to 9 in Excel for any
-   month the member was in a combat zone. Purpose code is always I. */
+   Tax codes per DODFMR Vol 7A: credits (694) are taxed under the code of
+   the effective period - exported as tax code 3, change individual rows
+   to 9 in Excel for any month the member was in a combat zone. Checkages
+   (693) use tax code 3 when the effective date is in the current calendar
+   year, and tax code 4 for any prior year because those years' taxes are
+   already accounted for. Purpose code is always I. */
 var DTMS = {
-  taxCode: '4',
   purposeCode: 'I',
   history: 'PEBD  CHANGE'
 };
+
+function dtmsTaxCode(ttc, ed) {
+  if (ttc === '693' && ed.slice(0, 4) !== String(new Date().getFullYear())) return '4';
+  return '3';
+}
 
 function dtmsPaycode(rank) {
   // 10000 = officer (incl. warrant), 20000 = enlisted
@@ -2014,7 +2022,7 @@ function dtmsSheetRows(ttc, rows, edipi) {
       '',
       r.paycode,
       r.amount,
-      DTMS.taxCode,
+      dtmsTaxCode(ttc, r.ed),
       DTMS.purposeCode,
       r.ed,
       DTMS.history
