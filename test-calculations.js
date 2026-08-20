@@ -466,81 +466,52 @@ assertEqual(r.normalized, { years: 8, months: 7, days: 24 }, 'PAA total prior se
 assertEqual(r.calculatedPEBD, '19861116', 'PAA adjusted PEBD 1986-11-16');
 
 // ---------- 10. DTMS export row builder ----------
-// Mirrors the DTMS logic shipped in pay-comparison.html: month + pay code
-// grouping, sign routing to TTC 693 003 CHEK / 694 000 CRED, sheet layout,
-// string EDIPI with leading zeros preserved. Word formats:
+// No copy of the export logic lives here. This section parses the DTMS
+// block out of pay-comparison.html and runs the shipped functions, so an
+// edit to the app cannot pass this suite unnoticed. If the block markers
+// move, the load throws and the run fails loudly instead of going green.
+// Word formats:
 //   TTC 693 003 CHEK | PAYCODE -$ AMOUNT ( TAXCODE )- PURPOSECD | ED
 //   TTC 694 000 CRED | PAYCODE -$ AMOUNT ( TAXCODE ) | ED
 // Tax codes per DODFMR Vol 7A: credits (694) carry the effective-period
 // code 3; checkages (693) carry 3 in the current calendar year and 4 for
-// any prior year.
-console.log('\n[10] DTMS export');
+// any prior year. A future-dated ED is not a prior year and keeps 3.
+console.log('\n[10] DTMS export (loaded from pay-comparison.html)');
 
-const DTMS = {
-    purposeCode: 'I',
-    history: 'PEBD  CHANGE',
-    specs: {
-        '693': { banner: '693-003: CHEK|___-$___(___)-___ ED___|', purpose: true },
-        '694': { banner: '694-000: CRED|___-$___(___) ED___|', purpose: false }
+const DTMS_SOURCE_FILE = require('path').join(__dirname, 'pay-comparison.html');
+const DTMS_SOURCE = require('fs').readFileSync(DTMS_SOURCE_FILE, 'utf8');
+
+const LIVE = (function loadShippedDTMS(src) {
+    const a = src.indexOf('var DTMS = {');
+    const b = src.indexOf('function exportDTMS');
+    if (a < 0 || b < 0 || b < a) {
+        throw new Error(
+            'DTMS block not found in pay-comparison.html. The markers "var DTMS = {" ' +
+            'and "function exportDTMS" define the extraction window. Update section 10.');
     }
-};
+    const box = {};
+    const stubDoc = { getElementById: function () { return { value: '' }; } };
+    new Function('out', 'document', src.slice(a, b) +
+        '\nout.DTMS = DTMS;' +
+        '\nout.dtmsTaxCode = dtmsTaxCode;' +
+        '\nout.dtmsPaycode = dtmsPaycode;' +
+        '\nout.buildDTMSRows = buildDTMSRows;' +
+        '\nout.dtmsSheetRows = dtmsSheetRows;')(box, stubDoc);
+    return box;
+})(DTMS_SOURCE);
 
-function dtmsTaxCode(ttc, ed) {
-    if (ttc === '693' && ed.slice(0, 4) !== String(new Date().getFullYear())) return '4';
-    return '3';
-}
+const DTMS = LIVE.DTMS;
+const dtmsTaxCode = LIVE.dtmsTaxCode;
+const dtmsPaycode = LIVE.dtmsPaycode;
+const buildDTMSRows = LIVE.buildDTMSRows;
+const dtmsSheetRows = LIVE.dtmsSheetRows;
 
-function dtmsPaycode(rank) {
-    // 10000 = officer (incl. warrant), 20000 = enlisted
-    return /^[OW]/.test(rank) ? 10000 : 20000;
-}
-
-function buildDTMSRows(engineRows) {
-    // Aggregate engine segments into one row per month per pay code.
-    var groups = {};
-    engineRows.forEach(function (row) {
-        var segStart = row.dateRange.split('-')[0];
-        var key = segStart.slice(0, 6) + '|' + dtmsPaycode(row.rank);
-        if (!groups[key]) {
-            groups[key] = { paycode: dtmsPaycode(row.rank), diffCents: 0, ed: segStart };
-        }
-        groups[key].diffCents += row.diff;
-        if (segStart < groups[key].ed) groups[key].ed = segStart;
-    });
-    var neg = [], pos = [];
-    Object.keys(groups).sort().forEach(function (k) {
-        var g = groups[k];
-        if (g.diffCents === 0) return;
-        (g.diffCents < 0 ? neg : pos).push({
-            paycode: g.paycode,
-            amount: Math.abs(g.diffCents) / 100,
-            ed: g.ed
-        });
-    });
-    return { neg: neg, pos: pos };
-}
-
-function dtmsSheetRows(ttc, rows, edipi) {
-    var spec = DTMS.specs[ttc];
-    var header = ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE'];
-    if (spec.purpose) header.push('PURPOSE CD');
-    header.push('ED', 'HISTORY');
-    var aoa = [[spec.banner], header];
-    rows.forEach(function (r, i) {
-        var line = [
-            i === 0 ? 'Normal' : '',
-            String(edipi),
-            '',
-            r.paycode,
-            r.amount,
-            dtmsTaxCode(ttc, r.ed)
-        ];
-        if (spec.purpose) line.push(DTMS.purposeCode);
-        line.push(r.ed, DTMS.history);
-        aoa.push(line);
-    });
-    return aoa;
-}
+// Guard the load itself. A silent empty extraction would pass every
+// assertion below by never being reached.
+assertEqual(typeof dtmsTaxCode, 'function', 'dtmsTaxCode loaded from pay-comparison.html');
+assertEqual(typeof dtmsSheetRows, 'function', 'dtmsSheetRows loaded from pay-comparison.html');
+assertEqual(typeof buildDTMSRows, 'function', 'buildDTMSRows loaded from pay-comparison.html');
+assertEqual(typeof dtmsPaycode, 'function', 'dtmsPaycode loaded from pay-comparison.html');
 
 // Pay code routing
 assertEqual(dtmsPaycode('E5'), 20000, 'E5 routes to enlisted pay code 20000');
@@ -610,8 +581,137 @@ assertEqual(sheet[0], ['694-000: CRED|___-$___(___) ED___|'], '694 banner reads 
 assertEqual(sheet[1], ['TYPE', 'EDIPI', 'MEMBER', 'PAYCODE', 'AMOUNT', 'TAX CODE', 'ED', 'HISTORY'], '694 header omits PURPOSE CD');
 assertEqual(sheet[2], ['Normal', '1234567890', '', 10000, 5, '3', PRIOR_YR + '0301', 'PEBD  CHANGE'], '694 prior-year row has tax code 3 and no purpose code field');
 
-// EDIPI validation (mirrors the export gate in pay-comparison.html)
-const EDIPI_RE = /^\d{10}$/;
+// Future-dated ED is not a prior year
+const NEXT_YR = String(new Date().getFullYear() + 1);
+assertEqual(dtmsTaxCode('693', NEXT_YR + '0301'), '3', 'Future-year checkage stays tax code 3, not 4');
+assertEqual(dtmsTaxCode('694', NEXT_YR + '0301'), '3', 'Future-year credit stays tax code 3');
+
+// Combat-zone rule travels inside the 694 workbook, not only in the UI
+const NOTE = JSON.stringify(DTMS.creditNote || []).toLowerCase();
+assertEqual(Array.isArray(DTMS.creditNote), true, '694 workbook carries a creditNote sheet');
+assertEqual(NOTE.includes('combat'), true, 'creditNote names the combat-zone case');
+assertEqual(NOTE.includes('9'), true, 'creditNote names tax code 9');
+assertEqual(/tax code 3/.test(NOTE), true, 'creditNote states the exported default of 3');
+assertEqual(JSON.stringify(dtmsSheetRows('694', [{ paycode: 10000, amount: 5, ed: PRIOR_YR + '0301' }], '1234567890')).toLowerCase().includes('combat'), false, 'the note stays off the Normal Transactions sheet');
+
+const CUR_YR_N = Number(CUR_YR);
+
+// ---------- 10b. Guided tax-code examples, end to end ----------
+// Loads the pay engine AND the example definition out of pay-comparison.html,
+// runs the example the button loads, and checks the sheet the user downloads.
+// The example cards state row counts and tax codes, so those claims are
+// asserted here against the engine rather than trusted.
+
+const ENGINE = (function loadShippedEngine(src) {
+    const mark = "})(typeof globalThis !== 'undefined' ? globalThis : this);";
+    const a = src.indexOf('const PAY_DATA = {');
+    const b = src.indexOf(mark);
+    if (a < 0 || b < 0 || b < a) {
+        throw new Error('Pay engine block not found in pay-comparison.html. Markers are ' +
+            '"const PAY_DATA = {" and the IIFE tail. Update section 10b.');
+    }
+    const body = src.slice(a, b + mark.length)
+        .replace(/<\/?script[^>]*>/g, '')
+        .replace(mark, '})(shim);');
+    const shim = {};
+    new Function('shim', body + '\nshim.PAY_DATA = PAY_DATA;')(shim);
+    return shim;
+})(DTMS_SOURCE);
+
+const taxCodeExample = (function loadExampleDef(src) {
+    const a = src.indexOf('function taxCodeExample');
+    const b = src.indexOf('function loadTaxCodeExample');
+    if (a < 0 || b < 0 || b < a) {
+        throw new Error('taxCodeExample() not found in pay-comparison.html. Update section 10b.');
+    }
+    const out = {};
+    new Function('out', src.slice(a, b) + '\nout.f = taxCodeExample;')(out);
+    return out.f;
+})(DTMS_SOURCE);
+
+assertEqual(typeof ENGINE.PayEngine.computeComparison, 'function', 'pay engine loaded from pay-comparison.html');
+assertEqual(typeof taxCodeExample, 'function', 'taxCodeExample loaded from pay-comparison.html');
+
+function runTaxExample(kind) {
+    const ex = taxCodeExample(kind);
+    const res = ENGINE.PayEngine.computeComparison({
+        pebdA: ex.pebdA, pebdB: ex.pebdB, start: ex.start, end: ex.end,
+        timeline: ex.timeline.map(function (r) { return { rank: r[0], start: r[1], end: r[2] }; }),
+        payData: ENGINE.PAY_DATA
+    });
+    const split = buildDTMSRows(res.rows);
+    return { ex: ex, res: res, split: split };
+}
+function codeTally(ttc, rows) {
+    const t = {};
+    rows.forEach(function (r) { const c = dtmsTaxCode(ttc, r.ed); t[c] = (t[c] || 0) + 1; });
+    return t;
+}
+
+// Example 5, TTC 693 checkage straddling 31 December
+const ex693 = runTaxExample('693');
+assertEqual(ex693.ex.start, (CUR_YR_N - 1) * 10000 + 701, 'checkage example opens 1 Jul of last year');
+assertEqual(ex693.ex.end, CUR_YR_N * 10000 + 630, 'checkage example closes 30 Jun of this year');
+assertEqual(ex693.res.totalDiff < 0, true, 'checkage example nets negative, so Scenario B pays less');
+assertEqual(ex693.split.neg.length, 12, 'checkage example yields 12 rows on the 693 sheet');
+assertEqual(ex693.split.pos.length, 0, 'checkage example writes no 694 file');
+assertEqual(codeTally('693', ex693.split.neg), { '4': 6, '3': 6 }, 'checkage sheet is 6 rows at tax code 4 and 6 at tax code 3');
+assertEqual(ex693.split.neg.filter(function (r) { return Number(r.ed.slice(0, 4)) === CUR_YR_N - 1; })
+    .every(function (r) { return dtmsTaxCode('693', r.ed) === '4'; }), true, 'every last-year checkage row is tax code 4');
+assertEqual(ex693.split.neg.filter(function (r) { return Number(r.ed.slice(0, 4)) === CUR_YR_N; })
+    .every(function (r) { return dtmsTaxCode('693', r.ed) === '3'; }), true, 'every this-year checkage row is tax code 3');
+assertEqual(ex693.split.neg.every(function (r) { return r.paycode === 20000; }), true, 'checkage example stays on the enlisted pay code');
+
+// Example 6, TTC 694 credit, same window, PEBDs swapped
+const ex694 = runTaxExample('694');
+assertEqual(ex694.ex.pebdA, ex693.ex.pebdB, 'credit example is the checkage example with the PEBDs swapped');
+assertEqual(ex694.ex.pebdB, ex693.ex.pebdA, 'credit example is the checkage example with the PEBDs swapped');
+assertEqual(ex694.res.totalDiff > 0, true, 'credit example nets positive, so Scenario B pays more');
+assertEqual(ex694.split.pos.length, 12, 'credit example yields 12 rows on the 694 sheet');
+assertEqual(ex694.split.neg.length, 0, 'credit example writes no 693 file');
+assertEqual(codeTally('694', ex694.split.pos), { '3': 12 }, 'every credit row is tax code 3 regardless of year');
+assertEqual(Math.abs(ex694.res.totalDiff), Math.abs(ex693.res.totalDiff), 'swapping the PEBDs flips the sign and nothing else');
+
+// The card text is part of the deliverable. Assert what it claims.
+const CARD5 = DTMS_SOURCE.slice(DTMS_SOURCE.indexOf('5. Tax Codes'), DTMS_SOURCE.indexOf('6. Tax Codes'));
+const CARD6 = DTMS_SOURCE.slice(DTMS_SOURCE.indexOf('6. Tax Codes'), DTMS_SOURCE.indexOf('Member Information'));
+assertEqual(/12 rows on the 693 sheet/.test(CARD5), true, 'card 5 states the 693 row count the engine produces');
+assertEqual(/6 dated last year at tax code 4, 6 dated this year at tax code 3/.test(CARD5), true, 'card 5 states the 6 and 6 tax code split');
+assertEqual(/12 rows on the 694 sheet, every one at tax code 3/.test(CARD6), true, 'card 6 states the 694 row count and code');
+assertEqual(/READ ME/.test(CARD6), true, 'card 6 points at the READ ME sheet');
+
+// The example is built from the current year, so it must hold at every rollover.
+(function rolloverProof() {
+    const RealDate = Date;
+    for (let plus = 1; plus <= 5; plus++) {
+        const y = new RealDate().getFullYear() + plus;
+        global.Date = function () { return new RealDate(y, 5, 15); };
+        global.Date.prototype = RealDate.prototype;
+        global.Date.now = RealDate.now;
+        let ok;
+        try {
+            const r = runTaxExample('693');
+            const t = {};
+            r.split.neg.forEach(function (row) {
+                const c = Number(row.ed.slice(0, 4)) < y ? '4' : '3';
+                t[c] = (t[c] || 0) + 1;
+            });
+            ok = r.split.neg.length === 12 && t['4'] === 6 && t['3'] === 6;
+        } finally {
+            global.Date = RealDate;
+        }
+        assertEqual(ok, true, 'example still splits 6 at code 4 and 6 at code 3 in year ' + y);
+    }
+})();
+
+// EDIPI validation, read out of the shipped export gate rather than retyped
+const EDIPI_RE = (function () {
+    const m = DTMS_SOURCE.slice(DTMS_SOURCE.indexOf('function exportDTMS'))
+        .match(/\/\^\\d\{(\d+)\}\$\//);
+    if (!m) throw new Error('EDIPI gate regex not found in exportDTMS. Update section 10.');
+    return new RegExp('^\\d{' + m[1] + '}$');
+})();
+assertEqual(EDIPI_RE.source, '^\\d{10}$', 'shipped EDIPI gate is exactly 10 digits');
 assertEqual(EDIPI_RE.test('0123456789'), true, 'EDIPI with leading zero accepted');
 assertEqual(EDIPI_RE.test('123456789'), false, 'Nine-digit EDIPI rejected');
 assertEqual(EDIPI_RE.test('12345678A9'), false, 'EDIPI with a letter rejected');

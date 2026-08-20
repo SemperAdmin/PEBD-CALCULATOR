@@ -1289,7 +1289,7 @@
                     <li><strong>Build the career timeline.</strong> One row per rank held, chronological, inclusive dates, using exact pay-table rank codes (E1-E9, W1-W5, O1-O10, O1E-O3E, E0 for the sub-4-month entry rate). Leave the final end date empty for a still-current rank. The timeline must cover the whole period.</li>
                     <li><strong>Click Calculate Comparison.</strong> Every row shows the month, days paid, rank, both YOS values, both monthly rates, both prorated amounts, and the difference. A YOS anniversary or rate change mid-month splits the row.</li>
                     <li><strong>Read the totals.</strong> A negative difference means Scenario B pays less - the Marine was overpaid under the original PEBD. A positive difference means underpayment to be recovered.</li>
-                    <li><strong>Export.</strong> Use Export CSV for the full row-by-row table, or Run Verification Case to confirm the engine against the reviewed Novak fixture before relying on a build. Export DTMS produces upload-ready TTC 693 (checkage) and 694 (credit) sheets with tax codes set per DODFMR Vol 7A: credits are tax code 3 (edit combat-zone months to 9 in Excel), checkages are tax code 3 in the current calendar year and tax code 4 for prior years.</li>
+                    <li><strong>Export.</strong> Use Export CSV for the full row-by-row table, or Run Verification Case to confirm the engine against the reviewed Novak fixture before relying on a build. Export DTMS produces upload-ready TTC 693 (checkage) and 694 (credit) sheets with tax codes set per DODFMR Vol 7A: credits are tax code 3, and the 694 workbook carries a READ ME sheet reminding the clerk to change combat-zone months to 9 before upload. Checkages are tax code 3 in the current calendar year and tax code 4 for prior years. Because the codes are set from today's date, re-export any file you hold across 31 December.</li>
                 </ol>
                 <div class="guide-note">
                     <strong>Verify before official use.</strong> Estimates only. Official pay determinations come from DFAS through the chain of command.
@@ -1327,6 +1327,18 @@
                     <p>An E4 with a leap-day PEBD. In non-leap years the anniversary falls back to Feb 28, in 2024 it lands on Feb 29 - both split February while it still totals 30 synthetic days.</p>
                     <div class="example-expect">Expected: A $69,528.11, B $67,761.60, Difference ($1,766.51)</div>
                     <button class="example-load-btn" onclick="loadPayExample(3)">Load Example</button>
+                </div>
+                <div class="example-card">
+                    <h4>5. Tax Codes - TTC 693 Checkage Across the Year Boundary</h4>
+                    <p>An E6 whose corrected PEBD moves 12 months later, so Scenario B pays less and every month is a checkage. The window runs 1 July of last year through 30 June of this year, and both scenarios hold a constant YOS band throughout, so no month nets to zero. Load it, click <strong>Calculate Comparison</strong>, then <strong>Export DTMS</strong> and open the 693 file. The TAX CODE column changes at the 1 January row and nowhere else. Prior-year checkages carry 4 because those years' taxes are already accounted for. Current-year checkages carry 3.</p>
+                    <div class="example-expect">Expected: 12 rows on the 693 sheet. 6 dated last year at tax code 4, 6 dated this year at tax code 3. No 694 file.</div>
+                    <button class="example-load-btn" onclick="loadTaxCodeExample('693')">Load Example</button>
+                </div>
+                <div class="example-card">
+                    <h4>6. Tax Codes - TTC 694 Credit and the Combat Zone Case</h4>
+                    <p>The same Marine and the same window with the two PEBDs swapped, so Scenario B pays more and every month is a credit. Export DTMS and open the 694 file. Every row carries tax code 3 regardless of year, because a retroactive credit is taxed under the code of the effective period rather than the year of payment. The workbook's READ ME sheet is the reminder: for any month the member was in a combat zone, change that row from 3 to 9 before upload. The tool does not know deployment dates.</p>
+                    <div class="example-expect">Expected: 12 rows on the 694 sheet, every one at tax code 3, plus a READ ME sheet. No 693 file.</div>
+                    <button class="example-load-btn" onclick="loadTaxCodeExample('694')">Load Example</button>
                 </div>
             </div>
         </details>
@@ -1399,6 +1411,7 @@
         </div>
 
         <div id="errorBox" class="error-box hidden" role="alert"></div>
+        <div id="dtmsNotice" class="warn-box hidden" role="status"></div>
 
         <!-- Control Buttons -->
         <div class="button-container">
@@ -1849,6 +1862,23 @@ function showError(msg) {
 }
 function clearError() { document.getElementById('errorBox').classList.add('hidden'); }
 
+/* Tax codes are decided by the clock at the moment of export. A December
+   checkage exported in December carries code 3, and the same transaction
+   exported in January carries code 4. Both are right for their submission
+   year, so an export held across the rollover ships the wrong code. Warn in
+   December and January, the only months where the gap bites. */
+function showDtmsNotice() {
+  var now = new Date();
+  var m = now.getMonth();
+  if (m !== 11 && m !== 0) return;
+  var box = document.getElementById('dtmsNotice');
+  box.textContent = 'Year-end check: these tax codes assume the transaction is '
+    + 'submitted during ' + now.getFullYear() + '. Prior-year checkages are coded 4 and '
+    + 'current-year checkages are coded 3. If you submit this file after 31 Dec '
+    + now.getFullYear() + ', re-export it so the codes match the submission year.';
+  box.classList.remove('hidden');
+}
+
 function runCalculation() {
   clearError();
   if (!checkLegalConsent()) {
@@ -1966,11 +1996,13 @@ function exportCSV() {
    TTC 694 000 CRED. One row per month per pay code, effective-dated
    inside that month. The EDIPI is written as a text cell so a leading
    zero survives. Tax codes per DODFMR Vol 7A: credits (694) are taxed
-   under the code of the effective period - exported as tax code 3,
-   change individual rows to 9 in Excel for any month the member was in
-   a combat zone. Checkages (693) use tax code 3 when the effective date
-   is in the current calendar year, and tax code 4 for any prior year
-   because those years' taxes are already accounted for. Purpose code
+   under the code of the effective period - exported as tax code 3, with
+   a READ ME sheet in the 694 workbook telling the clerk to change
+   individual rows to 9 for any month the member was in a combat zone.
+   Checkages (693) use tax code 3 when the effective date is in the
+   current calendar year, and tax code 4 for any prior year because those
+   years' taxes are already accounted for. A future-dated ED is not a
+   prior year and keeps code 3. Purpose code
    I exists only on 693 003; the 694 000 CRED word carries no purpose
    code. Word formats:
      TTC 693 003 CHEK | PAYCODE -$ AMOUNT ( TAXCODE )- PURPOSECD | ED
@@ -1981,11 +2013,27 @@ var DTMS = {
   specs: {
     '693': { banner: '693-003: CHEK|___-$___(___)-___ ED___|', purpose: true },
     '694': { banner: '694-000: CRED|___-$___(___) ED___|', purpose: false }
-  }
+  },
+  /* Rides in a second worksheet of the 694 workbook so the clerk who opens
+     the file sees the combat-zone rule, not only the person who ran the tool.
+     DTMS reads the Normal Transactions sheet, so this sheet is inert. */
+  creditNote: [
+    ['READ BEFORE UPLOAD - TTC 694 000 CRED'],
+    [],
+    ['Every credit row in this workbook was written with TAX CODE 3.'],
+    ['DODFMR Vol 7A: retroactively credited taxable wages carry the tax code'],
+    ['of the effective period the wages were from.'],
+    [],
+    ['ACTION: for any month the member was in a combat zone, change that'],
+    ['row TAX CODE from 3 to 9 on the Normal Transactions sheet before upload.'],
+    ['Check the deployment history against the ED column. The tool does not'],
+    ['know deployment dates and cannot set code 9 for you.']
+  ]
 };
 
 function dtmsTaxCode(ttc, ed) {
-  if (ttc === '693' && ed.slice(0, 4) !== String(new Date().getFullYear())) return '4';
+  // Prior year only. A future-dated ED is not a prior year and keeps code 3.
+  if (ttc === '693' && Number(ed.slice(0, 4)) < new Date().getFullYear()) return '4';
   return '3';
 }
 
@@ -2049,6 +2097,7 @@ function dtmsSheetRows(ttc, rows, edipi) {
 function exportDTMS() {
   if (!lastResult) return;
   clearError();
+  document.getElementById('dtmsNotice').classList.add('hidden');
   var edipi = getEdipi();
   if (!/^\d{10}$/.test(edipi)) {
     showError('DTMS export needs the member 10-digit EDIPI in Member Information.');
@@ -2064,8 +2113,13 @@ function exportDTMS() {
     var ws = XLSX.utils.aoa_to_sheet(dtmsSheetRows(pair[0], pair[1], edipi));
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Normal Transactions');
+    if (pair[0] === '694') {
+      XLSX.utils.book_append_sheet(
+        wb, XLSX.utils.aoa_to_sheet(DTMS.creditNote), 'READ ME');
+    }
     XLSX.writeFile(wb, 'DTMS_TTC_' + pair[0] + '_' + edipi + '.xls', { bookType: 'biff8' });
   });
+  showDtmsNotice();
 }
 
 var NOVAK_EXPECTED = { a: 50794452, b: 49159524, d: -1634928 };
@@ -2081,6 +2135,56 @@ var PAY_EXAMPLES = [
   { name: 'LeapDayPEBD-E4', pebdA: '2020-02-29', pebdB: '2020-09-01', start: '2023-01-01', end: '2024-12-31',
     timeline: [['E4', 20200229, 0]] }
 ];
+
+/* Tax code demonstration, TTC 693 and TTC 694. Dates derive from the current
+   year at load time, so the example straddles 31 December every year it is run
+   and never goes stale. The two PEBDs are placed so that Scenario A sits in the
+   over-8 YOS band for the whole window while Scenario B sits in over-6 for the
+   whole window: A reaches 8 years on 1 January of last year, before the window
+   opens, and B reaches 8 years on 1 July of this year, after it closes. Neither
+   scenario changes band inside the window, so all 12 months carry a difference
+   and the tax code is the only thing that moves across the sheet.
+     693 CHEK: 6 rows dated last year at code 4, 6 dated this year at code 3.
+     694 CRED: the same 12 months, every row at code 3.
+   Kept as data rather than inline literals so test-calculations.js reads the
+   same definition the page uses. */
+function taxCodeExample(kind) {
+  var y = new Date().getFullYear();
+  var early = (y - 9) * 10000 + 101;
+  var late = (y - 8) * 10000 + 701;
+  return {
+    kind: kind,
+    edipi: '1234567890',
+    rank: 'E6',
+    pebdA: kind === '693' ? early : late,
+    pebdB: kind === '693' ? late : early,
+    start: (y - 1) * 10000 + 701,
+    end: y * 10000 + 630,
+    timeline: [['E6', early, 0]]
+  };
+}
+
+function loadTaxCodeExample(kind) {
+  var ex = taxCodeExample(kind);
+  document.getElementById('edipi').value = ex.edipi;
+  ['pebdA', 'pebdB'].forEach(function (id) {
+    document.getElementById(id).value = intToDateInput(ex[id]);
+    updateBadge(id);
+  });
+  document.getElementById('periodStart').value = intToDateInput(ex.start); updateBadge('periodStart');
+  document.getElementById('periodEnd').value = intToDateInput(ex.end); updateBadge('periodEnd');
+  document.getElementById('timelineBody').innerHTML = '';
+  timelineCount = 0;
+  ex.timeline.forEach(function (r) { addTimelineRow(r[0], r[1], r[2]); });
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('exportBtn').disabled = true;
+  document.getElementById('dtmsBtn').disabled = true;
+  document.getElementById('dtmsNotice').classList.add('hidden');
+  showError(kind === '693'
+    ? 'Checkage example loaded with a sample EDIPI. Click Calculate Comparison, then Export DTMS, and read the TAX CODE column of the 693 file. It reads 4 for last year and 3 for this year.'
+    : 'Credit example loaded with a sample EDIPI. Click Calculate Comparison, then Export DTMS, and read the 694 file. Every row is tax code 3, and the READ ME sheet covers the combat-zone change to 9.');
+  document.getElementById('edipi').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 
 function loadPayExample(n) {
   var ex = PAY_EXAMPLES[n];
