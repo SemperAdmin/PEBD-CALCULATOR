@@ -1071,11 +1071,25 @@
         }
 
         /* Semper Admin logo in the page header - transparent emblem, no crop */
+        .header-logo-link {
+            display: inline-block;
+            margin: 0 0 12px;
+            line-height: 0;
+            border-radius: 12px;
+            transition: transform 0.2s;
+        }
+        .header-logo-link:hover {
+            transform: translateY(-2px);
+        }
+        .header-logo-link:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--color-ring);
+        }
         .header-logo {
             width: 112px;
             height: auto;
             display: block;
-            margin: 0 auto 12px;
+            margin: 0;
             filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
         }
         @media (max-width: 768px) {
@@ -1263,7 +1277,9 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <img class="header-logo" src="assets/images/logo.png" alt="Semper Admin logo">
+            <a class="header-logo-link" href="https://semper-admin-portal.app.cloud.gov/" target="_blank" rel="noopener" title="Open the Semper Admin Portal (opens in a new tab)">
+                <img class="header-logo" src="assets/images/logo.png" alt="Semper Admin Portal (opens in a new tab)">
+            </a>
             <h1 class="title">MARINE CORPS BASIC PAY <span class="gradient-accent">COMPARISON</span></h1>
             <p class="subtitle">by Semper Admin - Dual-PEBD Month-by-Month Pay Difference</p>
             <p class="subtitle">Companion to the Semper Admin PEBD Calculator</p>
