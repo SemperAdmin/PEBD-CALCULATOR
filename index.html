@@ -1423,7 +1423,7 @@
                     <li><strong>Transcribe DOEAF and AFADBD from MCTFS (optional).</strong> With these two dates entered, the result view lists record notes: a PEBD later than DOEAF with nothing excluded, a PEBD equal to AFADBD (expected for a post-1989 Reserve enlistment with no IDT before the initial ADT, confirm the facts), a zeroed AFADBD on a member with active service, and a 205(f) row entered with the financial assistance field set to No. Enter 00000000 for AFADBD when the record shows zeros.</li>
                     <li><strong>Add each period of prior service.</strong> One row per separate period, with service type and inclusive start/end dates. The Creditable column updates as you type - a green check in the Days column means the dates are valid. Use "Add Service Period" for more rows.</li>
                     <li><strong>Record any time loss.</strong> Add a row for AWOL, confinement, or other lost time. Deductible loss is computed on the 30-day basis per DODFMR Vol 7A Ch 1 and reduces creditable service. Check "Officer Time?" for loss during commissioned service - it is recorded but not deducted.</li>
-                    <li><strong>Click Calculate PEBD.</strong> The breakdown shows the PAA 04-25 six-step method: begin totals, end totals, difference, +1 inclusive day per period, time loss, and the normalized result subtracted from the foundational PEBD.</li>
+                    <li><strong>Click Calculate PEBD.</strong> The breakdown shows the six-step method of DODFMR Vol 7A Ch 1 para 2.4.1.2 (also PAA 04-25): begin totals, end totals with the 31st and February 28 or 29 adjusted to 30 (February 28 of a leap year stays 28), difference, +1 inclusive day per period, time loss, and the normalized result subtracted from the foundational PEBD.</li>
                     <li><strong>Act on the result.</strong> Print the CUI-marked report, send the MMPB-21 escalation package if the PEBD of record needs correction (MARADMIN 052/26), or open the Pay Comparison tool to quantify the pay impact.</li>
                 </ol>
                 <div class="guide-note">
@@ -1491,7 +1491,7 @@
                 <div class="form-group">
                     <label for="foundationalPEBD">Foundational PEBD (YYYYMMDD):</label>
                     <input type="text" id="foundationalPEBD" placeholder="YYYYMMDD" maxlength="8" oninput="refreshCuiBanner()">
-                    <span style="font-size: 0.8rem; color: var(--color-muted-foreground);">Beginning date of the most recent period of continuous service for pay</span>
+                    <span class="field-hint">Beginning date of the most recent period of continuous service for pay (DODFMR Vol 7A Ch 1 para 2.4.1.1). Enlisted: date of enlistment, DD Form 4 block 5. Officer: date of acceptance of the commission, the oath date, not the date of rank (para 2.4.1.1.2).</span>
                 </div>
                 <div class="form-group">
                     <label for="marineStatus">Marine Status:</label>
@@ -1566,7 +1566,7 @@
                 Record periods of lost time (AWOL, confinement, suspension, etc.). Deductible time loss reduces creditable service and shifts the calculated PEBD later.
             </p>
             <p class="time-loss-note">
-                <strong><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>DODFMR Chapter 1:</strong> Time loss applies to enlisted service. Check <strong>"Officer Time?"</strong> for any loss that occurred during commissioned service — those periods are recorded in the analysis but are NOT deducted from the calculation.
+                <strong><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>DODFMR Chapter 1:</strong> Time loss applies to enlisted service. Check <strong>"Officer Time?"</strong> for any loss that occurred during commissioned service — those periods are recorded in the analysis but are NOT deducted from the calculation. Check <strong>"Made Good?"</strong> when the member made good the lost time and completed the enlistment: the loss is then computed on both the 30-day and day-to-day bases and the smaller figure is used (para 2.4.1.3.2.1).
             </p>
             <div class="table-container">
                 <table id="timeLossTable" aria-label="Time loss periods entry table">
@@ -1577,6 +1577,7 @@
                             <th>Start Date<br>(YYYYMMDD)</th>
                             <th>End Date<br>(YYYYMMDD)</th>
                             <th>Officer Time?</th>
+                            <th>Made Good?</th>
                             <th>Deductible?</th>
                             <th>Days</th>
                             <th>Notes</th>
@@ -1763,6 +1764,11 @@
             maradminReference: 'https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/'
         };
 
+
+        // --- PEBD LOGIC (loaded by test-calculations.js, keep DOM-free) ---
+        // Everything between these markers is pure. The test suite extracts this block
+        // out of the page and runs it, so the shipped code is what gets tested.
+
         // Service Type Definitions from PAA 04-25.
         // DEP creditability follows DODFMR Vol 7A - before 1 Jan 1985 creditable,
         // on or after only with post-1989 IDT drills.
@@ -1787,6 +1793,7 @@
             "NOAA Officer Service": { creditable: true, category: "Other" },
             "NOAA Deck Officer Service": { creditable: true, category: "Other" },
             "Military Academy Service": { creditable: true, category: "Academy" },
+            "Military Academy Service (Retained Reserve Commission/Warrant)": { creditable: true, category: "Academy" },
             "Fleet Reserve": { creditable: true, category: "Reserve" },
             "Fleet Marine Corps Reserve": { creditable: true, category: "Reserve" },
             "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
@@ -1809,10 +1816,12 @@
             "AFHPSP/FAP (Post 1981)": { creditable: false, category: "Excluded" },
             "USUHS Student (DOM)": { creditable: false, category: "Excluded" },
             "Inactive National Guard": { creditable: false, category: "Excluded" },
+            "Fraudulent, Voided, or Invalidated Enlistment": { creditable: false, category: "Excluded" },
             "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
-            "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (Enlisted 1 Jan 1985 to 28 Nov 1989)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (Reserve 10 USC 12103, Post-1989, IDT Performed)": { creditable: true, category: "DEP" },
+            "Delayed Entry Program (Reserve 10 USC 12103, Post-1989, No IDT)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (Regular 10 USC 513, Post-1989)": { creditable: false, category: "DEP" },
             // Marine Corps Platoon Leaders Class / officer candidate enlistments.
             // DoDFMR Vol 7A Ch 1 para 2.2.1.8.1: for a Reserve enlistment on or after 29 Nov 1989
             // under 10 U.S.C. 12103(b)/(d), inactive time before the initial ADT is excluded
@@ -1836,7 +1845,6 @@
             return SERVICE_TYPES[serviceType]?.creditable || false;
         }
 
-        // --- RECORD CROSS-CHECKS (loaded by test-calculations.js, keep DOM-free) ---
         // Status helpers for the MCTFS cross-checks. Category "Active" and OCS active
         // duty for training are active status. Reserve categories and inactive PLC
         // officer candidate time are Reserve status.
@@ -1878,6 +1886,12 @@
                 warnings.push('AFADBD is missing on a member with active service. Report as a separate MCTFS record error.');
             }
 
+            // Lost time made good uses the more favorable basis, but the contract floor in
+            // 2.4.1.3.2.3 needs the enlistment contract length, which the form does not capture.
+            if ((ctx.timeLossDetails || []).some(t => t.applied && t.madeGood)) {
+                warnings.push('Lost time made good: computed on the more favorable basis (DoDFMR Vol 7A Ch 1 para 2.4.1.3.2.1). The contract floor in para 2.4.1.3.2.3 is not applied. If net creditable service for that enlistment is below the contract length, use the contract length.');
+            }
+
             // The 37 U.S.C. 205(f) variant requires financial assistance under 10 U.S.C. 16401.
             const fa = ctx.plcFinancialAssistance || '';
             periods.forEach(p => {
@@ -1887,7 +1901,229 @@
             });
             return warnings;
         }
-        // --- END RECORD CROSS-CHECKS ---
+
+        // Time Loss Types per DODFMR Vol 7A Ch 1 Table 1-2.
+        // Authorized leave and authorized excess leave are creditable (Rule 1).
+        // Unauthorized absence, desertion, confinement with conviction, and
+        // misconduct disease/injury over one day are not creditable (Rules 3-9).
+        const TIME_LOSS_TYPES = {
+            "AWOL (Absence Without Leave)": { deductible: true, category: "Unauthorized Absence" },
+            "Desertion": { deductible: true, category: "Unauthorized Absence" },
+            "Confinement (Court-Martial)": { deductible: true, category: "Disciplinary" },
+            "Confinement (Civil, Convicted)": { deductible: true, category: "Disciplinary" },
+            "Misconduct Disease/Injury (Alcohol/Drugs)": { deductible: true, category: "Disciplinary" },
+            "Unauthorized Absence (Other)": { deductible: true, category: "Unauthorized Absence" },
+            "Unauthorized Absence (Excused as Unavoidable)": { deductible: false, category: "Unauthorized Absence" },
+            "Confinement (Acquitted or Sentence Set Aside)": { deductible: false, category: "Disciplinary" },
+            "Dropped from Rolls": { deductible: true, category: "Administrative" },
+            "Excess Leave (Unauthorized)": { deductible: true, category: "Administrative" },
+            "Excess Leave (Authorized)": { deductible: false, category: "Administrative" },
+            "Administrative Leave (Pending Investigation)": { deductible: false, category: "Administrative" },
+            "Emergency Leave": { deductible: false, category: "Administrative" },
+            "Ordinary Leave": { deductible: false, category: "Administrative" },
+            "Medical Leave": { deductible: false, category: "Administrative" },
+            "Maternity/Paternity Leave": { deductible: false, category: "Administrative" },
+            "TDY/TAD": { deductible: false, category: "Duty" },
+            "Training": { deductible: false, category: "Duty" },
+            "Hospitalization": { deductible: false, category: "Medical" }
+        };
+
+        function isTimeLossDeductible(lossType) {
+            return TIME_LOSS_TYPES[lossType]?.deductible || false;
+        }
+
+        // Parse YYYYMMDD date - rejects malformed strings and impossible calendar dates
+        function parseDate(dateStr) {
+            if (!dateStr || !/^\d{8}$/.test(dateStr)) return null;
+            const year = parseInt(dateStr.substring(0, 4), 10);
+            const month = parseInt(dateStr.substring(4, 6), 10) - 1;
+            const day = parseInt(dateStr.substring(6, 8), 10);
+            const d = new Date(year, month, day);
+            // Round-trip check catches 20240231, month 13, day 00, etc.
+            if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
+            return d;
+        }
+
+        // Real-time validation for a date pair - returns errors/warnings
+        function validateDatePair(startStr, endStr) {
+            const errors = [];
+            const warnings = [];
+            const start = parseDate(startStr);
+            const end = parseDate(endStr);
+            if (startStr && startStr.length === 8 && !start) errors.push('Start date is not a valid calendar date');
+            if (endStr && endStr.length === 8 && !end) errors.push('End date is not a valid calendar date');
+            if (start && end && end < start) errors.push('End date precedes start date');
+            if (start && start > new Date()) warnings.push('Start date is in the future');
+            return { errors, warnings, start, end };
+        }
+
+        // Calculate days between dates
+        function calculateDays(startDate, endDate) {
+            const start = parseDate(startDate);
+            const end = parseDate(endDate);
+            if (!start || !end || end < start) return 0;
+            return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        // Lost time per DODFMR Vol 7A Ch 1, para 2.4.1.3.1 - computed on the
+        // 30-day-month basis as years/months/days with +1 inclusive day.
+        // A loss beginning on the 31st counts that day (start treated as 30).
+        // An ending day 31 caps at 30 on the 30-day convention.
+        function computeLostTime(startDate, endDate) {
+            if (!parseDate(startDate) || !parseDate(endDate) || endDate < startDate) return null;
+            let sy = parseInt(startDate.substring(0, 4), 10);
+            let sm = parseInt(startDate.substring(4, 6), 10);
+            let sd = parseInt(startDate.substring(6, 8), 10);
+            let ey = parseInt(endDate.substring(0, 4), 10);
+            let em = parseInt(endDate.substring(4, 6), 10);
+            let ed = parseInt(endDate.substring(6, 8), 10);
+
+            if (sd === 31) sd = 30; // include the 31st as a lost day
+            if (ed === 31) ed = 30;
+
+            let years = ey - sy;
+            let months = em - sm;
+            let days = ed - sd + 1; // inclusive day
+
+            while (days < 0) { days += 30; months -= 1; }
+            while (months < 0) { months += 12; years -= 1; }
+            while (days >= 30) { days -= 30; months += 1; }
+            while (months >= 12) { months -= 12; years += 1; }
+
+            return { years, months, days };
+        }
+
+        // Lost time on the day-to-day basis, converted to years/months/days on 30-day months
+        // (DODFMR Vol 7A Ch 1 para 2.4.1.3.2.1).
+        function computeLostTimeDayToDay(startDate, endDate) {
+            const days = calculateDays(startDate, endDate);
+            if (days <= 0) return null;
+            return { years: Math.floor(days / 360), months: Math.floor((days % 360) / 30), days: days % 30 };
+        }
+        function ymdTotalDays(t) {
+            return t.years * 360 + t.months * 30 + t.days;
+        }
+        // Lost time not made good: 30-day basis (2.4.1.3.1). Lost time made good: compute both
+        // bases and discard the one showing more days lost (2.4.1.3.2.1).
+        function selectLostTime(startDate, endDate, madeGood) {
+            const thirty = computeLostTime(startDate, endDate);
+            if (!thirty) return null;
+            if (!madeGood) return { lost: thirty, basis: '30-day' };
+            const daily = computeLostTimeDayToDay(startDate, endDate);
+            if (daily && ymdTotalDays(daily) < ymdTotalDays(thirty)) return { lost: daily, basis: 'day-to-day' };
+            return { lost: thirty, basis: '30-day' };
+        }
+
+        function fmtYMD(t) {
+            return `${t.years}y ${t.months}m ${t.days}d`;
+        }
+
+        function isLeapYear(y) {
+            return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+        }
+        // Ending date adjustments (DODFMR Vol 7A Ch 1 para 2.4.1.2.2): the 31st becomes 30,
+        // February 28 of a non-leap year becomes 30, February 29 becomes 30, and February 28
+        // of a leap year is left alone.
+        function adjustEndDay(year, month, day) {
+            if (day === 31) return 30;
+            if (month === 2 && day === 29) return 30;
+            if (month === 2 && day === 28 && !isLeapYear(year)) return 30;
+            return day;
+        }
+        // Convert to full years, months, and days on the 30-day, 12-month basis (2.4.1.2.5).
+        function normalizeYMD(t) {
+            const n = { years: t.years, months: t.months, days: t.days };
+            while (n.days < 0) { n.days += 30; n.months -= 1; }
+            while (n.months < 0) { n.months += 12; n.years -= 1; }
+            while (n.days >= 30) { n.days -= 30; n.months += 1; }
+            while (n.months >= 12) { n.months -= 12; n.years += 1; }
+            return n;
+        }
+        // Creditable service on the DODFMR six-step method.
+        // periods: [{ serviceType, startDate, endDate }]
+        // timeLosses: [{ lossType, startDate, endDate, isOfficerTime, madeGood }]
+        function computeCreditableService(periods, timeLosses, pathwayType) {
+            const beginningDates = [];
+            const endingDates = [];
+            (periods || []).forEach(p => {
+                if (!p.serviceType || !p.startDate || !p.endDate) return;
+                if (calculateDays(p.startDate, p.endDate) <= 0) return;
+                if (!isServiceCreditable(p.serviceType, pathwayType)) return;
+                const sy = parseInt(p.startDate.substring(0, 4), 10);
+                const sm = parseInt(p.startDate.substring(4, 6), 10);
+                const sd = parseInt(p.startDate.substring(6, 8), 10);
+                const ey = parseInt(p.endDate.substring(0, 4), 10);
+                const em = parseInt(p.endDate.substring(4, 6), 10);
+                const ed = adjustEndDay(ey, em, parseInt(p.endDate.substring(6, 8), 10));
+                beginningDates.push({ year: sy, month: sm, day: sd });
+                endingDates.push({ year: ey, month: em, day: ed });
+            });
+
+            const timeLossTotals = { years: 0, months: 0, days: 0 };
+            let timeLossApplied = false;
+            const lossResults = (timeLosses || []).map(t => {
+                const sel = selectLostTime(t.startDate, t.endDate, !!t.madeGood);
+                if (!sel) return null;
+                const deductible = isTimeLossDeductible(t.lossType);
+                const applied = deductible && !t.isOfficerTime;
+                if (applied) {
+                    timeLossTotals.years += sel.lost.years;
+                    timeLossTotals.months += sel.lost.months;
+                    timeLossTotals.days += sel.lost.days;
+                    timeLossApplied = true;
+                }
+                return { lost: sel.lost, basis: sel.basis, deductible, applied };
+            });
+
+            const sum = arr => arr.reduce((t, d) => ({ years: t.years + d.year, months: t.months + d.month, days: t.days + d.day }), { years: 0, months: 0, days: 0 });
+            const beginTotals = sum(beginningDates);
+            const endTotals = sum(endingDates);
+            const difference = { years: endTotals.years - beginTotals.years, months: endTotals.months - beginTotals.months, days: endTotals.days - beginTotals.days };
+            const inclusiveAdjusted = { years: difference.years, months: difference.months, days: difference.days + beginningDates.length };
+            const afterTimeLoss = { years: inclusiveAdjusted.years - timeLossTotals.years, months: inclusiveAdjusted.months - timeLossTotals.months, days: inclusiveAdjusted.days - timeLossTotals.days };
+            const normalized = beginningDates.length ? normalizeYMD(afterTimeLoss) : { years: 0, months: 0, days: 0 };
+            return { beginTotals, endTotals, difference, inclusiveAdjusted, afterTimeLoss, timeLossTotals, timeLossApplied, lossResults, normalized, numPeriods: beginningDates.length };
+        }
+        // Full computation: creditable service subtracted from the foundational PEBD.
+        function computePEBD(foundationalPEBD, pathwayType, periods, timeLosses = []) {
+            const service = computeCreditableService(periods, timeLosses, pathwayType);
+            const n = service.normalized;
+            const calculatedPEBD = service.numPeriods ? subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days) : foundationalPEBD;
+            return Object.assign({ calculatedPEBD }, service);
+        }
+
+        // Subtract service from date using pure 30-day-month arithmetic (PAA 04-25).
+        // No Date constructor - it would roll a nominal day 29/30 in February into March.
+        function subtractServiceFromDate(dateStr, years, months, days) {
+            if (!/^\d{8}$/.test(dateStr)) return dateStr;
+            let y = parseInt(dateStr.substring(0, 4), 10);
+            let m = parseInt(dateStr.substring(4, 6), 10);
+            let d = parseInt(dateStr.substring(6, 8), 10);
+
+            y -= years;
+            m -= months;
+            d -= days;
+
+            // Borrow days from months on the 30-day convention
+            while (d <= 0) {
+                m -= 1;
+                d += 30;
+            }
+            // Borrow months from years
+            while (m <= 0) {
+                y -= 1;
+                m += 12;
+            }
+
+            // Clamp a nominal 30-day-convention result onto the real calendar
+            // (February 29/30 in the convention becomes the actual last day of February)
+            const lastDay = new Date(y, m, 0).getDate();
+            if (d > lastDay) d = lastDay;
+
+            return String(y) + String(m).padStart(2, '0') + String(d).padStart(2, '0');
+        }
+        // --- END PEBD LOGIC ---
+
 
         // Show the PLC financial assistance field on the Officer pathway or whenever a
         // period row carries an officer candidate type. Validate the optional MCTFS dates.
@@ -1947,65 +2183,9 @@
             document.getElementById('cuiBottomBanner')?.classList.toggle('active', on);
         }
 
-        // Time Loss Types per DODFMR Vol 7A Ch 1 Table 1-2.
-        // Authorized leave and authorized excess leave are creditable (Rule 1).
-        // Unauthorized absence, desertion, confinement with conviction, and
-        // misconduct disease/injury over one day are not creditable (Rules 3-9).
-        const TIME_LOSS_TYPES = {
-            "AWOL (Absence Without Leave)": { deductible: true, category: "Unauthorized Absence" },
-            "Desertion": { deductible: true, category: "Unauthorized Absence" },
-            "Confinement (Court-Martial)": { deductible: true, category: "Disciplinary" },
-            "Confinement (Civil, Convicted)": { deductible: true, category: "Disciplinary" },
-            "Misconduct Disease/Injury (Alcohol/Drugs)": { deductible: true, category: "Disciplinary" },
-            "Unauthorized Absence (Other)": { deductible: true, category: "Unauthorized Absence" },
-            "Dropped from Rolls": { deductible: true, category: "Administrative" },
-            "Excess Leave (Unauthorized)": { deductible: true, category: "Administrative" },
-            "Excess Leave (Authorized)": { deductible: false, category: "Administrative" },
-            "Administrative Leave (Pending Investigation)": { deductible: false, category: "Administrative" },
-            "Emergency Leave": { deductible: false, category: "Administrative" },
-            "Ordinary Leave": { deductible: false, category: "Administrative" },
-            "Medical Leave": { deductible: false, category: "Administrative" },
-            "Maternity/Paternity Leave": { deductible: false, category: "Administrative" },
-            "TDY/TAD": { deductible: false, category: "Duty" },
-            "Training": { deductible: false, category: "Duty" },
-            "Hospitalization": { deductible: false, category: "Medical" }
-        };
 
-        // Lost time per DODFMR Vol 7A Ch 1, para 2.4.1.3.1 - computed on the
-        // 30-day-month basis as years/months/days with +1 inclusive day.
-        // A loss beginning on the 31st counts that day (start treated as 30).
-        // An ending day 31 caps at 30 on the 30-day convention.
-        function computeLostTime(startDate, endDate) {
-            if (!parseDate(startDate) || !parseDate(endDate) || endDate < startDate) return null;
-            let sy = parseInt(startDate.substring(0, 4), 10);
-            let sm = parseInt(startDate.substring(4, 6), 10);
-            let sd = parseInt(startDate.substring(6, 8), 10);
-            let ey = parseInt(endDate.substring(0, 4), 10);
-            let em = parseInt(endDate.substring(4, 6), 10);
-            let ed = parseInt(endDate.substring(6, 8), 10);
 
-            if (sd === 31) sd = 30; // include the 31st as a lost day
-            if (ed === 31) ed = 30;
 
-            let years = ey - sy;
-            let months = em - sm;
-            let days = ed - sd + 1; // inclusive day
-
-            while (days < 0) { days += 30; months -= 1; }
-            while (months < 0) { months += 12; years -= 1; }
-            while (days >= 30) { days -= 30; months += 1; }
-            while (months >= 12) { months -= 12; years += 1; }
-
-            return { years, months, days };
-        }
-
-        function fmtYMD(t) {
-            return `${t.years}y ${t.months}m ${t.days}d`;
-        }
-
-        function isTimeLossDeductible(lossType) {
-            return TIME_LOSS_TYPES[lossType]?.deductible || false;
-        }
 
         let calculationResult = null;
         let timeLossIndexSeq = 0; // unique row indexes survive removals
@@ -2017,7 +2197,7 @@
         // Initialize time loss periods table (empty)
         function initializeTimeLossPeriods() {
             document.getElementById('timeLossBody').innerHTML =
-                '<tr class="timeloss-empty"><td colspan="9" class="empty-state">No time loss periods added. Click "Add Time Loss Period" if lost time applies.</td></tr>';
+                '<tr class="timeloss-empty"><td colspan="10" class="empty-state">No time loss periods added. Click "Add Time Loss Period" if lost time applies.</td></tr>';
             timeLossIndexSeq = 0;
         }
 
@@ -2047,6 +2227,7 @@
                 <td><input type="text" placeholder="YYYYMMDD" maxlength="8" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="startDate" aria-label="Start date for time loss period"></td>
                 <td><input type="text" placeholder="YYYYMMDD" maxlength="8" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="endDate" aria-label="End date for time loss period"></td>
                 <td style="text-align: center;"><input type="checkbox" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="officerTime" style="width: 18px; height: 18px; min-width: 18px;" aria-label="Officer time for this loss period" title="Check if this time loss occurred during commissioned service"></td>
+                <td style="text-align: center;"><input type="checkbox" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="madeGood" style="width: 18px; height: 18px; min-width: 18px;" aria-label="Lost time made good" title="Check if the member made good the lost time and completed the enlistment (DODFMR 2.4.1.3.2)"></td>
                 <td id="timeloss-deductible-${i}"></td>
                 <td id="timeloss-days-${i}"></td>
                 <td><input type="text" placeholder="Reason/Details..." data-timeloss="${i}" data-field="notes" aria-label="Notes for time loss period"></td>
@@ -2182,30 +2363,7 @@
             });
         }
 
-        // Parse YYYYMMDD date - rejects malformed strings and impossible calendar dates
-        function parseDate(dateStr) {
-            if (!dateStr || !/^\d{8}$/.test(dateStr)) return null;
-            const year = parseInt(dateStr.substring(0, 4), 10);
-            const month = parseInt(dateStr.substring(4, 6), 10) - 1;
-            const day = parseInt(dateStr.substring(6, 8), 10);
-            const d = new Date(year, month, day);
-            // Round-trip check catches 20240231, month 13, day 00, etc.
-            if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
-            return d;
-        }
 
-        // Real-time validation for a date pair - returns errors/warnings
-        function validateDatePair(startStr, endStr) {
-            const errors = [];
-            const warnings = [];
-            const start = parseDate(startStr);
-            const end = parseDate(endStr);
-            if (startStr && startStr.length === 8 && !start) errors.push('Start date is not a valid calendar date');
-            if (endStr && endStr.length === 8 && !end) errors.push('End date is not a valid calendar date');
-            if (start && end && end < start) errors.push('End date precedes start date');
-            if (start && start > new Date()) warnings.push('Start date is in the future');
-            return { errors, warnings, start, end };
-        }
 
         function renderDaysWithValidation(daysCell, days, validation) {
             let dayDisplay = days > 0 ? String(days) : 'Invalid';
@@ -2221,13 +2379,6 @@
             daysCell.innerHTML = dayDisplay + icon;
         }
 
-        // Calculate days between dates
-        function calculateDays(startDate, endDate) {
-            const start = parseDate(startDate);
-            const end = parseDate(endDate);
-            if (!start || !end || end < start) return 0;
-            return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-        }
 
         // Update period info with real-time validation feedback
         function updatePeriod(periodIndex) {
@@ -2348,8 +2499,6 @@
                     return;
                 }
 
-                const beginningDates = [];
-                const endingDates = [];
                 const periodDetails = [];
 
                 // Collect all periods from the dynamic rows
@@ -2382,22 +2531,6 @@
                                 notes
                             });
                             
-                            if (isCreditable) {
-                                const startYear = parseInt(startDate.substring(0, 4));
-                                const startMonth = parseInt(startDate.substring(4, 6));
-                                const startDay = parseInt(startDate.substring(6, 8));
-                                
-                                let endYear = parseInt(endDate.substring(0, 4));
-                                let endMonth = parseInt(endDate.substring(4, 6));
-                                let endDay = parseInt(endDate.substring(6, 8));
-                                
-                                // Apply PAA 04-25 ending date adjustments
-                                if (endDay === 31) endDay = 30;
-                                if (endMonth === 2 && (endDay === 28 || endDay === 29)) endDay = 30;
-                                
-                                beginningDates.push({ year: startYear, month: startMonth, day: startDay });
-                                endingDates.push({ year: endYear, month: endMonth, day: endDay });
-                            }
                         }
                     }
                 });
@@ -2413,116 +2546,29 @@
                     return;
                 }
 
-                // Collect time loss periods. Deductible, non-officer-time losses are
-                // computed on the 30-day-month basis per DODFMR Vol 7A Ch 1 para 2.4.1.3.1
-                // (years/months/days with +1 inclusive day) and reduce creditable service.
-                // "Officer Time?" periods are recorded but not deducted.
-                const timeLossDetails = [];
-                const timeLossTotals = { years: 0, months: 0, days: 0 };
-                let timeLossApplied = false;
+                // Collect time loss rows. Deductible, non-officer-time losses reduce creditable
+                // service on the 30-day basis (DODFMR Vol 7A Ch 1 para 2.4.1.3.1), or on the more
+                // favorable basis when made good (2.4.1.3.2.1). "Officer Time?" rows are recorded only.
+                const lossInputs = [];
                 document.querySelectorAll('#timeLossBody tr[id^="timeloss-period-"]').forEach((row, idx) => {
                     const lossType = row.querySelector('select[data-field="lossType"]').value;
                     const startDate = row.querySelector('input[data-field="startDate"]').value.trim();
                     const endDate = row.querySelector('input[data-field="endDate"]').value.trim();
                     const notes = row.querySelector('input[data-field="notes"]').value;
                     const isOfficerTime = row.querySelector('input[data-field="officerTime"]').checked;
-
-                    if (lossType && startDate.length === 8 && endDate.length === 8) {
-                        const lost = computeLostTime(startDate, endDate);
-                        const days = calculateDays(startDate, endDate);
-                        if (lost && days > 0) {
-                            const deductible = isTimeLossDeductible(lossType);
-                            const applied = deductible && !isOfficerTime;
-                            timeLossDetails.push({
-                                period: idx + 1,
-                                lossType,
-                                startDate,
-                                endDate,
-                                deductible,
-                                isOfficerTime,
-                                applied,
-                                days,
-                                lost,
-                                notes
-                            });
-                            if (applied) {
-                                timeLossTotals.years += lost.years;
-                                timeLossTotals.months += lost.months;
-                                timeLossTotals.days += lost.days;
-                                timeLossApplied = true;
-                            }
-                        }
+                    const madeGood = row.querySelector('input[data-field="madeGood"]').checked;
+                    if (lossType && startDate.length === 8 && endDate.length === 8 && calculateDays(startDate, endDate) > 0) {
+                        lossInputs.push({ period: idx + 1, lossType, startDate, endDate, isOfficerTime, madeGood, notes, days: calculateDays(startDate, endDate) });
                     }
                 });
 
-                let beginTotals = { years: 0, months: 0, days: 0 };
-                let endTotals = { years: 0, months: 0, days: 0 };
+                const service = computeCreditableService(periodDetails, lossInputs, pathwayType);
+                const timeLossDetails = lossInputs.map((t, k) => Object.assign({}, t, service.lossResults[k] || {})).filter(t => t.lost);
                 let calculatedPEBD = foundationalPEBD;
 
-                if (beginningDates.length > 0 && endingDates.length > 0) {
-                    // Add up components
-                    beginTotals = beginningDates.reduce((totals, date) => ({
-                        years: totals.years + date.year,
-                        months: totals.months + date.month,
-                        days: totals.days + date.day
-                    }), { years: 0, months: 0, days: 0 });
-
-                    endTotals = endingDates.reduce((totals, date) => ({
-                        years: totals.years + date.year,
-                        months: totals.months + date.month,
-                        days: totals.days + date.day
-                    }), { years: 0, months: 0, days: 0 });
-
-                    // Calculate difference
-                    const difference = {
-                        years: endTotals.years - beginTotals.years,
-                        months: endTotals.months - beginTotals.months,
-                        days: endTotals.days - beginTotals.days
-                    };
-
-                    // Add inclusive days
-                    const inclusiveAdjusted = {
-                        years: difference.years,
-                        months: difference.months,
-                        days: difference.days + beginningDates.length
-                    };
-
-                    // Subtract deductible time loss on the 30-day basis (DODFMR Vol 7A Ch 1)
-                    const afterTimeLoss = {
-                        years: inclusiveAdjusted.years - timeLossTotals.years,
-                        months: inclusiveAdjusted.months - timeLossTotals.months,
-                        days: inclusiveAdjusted.days - timeLossTotals.days
-                    };
-
-                    // Normalize
-                    let normalized = { ...afterTimeLoss };
-                    
-                    // Handle negative days
-                    while (normalized.days < 0) {
-                        normalized.days += 30;
-                        normalized.months -= 1;
-                    }
-                    
-                    // Handle negative months
-                    while (normalized.months < 0) {
-                        normalized.months += 12;
-                        normalized.years -= 1;
-                    }
-                    
-                    // Handle excess days
-                    while (normalized.days >= 30) {
-                        normalized.days -= 30;
-                        normalized.months += 1;
-                    }
-                    
-                    // Handle excess months
-                    while (normalized.months >= 12) {
-                        normalized.months -= 12;
-                        normalized.years += 1;
-                    }
-
-                    // Calculate final PEBD
-                    calculatedPEBD = subtractServiceFromDate(foundationalPEBD, normalized.years, normalized.months, normalized.days);
+                if (service.numPeriods > 0) {
+                    const n = service.normalized;
+                    calculatedPEBD = subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days);
 
                     calculationResult = {
                         foundationalPEBD,
@@ -2531,19 +2577,19 @@
                         pathwayType,
                         periodDetails,
                         timeLossDetails,
-                        beginTotals,
-                        endTotals,
-                        difference,
-                        inclusiveAdjusted,
-                        afterTimeLoss,
-                        timeLossTotals,
-                        timeLossApplied,
-                        normalized,
-                        numPeriods: beginningDates.length,
+                        beginTotals: service.beginTotals,
+                        endTotals: service.endTotals,
+                        difference: service.difference,
+                        inclusiveAdjusted: service.inclusiveAdjusted,
+                        afterTimeLoss: service.afterTimeLoss,
+                        timeLossTotals: service.timeLossTotals,
+                        timeLossApplied: service.timeLossApplied,
+                        normalized: n,
+                        numPeriods: service.numPeriods,
                         doeaf,
                         afadbd,
                         plcFinancialAssistance,
-                        recordWarnings: buildRecordWarnings({ calculatedPEBD, doeaf, afadbd, plcFinancialAssistance, periodDetails }),
+                        recordWarnings: buildRecordWarnings({ calculatedPEBD, doeaf, afadbd, plcFinancialAssistance, periodDetails, timeLossDetails }),
                         calculationDate: new Date().toLocaleString()
                     };
 
@@ -2558,36 +2604,6 @@
             }
         }
 
-        // Subtract service from date using pure 30-day-month arithmetic (PAA 04-25).
-        // No Date constructor - it would roll a nominal day 29/30 in February into March.
-        function subtractServiceFromDate(dateStr, years, months, days) {
-            if (!/^\d{8}$/.test(dateStr)) return dateStr;
-            let y = parseInt(dateStr.substring(0, 4), 10);
-            let m = parseInt(dateStr.substring(4, 6), 10);
-            let d = parseInt(dateStr.substring(6, 8), 10);
-
-            y -= years;
-            m -= months;
-            d -= days;
-
-            // Borrow days from months on the 30-day convention
-            while (d <= 0) {
-                m -= 1;
-                d += 30;
-            }
-            // Borrow months from years
-            while (m <= 0) {
-                y -= 1;
-                m += 12;
-            }
-
-            // Clamp a nominal 30-day-convention result onto the real calendar
-            // (February 29/30 in the convention becomes the actual last day of February)
-            const lastDay = new Date(y, m, 0).getDate();
-            if (d > lastDay) d = lastDay;
-
-            return String(y) + String(m).padStart(2, '0') + String(d).padStart(2, '0');
-        }
 
         // Display results
         function displayResults() {
@@ -2668,7 +2684,7 @@
                         <td class="${detail.applied ? 'creditable-no' : 'creditable-yes'}">
                             ${detail.applied ? 'Yes' : (detail.deductible && detail.isOfficerTime ? 'No (Officer Time)' : 'No')}
                         </td>
-                        <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + ')' : ''}</td>
+                        <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + (detail.madeGood ? ', made good, ' + detail.basis + ' basis' : '') + ')' : ''}</td>
                         <td>${detail.notes}</td>
                     </tr>
                 `).join('');
@@ -2746,7 +2762,7 @@
                                 <td>${detail.startDate}</td>
                                 <td>${detail.endDate}</td>
                                 <td style="color: ${detail.applied ? 'red' : 'green'}; font-weight: bold;">${detail.applied ? 'Yes' : (detail.deductible && detail.isOfficerTime ? 'No (Officer Time)' : 'No')}</td>
-                                <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + ')' : ''}</td>
+                                <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + (detail.madeGood ? ', made good, ' + detail.basis + ' basis' : '') + ')' : ''}</td>
                                 <td>${detail.notes}</td>
                             </tr>`).join('')}
                         </table>
@@ -2886,7 +2902,7 @@ ${recordWarningsHTML}
                 foundational: '20230301', status: 'Enlisted',
                 pathway: 'Enlisted DEP/Direct/Reenlisted/Prior Service',
                 periods: [
-                    { type: 'Delayed Entry Program (Post 1989 No IDT)', start: '20190115', end: '20190630', notes: 'No IDT drills - not creditable' },
+                    { type: 'Delayed Entry Program (Reserve 10 USC 12103, Post-1989, No IDT)', start: '20190115', end: '20190630', notes: 'No IDT drills before initial ADT - not creditable (DODFMR 2.2.1.8.1)' },
                     { type: 'Regular Marine Corps', start: '20190701', end: '20220630', notes: 'Active period - creditable' }
                 ],
                 losses: []
@@ -2946,6 +2962,7 @@ ${recordWarningsHTML}
                 row.querySelector('input[data-field="startDate"]').value = t.start;
                 row.querySelector('input[data-field="endDate"]').value = t.end;
                 row.querySelector('input[data-field="officerTime"]').checked = !!t.officer;
+                row.querySelector('input[data-field="madeGood"]').checked = !!t.madeGood;
                 row.querySelector('input[data-field="notes"]').value = t.notes || '';
                 updateTimeLossPeriod(i);
             });

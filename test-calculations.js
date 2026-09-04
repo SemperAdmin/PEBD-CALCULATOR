@@ -6,221 +6,28 @@
 // Run: node test-calculations.js
 // ============================================================
 
-// --- Logic extracted from index.html (no DOM dependencies) ---
-
-const SERVICE_TYPES = {
-    "Regular Army": { creditable: true, category: "Active" },
-    "Regular Navy": { creditable: true, category: "Active" },
-    "Regular Marine Corps": { creditable: true, category: "Active" },
-    "Regular Air Force": { creditable: true, category: "Active" },
-    "Regular Space Force": { creditable: true, category: "Active" },
-    "Regular Coast Guard": { creditable: true, category: "Active" },
-    "Army Reserve": { creditable: true, category: "Reserve" },
-    "Navy Reserve": { creditable: true, category: "Reserve" },
-    "Marine Corps Reserve": { creditable: true, category: "Reserve" },
-    "Air Force Reserve": { creditable: true, category: "Reserve" },
-    "Army National Guard": { creditable: true, category: "Reserve" },
-    "Air National Guard": { creditable: true, category: "Reserve" },
-    "PHS Commissioned Corps": { creditable: true, category: "Other" },
-    "PHS Reserve Corps": { creditable: true, category: "Other" },
-    "NOAA Officer Service": { creditable: true, category: "Other" },
-    "NOAA Deck Officer Service": { creditable: true, category: "Other" },
-    "Military Academy Service": { creditable: true, category: "Academy" },
-    "Fleet Reserve": { creditable: true, category: "Reserve" },
-    "Fleet Marine Corps Reserve": { creditable: true, category: "Reserve" },
-    "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
-    "Naval Academy Preparatory School (NAPS)": { creditable: true, category: "Academy" },
-    "Temporary Coast Guard Reserve": { creditable: true, category: "Reserve" },
-    "ROTC (On/After 1 Aug 1979, Concurrent SelRes Drilling)": { creditable: true, category: "ROTC" },
-    "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
-    "ROTC (Pre-1964)": { creditable: false, category: "ROTC" },
-    "Service with Retired Pay": { creditable: true, category: "Retired" },
-    "Medical Retention Service": { creditable: true, category: "Medical" },
-    "Under-age Service (Valid Enlistment)": { creditable: true, category: "Special" },
-    "Service Terminated by Desertion": { creditable: true, category: "Special" },
-    "Detailed Service (Other Agency)": { creditable: true, category: "Special" },
-    "Service Before 10 Jan 1962": { creditable: true, category: "Historical" },
-    "Philippine Army Officer": { creditable: false, category: "Excluded" },
-    "State Guard": { creditable: false, category: "Excluded" },
-    "Territorial Guard": { creditable: false, category: "Excluded" },
-    "Home Guard": { creditable: false, category: "Excluded" },
-    "Emergency Officers Retired List": { creditable: false, category: "Excluded" },
-    "AFHPSP/FAP (Post 1981)": { creditable: false, category: "Excluded" },
-    "USUHS Student (DOM)": { creditable: false, category: "Excluded" },
-    "Inactive National Guard": { creditable: false, category: "Excluded" },
-    "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
-    "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
-    "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
-    "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" },
-    "PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)": { creditable: false, category: "Officer Candidate" },
-    "PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed)": { creditable: true, category: "Officer Candidate" },
-    "PLC / Officer Candidate (Inactive After Initial ADT)": { creditable: true, category: "Officer Candidate" },
-    "PLC / Officer Candidate (Inactive After Initial ADT, 37 USC 205(f): 16401 Financial Assistance, 12203 Appointee)": { creditable: false, category: "Officer Candidate" },
-    "PLC / Officer Candidate (Selected Reserve, Drilling)": { creditable: true, category: "Officer Candidate" },
-    "Officer Candidate Active Duty for Training (OCS)": { creditable: true, category: "Officer Candidate" }
-};
-
-const TIME_LOSS_TYPES = {
-    "AWOL (Absence Without Leave)": { deductible: true },
-    "Desertion": { deductible: true },
-    "Confinement (Court-Martial)": { deductible: true },
-    "Confinement (Civil, Convicted)": { deductible: true },
-    "Misconduct Disease/Injury (Alcohol/Drugs)": { deductible: true },
-    "Unauthorized Absence (Other)": { deductible: true },
-    "Dropped from Rolls": { deductible: true },
-    "Excess Leave (Unauthorized)": { deductible: true },
-    "Excess Leave (Authorized)": { deductible: false },
-    "Administrative Leave (Pending Investigation)": { deductible: false },
-    "Emergency Leave": { deductible: false },
-    "Ordinary Leave": { deductible: false },
-    "Medical Leave": { deductible: false },
-    "Maternity/Paternity Leave": { deductible: false },
-    "TDY/TAD": { deductible: false },
-    "Training": { deductible: false },
-    "Hospitalization": { deductible: false }
-};
-
-// Lost time per DODFMR Vol 7A Ch 1, para 2.4.1.3.1 - 30-day-month basis,
-// years/months/days with +1 inclusive day, begin-31 counted, end-31 capped at 30.
-function computeLostTime(startDate, endDate) {
-    if (!parseDate(startDate) || !parseDate(endDate) || endDate < startDate) return null;
-    let sy = parseInt(startDate.substring(0, 4), 10);
-    let sm = parseInt(startDate.substring(4, 6), 10);
-    let sd = parseInt(startDate.substring(6, 8), 10);
-    let ey = parseInt(endDate.substring(0, 4), 10);
-    let em = parseInt(endDate.substring(4, 6), 10);
-    let ed = parseInt(endDate.substring(6, 8), 10);
-
-    if (sd === 31) sd = 30;
-    if (ed === 31) ed = 30;
-
-    let years = ey - sy;
-    let months = em - sm;
-    let days = ed - sd + 1;
-
-    while (days < 0) { days += 30; months -= 1; }
-    while (months < 0) { months += 12; years -= 1; }
-    while (days >= 30) { days -= 30; months += 1; }
-    while (months >= 12) { months -= 12; years += 1; }
-
-    return { years, months, days };
-}
-
-function isServiceCreditable(serviceType, pathwayType) {
-    if (serviceType === "Military Academy Service") {
-        return !(pathwayType && pathwayType.includes("Officer"));
-    }
-    return SERVICE_TYPES[serviceType]?.creditable || false;
-}
-
-function isTimeLossDeductible(lossType) {
-    return TIME_LOSS_TYPES[lossType]?.deductible || false;
-}
-
-function parseDate(dateStr) {
-    if (!dateStr || !/^\d{8}$/.test(dateStr)) return null;
-    const year = parseInt(dateStr.substring(0, 4), 10);
-    const month = parseInt(dateStr.substring(4, 6), 10) - 1;
-    const day = parseInt(dateStr.substring(6, 8), 10);
-    const d = new Date(year, month, day);
-    if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
-    return d;
-}
-
-function calculateDays(startDate, endDate) {
-    const start = parseDate(startDate);
-    const end = parseDate(endDate);
-    if (!start || !end || end < start) return 0;
-    return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-}
-
-function subtractServiceFromDate(dateStr, years, months, days) {
-    if (!/^\d{8}$/.test(dateStr)) return dateStr;
-    let y = parseInt(dateStr.substring(0, 4), 10);
-    let m = parseInt(dateStr.substring(4, 6), 10);
-    let d = parseInt(dateStr.substring(6, 8), 10);
-
-    y -= years;
-    m -= months;
-    d -= days;
-
-    while (d <= 0) { m -= 1; d += 30; }
-    while (m <= 0) { y -= 1; m += 12; }
-
-    const lastDay = new Date(y, m, 0).getDate();
-    if (d > lastDay) d = lastDay;
-
-    return String(y) + String(m).padStart(2, '0') + String(d).padStart(2, '0');
-}
-
-// Pure mirror of calculatePEBD in index.html.
-// periods: [{serviceType, startDate, endDate}]
-// timeLosses: [{lossType, startDate, endDate, isOfficerTime}]
-function computePEBD(foundationalPEBD, pathwayType, periods, timeLosses = []) {
-    const beginningDates = [];
-    const endingDates = [];
-
-    periods.forEach(p => {
-        if (!p.serviceType || !p.startDate || !p.endDate) return;
-        const days = calculateDays(p.startDate, p.endDate);
-        if (days <= 0) return;
-        if (!isServiceCreditable(p.serviceType, pathwayType)) return;
-
-        const startYear = parseInt(p.startDate.substring(0, 4), 10);
-        const startMonth = parseInt(p.startDate.substring(4, 6), 10);
-        const startDay = parseInt(p.startDate.substring(6, 8), 10);
-
-        let endYear = parseInt(p.endDate.substring(0, 4), 10);
-        let endMonth = parseInt(p.endDate.substring(4, 6), 10);
-        let endDay = parseInt(p.endDate.substring(6, 8), 10);
-
-        // PAA 04-25 ending date adjustments (flat rule per SOP)
-        if (endDay === 31) endDay = 30;
-        if (endMonth === 2 && (endDay === 28 || endDay === 29)) endDay = 30;
-
-        beginningDates.push({ year: startYear, month: startMonth, day: startDay });
-        endingDates.push({ year: endYear, month: endMonth, day: endDay });
-    });
-
-    const timeLossTotals = { years: 0, months: 0, days: 0 };
-    let timeLossApplied = false;
-    timeLosses.forEach(t => {
-        const lost = computeLostTime(t.startDate, t.endDate);
-        if (!lost) return;
-        if (isTimeLossDeductible(t.lossType) && !t.isOfficerTime) {
-            timeLossTotals.years += lost.years;
-            timeLossTotals.months += lost.months;
-            timeLossTotals.days += lost.days;
-            timeLossApplied = true;
-        }
-    });
-
-    if (beginningDates.length === 0) {
-        return { calculatedPEBD: foundationalPEBD, normalized: { years: 0, months: 0, days: 0 }, timeLossTotals, timeLossApplied, numPeriods: 0 };
-    }
-
-    const beginTotals = beginningDates.reduce((t, d) => ({ years: t.years + d.year, months: t.months + d.month, days: t.days + d.day }), { years: 0, months: 0, days: 0 });
-    const endTotals = endingDates.reduce((t, d) => ({ years: t.years + d.year, months: t.months + d.month, days: t.days + d.day }), { years: 0, months: 0, days: 0 });
-
-    const normalized = {
-        years: endTotals.years - beginTotals.years - timeLossTotals.years,
-        months: endTotals.months - beginTotals.months - timeLossTotals.months,
-        days: endTotals.days - beginTotals.days + beginningDates.length - timeLossTotals.days
-    };
-
-    while (normalized.days < 0) { normalized.days += 30; normalized.months -= 1; }
-    while (normalized.months < 0) { normalized.months += 12; normalized.years -= 1; }
-    while (normalized.days >= 30) { normalized.days -= 30; normalized.months += 1; }
-    while (normalized.months >= 12) { normalized.months -= 12; normalized.years += 1; }
-
-    return {
-        calculatedPEBD: subtractServiceFromDate(foundationalPEBD, normalized.years, normalized.months, normalized.days),
-        normalized,
-        timeLossTotals,
-        timeLossApplied,
-        numPeriods: beginningDates.length
-    };
-}
+// --- Shipped logic, loaded out of index.html ---
+// The page keeps every pure function between two markers. This suite extracts that
+// block and runs it, so the shipped code is what gets tested. If the markers move,
+// the load throws and the run fails loudly instead of going green.
+const CALC_SOURCE = require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8');
+const LOGIC = (function loadShippedLogic(src) {
+    const startMark = '// --- PEBD LOGIC (loaded by test-calculations.js, keep DOM-free) ---';
+    const endMark = '// --- END PEBD LOGIC ---';
+    const a = src.indexOf(startMark);
+    const b = src.indexOf(endMark);
+    if (a < 0 || b < 0 || b < a) throw new Error('PEBD LOGIC markers not found in index.html.');
+    const names = ['SERVICE_TYPES', 'TIME_LOSS_TYPES', 'isServiceCreditable', 'isTimeLossDeductible', 'parseDate',
+        'validateDatePair', 'calculateDays', 'computeLostTime', 'computeLostTimeDayToDay', 'selectLostTime', 'fmtYMD',
+        'isLeapYear', 'adjustEndDay', 'normalizeYMD', 'computeCreditableService', 'computePEBD', 'subtractServiceFromDate',
+        'buildRecordWarnings', 'isOfficerCandidateType', 'isActiveStatusType', 'isReserveStatusType'];
+    const out = {};
+    new Function('out', src.slice(a, b) + names.map(n => `\nout.${n} = ${n};`).join(''))(out);
+    return out;
+})(CALC_SOURCE);
+const { SERVICE_TYPES, TIME_LOSS_TYPES, isServiceCreditable, isTimeLossDeductible, parseDate, calculateDays,
+    computeLostTime, computeLostTimeDayToDay, selectLostTime, adjustEndDay, computeCreditableService, computePEBD,
+    subtractServiceFromDate, buildRecordWarnings, isActiveStatusType, isReserveStatusType } = LOGIC;
 
 // --- Test harness ---
 
@@ -267,7 +74,7 @@ assertEqual(calculateDays('2024010', '20240110'), 0, 'Invalid start returns 0');
 
 // ---------- 3. Service creditability ----------
 console.log('\n[3] Service creditability');
-assertEqual(Object.keys(SERVICE_TYPES).length, 49, 'Service type catalog holds 49 entries');
+assertEqual(Object.keys(SERVICE_TYPES).length, 52, 'Service type catalog holds 52 entries');
 assertEqual(isServiceCreditable('Regular Marine Corps', ENL), true, 'Regular Marine Corps creditable');
 assertEqual(isServiceCreditable('Military Academy Service', OFF), false, 'Academy on Officer pathway NOT creditable');
 assertEqual(isServiceCreditable('Military Academy Service', ENL), true, 'Academy on Enlisted pathway creditable');
@@ -275,9 +82,12 @@ assertEqual(isServiceCreditable('Cadet/Midshipman Service (Non-Commissioned)', O
 assertEqual(isServiceCreditable('Naval Academy Preparatory School (NAPS)', ENL), true, 'NAPS creditable on Enlisted pathway');
 assertEqual(isServiceCreditable('Naval Academy Preparatory School (NAPS)', OFF), true, 'NAPS creditable on Officer pathway (PAA 04-25 Note 8)');
 assertEqual(isServiceCreditable('Delayed Entry Program (Before January 1985)', ENL), true, 'DEP before 1985 creditable (DODFMR Vol 7A)');
-assertEqual(isServiceCreditable('Delayed Entry Program (1985-1989 No IDT)', ENL), false, 'DEP 1985-1989 no IDT not creditable');
-assertEqual(isServiceCreditable('Delayed Entry Program (Post 1989 w/IDT)', ENL), true, 'DEP post-1989 with IDT creditable');
-assertEqual(isServiceCreditable('Delayed Entry Program (Post 1989 No IDT)', ENL), false, 'DEP post-1989 no IDT not creditable');
+assertEqual(isServiceCreditable('Delayed Entry Program (Enlisted 1 Jan 1985 to 28 Nov 1989)', ENL), false, 'DEP enlisted 1985 to Nov 1989 not creditable regardless of IDT (2.2.1.7)');
+assertEqual(isServiceCreditable('Delayed Entry Program (Reserve 10 USC 12103, Post-1989, IDT Performed)', ENL), true, 'Reserve 12103 DEP post-1989 with IDT creditable (2.1.4.12.2.1)');
+assertEqual(isServiceCreditable('Delayed Entry Program (Regular 10 USC 513, Post-1989)', ENL), false, 'Regular 513 DEP post-1989 not creditable other than active duty (2.2.1.8.2)');
+assertEqual(isServiceCreditable('Delayed Entry Program (Reserve 10 USC 12103, Post-1989, No IDT)', ENL), false, 'Reserve 12103 DEP post-1989 no IDT not creditable (2.2.1.8.1)');
+assertEqual(isServiceCreditable('Fraudulent, Voided, or Invalidated Enlistment', ENL), false, 'Fraudulent enlistment excluded (2.2.1.1)');
+assertEqual(isServiceCreditable('Military Academy Service (Retained Reserve Commission/Warrant)', OFF), true, 'Academy time with a retained Reserve commission credits for an officer (Table 1-1 Rules 3 and 4)');
 assertEqual(isServiceCreditable('ROTC (On/After 1 Aug 1979, Concurrent SelRes Drilling)', ENL), true, 'ROTC on/after 1 Aug 1979 with concurrent SelRes drilling creditable (DODFMR 2.1.4.10)');
 assertEqual(isServiceCreditable('ROTC (1964-1979)', ENL), false, 'ROTC 1964-1979 not creditable');
 assertEqual(isServiceCreditable('ROTC (Pre-1964)', ENL), false, 'ROTC pre-1964 not creditable');
@@ -323,6 +133,8 @@ assertEqual(isTimeLossDeductible('Hospitalization'), false, 'Hospitalization NOT
 assertEqual(isTimeLossDeductible('TDY/TAD'), false, 'TDY/TAD NOT deductible');
 assertEqual(isTimeLossDeductible('Maternity/Paternity Leave'), false, 'Maternity/paternity NOT deductible');
 assertEqual(isTimeLossDeductible('Nonexistent'), false, 'Unknown loss type defaults to not deductible');
+assertEqual(isTimeLossDeductible('Unauthorized Absence (Excused as Unavoidable)'), false, 'Excused unauthorized absence creditable (Table 1-2 Rule 2)');
+assertEqual(isTimeLossDeductible('Confinement (Acquitted or Sentence Set Aside)'), false, 'Confinement ending in acquittal creditable (Table 1-2 Note 3)');
 
 // ---------- 4b. computeLostTime (DODFMR 2.4.1.3.1, 30-day basis) ----------
 console.log('\n[4b] computeLostTime');
@@ -332,6 +144,11 @@ assertEqual(computeLostTime('20200731', '20200801'), { years: 0, months: 0, days
 assertEqual(computeLostTime('20200601', '20200601'), { years: 0, months: 0, days: 1 }, 'Single-day loss counts 1 day');
 assertEqual(computeLostTime('20200610', '20200601'), null, 'Reversed dates return null');
 assertEqual(computeLostTime('20190501', '20200430'), { years: 1, months: 0, days: 0 }, 'Full year of loss normalizes to 1y 0m 0d');
+// Made good (2.4.1.3.2.1): both bases, keep the smaller. FMR example 1: 35 calendar days vs 1m 7d.
+assertEqual(computeLostTimeDayToDay('20150210', '20150316'), { years: 0, months: 1, days: 5 }, 'Day-to-day basis 35 days converts to 0y 1m 5d');
+assertEqual(selectLostTime('20150210', '20150316', true), { lost: { years: 0, months: 1, days: 5 }, basis: 'day-to-day' }, 'Made good picks the day-to-day basis when smaller');
+assertEqual(selectLostTime('20150210', '20150316', false), { lost: { years: 0, months: 1, days: 7 }, basis: '30-day' }, 'Not made good stays on the 30-day basis');
+assertEqual(selectLostTime('20200330', '20200401', true), { lost: { years: 0, months: 0, days: 2 }, basis: '30-day' }, 'FMR illustration: Mar 30 to Apr 1 is 2 days on the 30-day basis, 3 day-to-day, keep 2');
 
 // ---------- 5. subtractServiceFromDate (pure 30-day math) ----------
 console.log('\n[5] subtractServiceFromDate');
@@ -343,6 +160,13 @@ assertEqual(subtractServiceFromDate('20250115', 0, 2, 0), '20241115', 'Month bor
 assertEqual(subtractServiceFromDate('20250330', 0, 1, 0), '20250228', 'Nominal Feb 30 clamps to real Feb 28 (non-leap)');
 assertEqual(subtractServiceFromDate('20240330', 0, 1, 0), '20240229', 'Nominal Feb 30 clamps to real Feb 29 (leap)');
 assertEqual(subtractServiceFromDate('2025010', 1, 0, 0), '2025010', 'Malformed input returned unchanged');
+// Ending day adjustments (2.4.1.2.2)
+assertEqual(adjustEndDay(2024, 3, 31), 30, 'The 31st becomes 30');
+assertEqual(adjustEndDay(2023, 2, 28), 30, 'Feb 28 of a non-leap year becomes 30');
+assertEqual(adjustEndDay(2024, 2, 29), 30, 'Feb 29 becomes 30');
+assertEqual(adjustEndDay(2024, 2, 28), 28, 'Feb 28 of a leap year stays 28');
+assertEqual(adjustEndDay(2000, 2, 28), 28, 'Feb 28 of year 2000 (leap) stays 28');
+assertEqual(adjustEndDay(1900, 2, 28), 30, 'Feb 28 of 1900 (not leap) becomes 30');
 
 // ---------- 6. Full PEBD calculations (per-period inclusive days) ----------
 console.log('\n[6] Full PEBD calculations');
@@ -396,6 +220,21 @@ r = computePEBD('20250101', ENL, [
     { serviceType: 'Regular Marine Corps', startDate: '20240101', endDate: '20240229' }
 ]);
 assertEqual(r.normalized, { years: 0, months: 2, days: 0 }, 'Leap Feb 29 end treated as day 30');
+
+// Leap-year Feb 28 ending stays 28 (2.4.1.2.2): 20240101-20240228 -> 0y 1m 27d + 1 = 0y 1m 28d.
+r = computePEBD('20250101', ENL, [
+    { serviceType: 'Regular Marine Corps', startDate: '20240101', endDate: '20240228' }
+]);
+assertEqual(r.normalized, { years: 0, months: 1, days: 28 }, 'Leap Feb 28 end credits 0y 1m 28d, not two months');
+
+// DODFMR 2.4.1.2.5 worked example: four periods, 22 years exactly.
+r = computePEBD('20250101', ENL, [
+    { serviceType: 'Regular Army', startDate: '19930101', endDate: '19960229' },
+    { serviceType: 'Army National Guard', startDate: '19960601', endDate: '20030526' },
+    { serviceType: 'Air National Guard', startDate: '20050801', endDate: '20100331' },
+    { serviceType: 'Regular Air Force', startDate: '20100401', endDate: '20170604' }
+]);
+assertEqual(r.normalized, { years: 22, months: 0, days: 0 }, 'FMR 2.4.1.2.5 example totals exactly 22 years across four rows');
 
 // NAPS + Academy on Officer pathway (PAA 04-25 para 7.b Rule 4, Note 8):
 // NAPS year credits, midshipman years do not.
@@ -790,48 +629,20 @@ r = computePEBD('20220617', OFF, [
 ]);
 assertEqual(r.calculatedPEBD, '20200915', 'SelRes PLC time credits in full');
 
-// ---------- 12. Shipped tables and cross-checks (loaded from index.html) ----------
-// The service type table and the record cross-check block are read out of
-// index.html and run here, so an edit to the app cannot pass unnoticed.
-console.log('\n[12] Shipped tables and cross-checks (loaded from index.html)');
+// ---------- 12. Record cross-checks and guided examples (shipped code) ----------
+console.log('\n[12] Record cross-checks and guided examples (shipped code)');
 
-const CALC_SOURCE = require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8');
-
-const SHIPPED_SERVICE_TYPES = (function loadShippedServiceTypes(src) {
-    const a = src.indexOf('const SERVICE_TYPES = {');
-    const b = src.indexOf('};', a);
-    if (a < 0 || b < 0) throw new Error('SERVICE_TYPES block not found in index.html. Update section 12.');
-    const out = {};
-    new Function('out', src.slice(a, b + 2) + '\nout.t = SERVICE_TYPES;')(out);
-    return out.t;
-})(CALC_SOURCE);
-assertEqual(SHIPPED_SERVICE_TYPES, SERVICE_TYPES, 'index.html SERVICE_TYPES matches the test copy entry for entry');
-
-const CHECKS = (function loadShippedChecks(src) {
-    const startMark = '// --- RECORD CROSS-CHECKS (loaded by test-calculations.js, keep DOM-free) ---';
-    const endMark = '// --- END RECORD CROSS-CHECKS ---';
-    const a = src.indexOf(startMark);
-    const b = src.indexOf(endMark);
-    if (a < 0 || b < 0 || b < a) throw new Error('Record cross-check block markers not found in index.html. Update section 12.');
-    const out = {};
-    new Function('out', 'SERVICE_TYPES', 'parseDate', src.slice(a, b) +
-        '\nout.buildRecordWarnings = buildRecordWarnings;' +
-        '\nout.isActiveStatusType = isActiveStatusType;' +
-        '\nout.isReserveStatusType = isReserveStatusType;')(out, SERVICE_TYPES, parseDate);
-    return out;
-})(CALC_SOURCE);
-
-assertEqual(CHECKS.isActiveStatusType(OCS_ADT), true, 'OCS ADT is active status');
-assertEqual(CHECKS.isActiveStatusType('Regular Marine Corps'), true, 'Regular Marine Corps is active status');
-assertEqual(CHECKS.isReserveStatusType(PLC_POST), true, 'Inactive PLC time is Reserve status');
-assertEqual(CHECKS.isReserveStatusType('Marine Corps Reserve'), true, 'Marine Corps Reserve is Reserve status');
-assertEqual(CHECKS.isReserveStatusType(OCS_ADT), false, 'OCS ADT is not Reserve status');
+assertEqual(isActiveStatusType(OCS_ADT), true, 'OCS ADT is active status');
+assertEqual(isActiveStatusType('Regular Marine Corps'), true, 'Regular Marine Corps is active status');
+assertEqual(isReserveStatusType(PLC_POST), true, 'Inactive PLC time is Reserve status');
+assertEqual(isReserveStatusType('Marine Corps Reserve'), true, 'Marine Corps Reserve is Reserve status');
+assertEqual(isReserveStatusType(OCS_ADT), false, 'OCS ADT is not Reserve status');
 
 const pd = (period, serviceType, startDate, endDate) => ({ period, serviceType, startDate, endDate, creditable: isServiceCreditable(serviceType, OFF) });
 
 // DODFMR path with the MCTFS fields transcribed: PEBD equals AFADBD, which is the expected
 // outcome, so the only note is the confirmation prompt.
-let w = CHECKS.buildRecordWarnings({
+let w = buildRecordWarnings({
     calculatedPEBD: '20210522', doeaf: '20200915', afadbd: '20210522', plcFinancialAssistance: 'No',
     periodDetails: [pd(1, PLC_PRE_NO_IDT, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730'), pd(3, PLC_POST, '20210731', '20220616')]
 });
@@ -839,42 +650,50 @@ assertEqual(w.length, 1, 'DODFMR path raises one note');
 assertEqual(w[0].startsWith('PEBD equals AFADBD. Expected when'), true, 'PEBD equal to AFADBD is a confirmation prompt, not an error');
 
 // 205(f) path with consistent fields: clean.
-w = CHECKS.buildRecordWarnings({
+w = buildRecordWarnings({
     calculatedPEBD: '20220408', doeaf: '20200915', afadbd: '20210522', plcFinancialAssistance: 'Yes',
     periodDetails: [pd(1, PLC_PRE_NO_IDT, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730'), pd(3, PLC_POST_205F, '20210731', '20220616')]
 });
 assertEqual(w, [], '205(f) path with consistent MCTFS fields raises no warnings');
 
 // A PEBD later than DOEAF with nothing excluded needs an explanation.
-w = CHECKS.buildRecordWarnings({
+w = buildRecordWarnings({
     calculatedPEBD: '20210522', doeaf: '20200915', afadbd: '', plcFinancialAssistance: '',
     periodDetails: [pd(1, 'Marine Corps Reserve', '20210522', '20220724')]
 });
 assertEqual(w, ['PEBD is later than DOEAF with no excluded service to explain the gap. Verify creditability of each period.'], 'DOEAF gap warning fires alone');
 
 // Zeroed AFADBD on a member with active service.
-w = CHECKS.buildRecordWarnings({
+w = buildRecordWarnings({
     calculatedPEBD: '20220408', doeaf: '', afadbd: '00000000', plcFinancialAssistance: 'Yes',
     periodDetails: [pd(1, PLC_PRE_NO_IDT, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730')]
 });
 assertEqual(w, ['AFADBD is missing on a member with active service. Report as a separate MCTFS record error.'], 'Zeroed AFADBD warning fires alone');
 
 // Blank optional fields on an enlisted case: silence.
-w = CHECKS.buildRecordWarnings({
+w = buildRecordWarnings({
     calculatedPEBD: '20200630', doeaf: '', afadbd: '', plcFinancialAssistance: '',
     periodDetails: [pd(1, 'Regular Navy', '20180601', '20211215')]
 });
 assertEqual(w, [], 'Blank optional fields raise nothing');
 
 // The 205(f) variant with the financial assistance field set to No.
-w = CHECKS.buildRecordWarnings({
+w = buildRecordWarnings({
     calculatedPEBD: '20220408', doeaf: '', afadbd: '', plcFinancialAssistance: 'No',
     periodDetails: [pd(1, PLC_POST_205F, '20210731', '20220616')]
 });
 assertEqual(w, ['Period 1 uses the 37 U.S.C. 205(f) variant but the financial assistance field says No.'], '205(f) row with No warns');
 
+// Lost time made good raises the contract-floor note.
+w = buildRecordWarnings({
+    calculatedPEBD: '20140306', doeaf: '', afadbd: '', plcFinancialAssistance: '',
+    periodDetails: [pd(1, 'Regular Marine Corps', '20120718', '20160717')],
+    timeLossDetails: [{ period: 1, applied: true, madeGood: true }]
+});
+assertEqual(w.length === 1 && w[0].startsWith('Lost time made good'), true, 'Made-good loss raises the contract floor note');
+
 // Yes with the ordinary post-ADT variant is legitimate for a 531 appointee: no warning.
-w = CHECKS.buildRecordWarnings({
+w = buildRecordWarnings({
     calculatedPEBD: '20210522', doeaf: '', afadbd: '', plcFinancialAssistance: 'Yes',
     periodDetails: [pd(1, PLC_POST, '20210731', '20220616')]
 });

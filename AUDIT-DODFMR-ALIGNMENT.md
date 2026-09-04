@@ -144,3 +144,21 @@ an unverified source.
 | Cross-checks added this session | 0.9. Correct after the DoDFMR correction; the 205(f) variant remains a statutory reading not confirmed in practice |
 | Test suite | 0.8. Broad and green, but the arithmetic under test is a copy |
 | Weighted overall | 0.87 |
+
+## Status after the build on this branch
+
+| Enhancement | Landed | Where |
+|---|---|---|
+| 1. Leap-year Feb 28 ending day stays 28 | Yes | `adjustEndDay` in the PEBD LOGIC block; tests in sections 5 and 6 |
+| 2. Suite runs the shipped arithmetic | Yes | Every pure function sits between the PEBD LOGIC markers in `index.html`; the retyped mirror is gone |
+| 3. DEP split by authority, 1985 to 1989 relabeled | Yes | Four DEP rows: pre-1985, enlisted 1985 to Nov 1989, Reserve 12103 with IDT, Reserve 12103 without IDT, Regular 513 |
+| 4. Lost time made good | Partial | "Made Good?" flag computes both bases and keeps the smaller (2.4.1.3.2.1). The contract floor (2.4.1.3.2.3) is raised as a record note, not applied, because the form has no contract length |
+| 5. Fraudulent, voided, or invalidated enlistment | Yes | Excluded service type (2.2.1.1) |
+| 6. Chapter 22-year example in the suite | Yes | Section 6, four rows, 22y 0m 0d |
+| 7. Officer foundational date hint | Yes | Hint names acceptance of the commission and the oath date (2.4.1.1.2) |
+| 8. Table 1-1 Rules 3 and 4 | Yes | "Military Academy Service (Retained Reserve Commission/Warrant)", creditable on every pathway |
+| 9. Nominal Feb 29 basic pay date | Deferred | A non-calendar date string would break every downstream date parser, including the pay comparison handoff. Needs a representation decision first |
+| 10. Creditable time loss outcomes | Yes | "Unauthorized Absence (Excused as Unavoidable)" and "Confinement (Acquitted or Sentence Set Aside)", both not deductible |
+| 11. 205(f) application in practice | Open | MMPB-21 question, not code |
+
+Revised scores after the build: arithmetic engine 0.95, service type catalog 0.93, time loss catalog 0.93, cross-checks 0.9, test suite 0.95, weighted overall 0.94. Residuals: the made-good contract floor, the Feb 29 representation, the misconduct exception for medical retention, the active-only condition on temporary Coast Guard Reserve, ROTC pre-1964, and every PAA 04-25 and MARADMIN 052/26 cite, which remain unverified against their source text.
