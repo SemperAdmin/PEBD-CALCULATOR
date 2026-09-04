@@ -1472,6 +1472,12 @@
                     <div class="example-expect">Expected: 0y 9m 25d creditable, PEBD 20220802. Academy years add nothing</div>
                     <button class="example-load-btn" onclick="loadExample(5)">Load Example</button>
                 </div>
+                <div class="example-card">
+                    <h4>7. PLC Officer, 37 U.S.C. 205(f)</h4>
+                    <p>A PLC candidate who took 10 U.S.C. 16401 financial assistance. Only the OCS active duty credits before commissioning. The inactive PLC time on both sides of OCS is excluded. For path A, set the financial assistance field to No, change both PLC rows to the no-assistance variant, and recalculate: every Reserve day counts.</p>
+                    <div class="example-expect">Expected: 0y 2m 9d creditable, PEBD 20220408. Path A: 1y 9m 2d, PEBD 20200915</div>
+                    <button class="example-load-btn" onclick="loadExample(6)">Load Example</button>
+                </div>
             </div>
         </details>
 
@@ -2905,6 +2911,17 @@ ${recordWarningsHTML}
                 periods: [
                     { type: 'Naval Academy Preparatory School (NAPS)', start: '20180723', end: '20190517', notes: 'Enlisted service - credits on all pathways (PAA 04-25 Note 8)' },
                     { type: 'Military Academy Service', start: '20190628', end: '20230526', notes: 'Midshipman years - no credit on Officer pathway' }
+                ],
+                losses: []
+            },
+            {
+                foundational: '20220617', status: 'Officer',
+                pathway: 'Officer OCC/PLC/NROTC/Academy',
+                plcFinancialAssistance: 'Yes', doeaf: '20200915', afadbd: '20210522',
+                periods: [
+                    { type: 'PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)', start: '20200915', end: '20210521', notes: 'Inactive PLC time before OCS - excluded under 37 U.S.C. 205(f)' },
+                    { type: 'Officer Candidate Active Duty for Training (OCS)', start: '20210522', end: '20210730', notes: 'OCS active duty - credits' },
+                    { type: 'PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)', start: '20210731', end: '20220616', notes: 'Inactive PLC time after OCS - excluded. Path A (no assistance): both PLC rows credit, PEBD 20200915' }
                 ],
                 losses: []
             }

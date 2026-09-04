@@ -287,6 +287,19 @@ assertEqual(isServiceCreditable('PHS Commissioned Corps', ENL), true, 'PHS Commi
 assertEqual(isServiceCreditable('NOAA Officer Service', ENL), true, 'NOAA Officer Service creditable');
 assertEqual(isServiceCreditable('Service Before 10 Jan 1962', ENL), true, 'Pre-1962 service creditable');
 assertEqual(isServiceCreditable('Unknown Type', ENL), false, 'Unknown type defaults to not creditable');
+// PLC / officer candidate variants (37 U.S.C. 205(a) and 205(f)). Creditability comes from
+// the variant, not the pathway, so each answer must hold on both pathways.
+const PLC_NO_FA = 'PLC / Officer Candidate (No 16401 Financial Assistance)';
+const PLC_FA = 'PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)';
+const PLC_FA_SELRES = 'PLC / Officer Candidate (16401 Financial Assistance, SelRes)';
+const OCS_ADT = 'Officer Candidate Active Duty for Training (OCS)';
+[ENL, OFF].forEach(pw => {
+    const tag = pw === ENL ? 'Enlisted' : 'Officer';
+    assertEqual(isServiceCreditable(PLC_NO_FA, pw), true, `PLC without 16401 assistance creditable on ${tag} pathway (205(a))`);
+    assertEqual(isServiceCreditable(PLC_FA, pw), false, `PLC with 16401 assistance, non-SelRes, post-1999 excluded on ${tag} pathway (205(f))`);
+    assertEqual(isServiceCreditable(PLC_FA_SELRES, pw), true, `PLC with 16401 assistance while SelRes creditable on ${tag} pathway (205(f) exception)`);
+    assertEqual(isServiceCreditable(OCS_ADT, pw), true, `OCS active duty for training creditable on ${tag} pathway (205(f) exception)`);
+});
 
 // ---------- 4. Time loss deductibility (DODFMR Table 1-2) ----------
 console.log('\n[4] Time loss deductibility');
@@ -720,6 +733,169 @@ assertEqual(EDIPI_RE.test('0123456789'), true, 'EDIPI with leading zero accepted
 assertEqual(EDIPI_RE.test('123456789'), false, 'Nine-digit EDIPI rejected');
 assertEqual(EDIPI_RE.test('12345678A9'), false, 'EDIPI with a letter rejected');
 assertEqual(EDIPI_RE.test('123-456-78'), false, 'EDIPI with special characters rejected');
+
+// ---------- 11. PLC officer candidate (37 U.S.C. 205) ----------
+// Anonymized fact pattern from HANDOFF-PLC-205F.md: PLC enlistment 20200915,
+// OCS 20210522-20210730, inactive PLC to 20220616, date of rank 20220617,
+// active duty from 20220725.
+console.log('\n[11] PLC officer candidate (37 U.S.C. 205)');
+
+// Path A: no financial assistance, every Reserve day counts, unbroken since enlistment.
+r = computePEBD('20220725', OFF, [
+    { serviceType: PLC_NO_FA, startDate: '20200915', endDate: '20220724' }
+]);
+assertEqual(r.normalized, { years: 1, months: 10, days: 10 }, 'Path A credit 1y 10m 10d');
+assertEqual(r.calculatedPEBD, '20200915', 'Path A PEBD returns to the PLC enlistment date');
+
+// Path B: financial assistance, non-SelRes. Only OCS credits before commissioning.
+r = computePEBD('20220617', OFF, [
+    { serviceType: PLC_FA, startDate: '20200915', endDate: '20210521' },
+    { serviceType: OCS_ADT, startDate: '20210522', endDate: '20210730' },
+    { serviceType: PLC_FA, startDate: '20210731', endDate: '20220616' }
+]);
+assertEqual(r.numPeriods, 1, 'Path B counts only the OCS period');
+assertEqual(r.normalized, { years: 0, months: 2, days: 9 }, 'Path B credit 0y 2m 9d');
+assertEqual(r.calculatedPEBD, '20220408', 'Path B PEBD 20220408');
+
+// Path B-alt: same credit, unbroken service anchored on the active duty date.
+r = computePEBD('20220725', OFF, [
+    { serviceType: OCS_ADT, startDate: '20210522', endDate: '20210730' }
+]);
+assertEqual(r.calculatedPEBD, '20220516', 'Path B-alt PEBD 20220516');
+
+// Path A entered as the example rows with the no-assistance variant: three periods,
+// three inclusive days, same enlistment date.
+r = computePEBD('20220617', OFF, [
+    { serviceType: PLC_NO_FA, startDate: '20200915', endDate: '20210521' },
+    { serviceType: OCS_ADT, startDate: '20210522', endDate: '20210730' },
+    { serviceType: PLC_NO_FA, startDate: '20210731', endDate: '20220616' }
+]);
+assertEqual(r.normalized, { years: 1, months: 9, days: 2 }, 'Path A via three rows credits 1y 9m 2d');
+assertEqual(r.calculatedPEBD, '20200915', 'Path A via three rows lands on the enlistment date');
+
+// The PEBD set to the OCS report date has no computation behind it: crediting the
+// inactive PLC time after OCS while excluding it before OCS.
+r = computePEBD('20220725', OFF, [
+    { serviceType: PLC_NO_FA, startDate: '20210522', endDate: '20220724' }
+]);
+assertEqual(r.calculatedPEBD, '20210522', 'Record-as-carried reconstruction reproduces the OCS report date');
+
+// ---------- 12. Shipped tables and cross-checks (loaded from index.html) ----------
+// The service type table and the record cross-check block are read out of
+// index.html and run here, so an edit to the app cannot pass unnoticed.
+console.log('\n[12] Shipped tables and cross-checks (loaded from index.html)');
+
+const CALC_SOURCE = require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8');
+
+const SHIPPED_SERVICE_TYPES = (function loadShippedServiceTypes(src) {
+    const a = src.indexOf('const SERVICE_TYPES = {');
+    const b = src.indexOf('};', a);
+    if (a < 0 || b < 0) throw new Error('SERVICE_TYPES block not found in index.html. Update section 12.');
+    const out = {};
+    new Function('out', src.slice(a, b + 2) + '\nout.t = SERVICE_TYPES;')(out);
+    return out.t;
+})(CALC_SOURCE);
+assertEqual(SHIPPED_SERVICE_TYPES, SERVICE_TYPES, 'index.html SERVICE_TYPES matches the test copy entry for entry');
+
+const CHECKS = (function loadShippedChecks(src) {
+    const startMark = '// --- RECORD CROSS-CHECKS (loaded by test-calculations.js, keep DOM-free) ---';
+    const endMark = '// --- END RECORD CROSS-CHECKS ---';
+    const a = src.indexOf(startMark);
+    const b = src.indexOf(endMark);
+    if (a < 0 || b < 0 || b < a) throw new Error('Record cross-check block markers not found in index.html. Update section 12.');
+    const out = {};
+    new Function('out', 'SERVICE_TYPES', 'parseDate', src.slice(a, b) +
+        '\nout.buildRecordWarnings = buildRecordWarnings;' +
+        '\nout.isActiveStatusType = isActiveStatusType;' +
+        '\nout.isReserveStatusType = isReserveStatusType;' +
+        '\nout.serviceStatusFamily = serviceStatusFamily;')(out, SERVICE_TYPES, parseDate);
+    return out;
+})(CALC_SOURCE);
+
+assertEqual(CHECKS.isActiveStatusType(OCS_ADT), true, 'OCS ADT is active status');
+assertEqual(CHECKS.isActiveStatusType('Regular Marine Corps'), true, 'Regular Marine Corps is active status');
+assertEqual(CHECKS.isReserveStatusType(PLC_FA), true, 'Inactive PLC time is Reserve status');
+assertEqual(CHECKS.isReserveStatusType('Marine Corps Reserve'), true, 'Marine Corps Reserve is Reserve status');
+assertEqual(CHECKS.isReserveStatusType(OCS_ADT), false, 'OCS ADT is not Reserve status');
+assertEqual(CHECKS.serviceStatusFamily(PLC_FA), CHECKS.serviceStatusFamily(PLC_NO_FA), 'PLC variants share one status family');
+assertEqual(CHECKS.serviceStatusFamily('Delayed Entry Program (Post 1989 No IDT)'), CHECKS.serviceStatusFamily('Delayed Entry Program (Post 1989 w/IDT)'), 'DEP variants share one status family');
+
+const pd = (period, serviceType, startDate, endDate) => ({ period, serviceType, startDate, endDate, creditable: isServiceCreditable(serviceType, OFF) });
+
+// Path B with the MCTFS fields transcribed: clean.
+let w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20220408', doeaf: '20200915', afadbd: '20210522', plcFinancialAssistance: 'Yes',
+    periodDetails: [pd(1, PLC_FA, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730'), pd(3, PLC_FA, '20210731', '20220616')]
+});
+assertEqual(w, [], 'Path B with consistent MCTFS fields raises no warnings');
+
+// Record as carried: PEBD equals AFADBD with Reserve service present, and later than DOEAF with nothing excluded.
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20210522', doeaf: '20200915', afadbd: '20210522', plcFinancialAssistance: 'No',
+    periodDetails: [pd(1, PLC_NO_FA, '20210522', '20220724')]
+});
+assertEqual(w.length, 2, 'Record-as-carried raises two warnings');
+assertEqual(w.some(x => x.includes('later than DOEAF')), true, 'DOEAF gap warning fires');
+assertEqual(w.some(x => x.includes('equals the first active duty date')), true, 'AFADBD signature warning fires');
+
+// Zeroed AFADBD on a member with active service.
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20220408', doeaf: '', afadbd: '00000000', plcFinancialAssistance: 'Yes',
+    periodDetails: [pd(1, PLC_FA, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730')]
+});
+assertEqual(w, ['AFADBD is missing on a member with active service. Report as a separate MCTFS record error.'], 'Zeroed AFADBD warning fires alone');
+
+// Blank optional fields on an enlisted case: silence.
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20200630', doeaf: '', afadbd: '', plcFinancialAssistance: '',
+    periodDetails: [pd(1, 'Regular Navy', '20180601', '20211215')]
+});
+assertEqual(w, [], 'Blank optional fields raise nothing');
+
+// Financial assistance answer contradicts the variant on a row.
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20200915', doeaf: '', afadbd: '', plcFinancialAssistance: 'Yes',
+    periodDetails: [pd(1, PLC_NO_FA, '20200915', '20220724')]
+});
+assertEqual(w, ['Period 1 uses the no-assistance variant but the financial assistance field says Yes.'], 'Yes with a no-assistance row warns');
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20220408', doeaf: '', afadbd: '', plcFinancialAssistance: 'No',
+    periodDetails: [pd(1, PLC_FA, '20200915', '20210521')]
+});
+assertEqual(w, ['Period 1 uses a financial assistance variant but the financial assistance field says No.'], 'No with an assistance row warns');
+
+// Same status on either side of OCS with different creditability.
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20210522', doeaf: '', afadbd: '', plcFinancialAssistance: '',
+    periodDetails: [pd(1, PLC_FA, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730'), pd(3, PLC_NO_FA, '20210731', '20220616')]
+});
+assertEqual(w, ['Periods 1 and 3 carry the same status but different creditability. Both must be treated the same under 37 U.S.C. 205.'], 'Same-status mismatch across OCS warns');
+
+// Same variants without an active period between them: no same-status warning.
+w = CHECKS.buildRecordWarnings({
+    calculatedPEBD: '20210522', doeaf: '', afadbd: '', plcFinancialAssistance: '',
+    periodDetails: [pd(1, PLC_FA, '20200915', '20210521'), pd(2, PLC_NO_FA, '20210731', '20220616')]
+});
+assertEqual(w, [], 'No active period between: same-status warning stays quiet');
+
+// Every guided example card's expected PEBD, computed from the shipped example definitions.
+const SHIPPED_EXAMPLES = (function loadShippedExamples(src) {
+    const a = src.indexOf('const PEBD_EXAMPLES = [');
+    const b = src.indexOf('];', a);
+    if (a < 0 || b < 0) throw new Error('PEBD_EXAMPLES block not found in index.html. Update section 12.');
+    const out = {};
+    new Function('out', src.slice(a, b + 2) + '\nout.e = PEBD_EXAMPLES;')(out);
+    return out.e;
+})(CALC_SOURCE);
+const EXPECTED_EXAMPLE_PEBDS = ['20200630', '19861116', '20140304', '20210806', '20200301', '20220802', '20220408'];
+assertEqual(SHIPPED_EXAMPLES.length, EXPECTED_EXAMPLE_PEBDS.length, 'Guided example count matches the expected list');
+SHIPPED_EXAMPLES.forEach((ex, k) => {
+    const res = computePEBD(ex.foundational, ex.pathway,
+        ex.periods.map(p => ({ serviceType: p.type, startDate: p.start, endDate: p.end })),
+        ex.losses.map(l => ({ lossType: l.type, startDate: l.start, endDate: l.end, isOfficerTime: !!l.officer })));
+    assertEqual(res.calculatedPEBD, EXPECTED_EXAMPLE_PEBDS[k], `Guided example ${k + 1} computes ${EXPECTED_EXAMPLE_PEBDS[k]}`);
+});
+assertEqual(SHIPPED_EXAMPLES[6].plcFinancialAssistance, 'Yes', 'PLC example loads with financial assistance answered');
 
 // ---------- Summary ----------
 
