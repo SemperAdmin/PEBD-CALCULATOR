@@ -9,8 +9,8 @@ PEBD determines a service member's pay longevity and is calculated by subtractin
 ## Features
 
 - **Unlimited Service Periods** — Add or remove service period rows dynamically with start/end dates, service type, and notes
-- **52 Service Types** — Automatic creditability determination including special Military Academy logic (Officer vs. Enlisted pathways, plus the Table 1-1 retained-commission case), Delayed Entry Program rules split by enlistment authority (Reserve 10 U.S.C. 12103 with or without IDT, Regular 10 U.S.C. 513 excluded, DODFMR Vol 7A Ch 1 paras 2.1.4.12 and 2.2.1.8), a fraudulent or voided enlistment exclusion (para 2.2.1.1), and Platoon Leaders Class / officer candidate variants: inactive time before the initial ADT excluded without IDT (DODFMR Vol 7A Ch 1 para 2.2.1.8.1), inactive time after it creditable (para 2.1.3.2), drilling Selected Reserve time creditable, and a separate 37 U.S.C. 205(f) variant for a 10 U.S.C. 12203 appointee who received 16401 financial assistance
-- **PLC Financial Assistance Gate** — A 10 U.S.C. 16401 financial assistance question opens on the Officer pathway or whenever a row carries an officer candidate type, and calculation is blocked until it is answered; the answer travels into the results, print report, and MMPB-21 package. Under the DODFMR the answer changes nothing; it matters only when 37 U.S.C. 205(f) reaches a 12203 appointee
+- **54 Service Types** — Automatic creditability determination including special Military Academy logic (Officer vs. Enlisted pathways, plus the Table 1-1 retained-commission case), Delayed Entry Program rules split by enlistment authority (Reserve 10 U.S.C. 12103 with or without IDT, Regular 10 U.S.C. 513 excluded, DODFMR Vol 7A Ch 1 paras 2.1.4.12 and 2.2.1.8), a fraudulent or voided enlistment exclusion (para 2.2.1.1), medical retention due to misconduct (PAA 04-25 para 5.2), Coast Guard and Space Force Reserve (PAA 04-25 para 4.a.4), and Platoon Leaders Class / officer candidate variants: inactive time before the initial ADT excluded without IDT (DODFMR Vol 7A Ch 1 para 2.2.1.8.1), inactive time after it creditable (para 2.1.3.2), drilling Selected Reserve time creditable, and a separate 37 U.S.C. 205(f) variant for a 10 U.S.C. 12203 appointee who received 16401 financial assistance
+- **MCTAP Gate** — A Marine Corps Tuition Assistance Program question (MCO 1560.33, 10 U.S.C. 16401, 37 U.S.C. 205(f)) opens on the Officer pathway or whenever a row carries an officer candidate type, and calculation is blocked until it is answered. Yes applies PAA 04-25 para 7.b Rule 2: inactive PLC rows are excluded at commissioning, OCS active duty and drilling SMCR time stay. The answer travels into the results, print report, and MMPB-21 package
 - **MCTFS Record Cross-Checks** — Optional DOEAF and AFADBD inputs drive non-blocking notes: a PEBD later than DOEAF with nothing excluded, a PEBD equal to AFADBD (expected for a post-1989 Reserve enlistment with no IDT before the initial ADT, shown as a confirmation prompt), a zeroed AFADBD on a member with active service, and a 205(f) row entered with the financial assistance field set to No
 - **Time Loss Deductions** — AWOL, confinement, desertion, and other non-creditable absence types per DODFMR Vol 7A Ch 1 Table 1-2, computed on the 30-day-month basis as years/months/days with +1 inclusive day (para 2.4.1.3.1), an "Officer Time?" flag that records but does not deduct commissioned-service losses, a "Made Good?" flag that computes the loss on both the 30-day and day-to-day bases and keeps the smaller (para 2.4.1.3.2.1), and creditable outcomes for excused absence and acquittal (Table 1-2 Rule 2, Notes 2 and 3)
 - **Real-Time Validation** — Strict YYYYMMDD calendar validation with per-row status icons and invalid-field highlighting as you type
@@ -29,7 +29,7 @@ PEBD determines a service member's pay longevity and is calculated by subtractin
 
 | Reference | Description |
 |-----------|-------------|
-| [PAA 04-25](https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2) | Creditable Service & PEBD calculation methodology |
+| [PAA 04-25](https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2) | Creditable Service & PEBD calculation methodology, the enlisted and officer pathway tables, and the MCTAP rule (para 7.b Rule 2, Notes 2 and 5). Text and PDF stored under `references/` |
 | [MARADMIN 052/26](https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/) | MCTFS Advisory for PEBD corrections |
 | DODFMR Volume 7A, Chapter 1 (May 2024) | Time loss deduction and DEP creditability rules. MARADMIN 052/26 reference B |
 | MCRCO 1100.1B | Marine Corps Recruiting Command Enlistment Processing Manual. MARADMIN 052/26 reference C |
@@ -47,7 +47,7 @@ PEBD determines a service member's pay longevity and is calculated by subtractin
 
 1. **Input** — Foundational PEBD (beginning date of the most recent period of continuous service for pay), Marine status, pathway type, service periods, and time loss periods
 2. **Creditability Check** — Each service period is evaluated against PAA 04-25 rules for the given pathway type (Military Academy service credits only on enlisted pathways). PLC / officer candidate rows carry their own creditability by variant under DODFMR Vol 7A Ch 1 and 37 U.S.C. 205(f), and the 10 U.S.C. 16401 financial assistance question must be answered before such rows are scored
-3. **End-Date Adjustment** — Ending day 31 becomes 30; February 29 becomes 30; February 28 of a non-leap year becomes 30; February 28 of a leap year stays 28 (DODFMR Vol 7A Ch 1 para 2.4.1.2.2)
+3. **End-Date Adjustment** — Ending day 31 becomes 30; February 29 becomes 30; February 28 of a non-leap year becomes 30; February 28 of a leap year stays 28 (DODFMR Vol 7A Ch 1 para 2.4.1.2.2). PAA 04-25 para 6.b step 2 states the flat rule without the leap-year exception; the tool follows the DODFMR and raises a note naming both texts when the case arises
 4. **Summation** — Begin totals and end totals are summed component-wise across all creditable periods
 5. **Difference** — End totals minus begin totals
 6. **Inclusive Day Adjustment** — Plus one day per creditable service period
@@ -62,9 +62,9 @@ PEBD determines a service member's pay longevity and is calculated by subtractin
 PEBD-CALCULATOR/
 ├── index.html              # PEBD calculator (HTML, CSS, JS)
 ├── pay-comparison.html     # Companion basic pay comparison tool
-├── test-calculations.js    # Calculation logic test suite (225 checks)
+├── test-calculations.js    # Calculation logic test suite (255 checks)
 ├── AUDIT-DODFMR-ALIGNMENT.md # Line-by-line audit against DODFMR Vol 7A Ch 1 with confidence scores
-├── references/             # MARADMIN 052/26 text as published
+├── references/             # MARADMIN 052/26 text and PAA 04-25 (PDF and text) as published
 ├── HANDOFF-PLC-205F.md     # Specification behind the PLC / officer candidate handling
 ├── README.md
 ├── TERMS_OF_SERVICE.md     # Legal documents linked from the consent gate
@@ -94,7 +94,7 @@ Open `index.html` in any modern web browser. No server, build step, or dependenc
 
 ## Testing
 
-The test suite loads the shipped calculation logic out of `index.html` (every pure function sits between two markers in the page, so the code under test is the code that ships) and verifies 225 checks in 12 sections:
+The test suite loads the shipped calculation logic out of `index.html` (every pure function sits between two markers in the page, so the code under test is the code that ships) and verifies 255 checks in 12 sections:
 
 - Date parsing (strict calendar validation, leap years)
 - Inclusive day counting

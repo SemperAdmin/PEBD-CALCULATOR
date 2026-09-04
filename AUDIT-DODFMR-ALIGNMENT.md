@@ -11,7 +11,7 @@ against the governing text. Companion tool `pay-comparison.html` is out of scope
 | DoDFMR Vol 7A Ch 1, May 2024 (85 pages, full text) | Read in full | Primary. Every paragraph cite below is to this chapter |
 | 37 U.S.C. 205 (subsections (a) and (f)) | Verbatim text via search index of uscode.house.gov | Primary for 205(f), which the chapter omits |
 | 10 U.S.C. 16401 | Title and purpose only | Supporting |
-| PAA 04-25 | Not reachable (SharePoint) | Unverified. Cited in the app for the Academy pathway rule, Note 8, and the six-step method |
+| PAA 04-25 (six pages, full text and both pathway tables) | Supplied, stored in `references/` | Primary for Marine Corps policy. Its references are 37 U.S.C. 205, DoDFMR Vol 7A Ch 1, MCRCO 1100.1B, MCO 1560.33, and 10 U.S.C. 12103 |
 | MARADMIN 052/26 (R 191450Z FEB 26) | Full text supplied, stored in `references/` | Primary for the correction workflow. Its reference list names 37 U.S.C. 205, DoDFMR Vol 7A Ch 1 of May 2024, MCRCO 1100.1B, MCO 1560.33 (Marine Corps Tuition Assistance Program), 10 U.S.C. 12103, and PAA 04-25 |
 | SOP.docx in this repository | Read | Describes the app. It is not a rule source and is not treated as one |
 
@@ -177,3 +177,26 @@ Revised scores after the build: arithmetic engine 0.95, service type catalog 0.9
 | Print report references | Reference list | Now carries all six references | 1.0 |
 
 Remaining unverified source: PAA 04-25 (reference F). MCRCO 1100.1B and the PRIUM are cited by name only.
+
+## PAA 04-25 alignment (added after the advisory text was supplied)
+
+| App element | PAA 04-25 | Verdict | Confidence |
+|---|---|---|---|
+| Academy service on the Officer pathway excluded | Para 4.b.4 | Exact. The app's cite was correct | 1.0 |
+| NAPS credits on every pathway | Note 8 to Rule 4 | Exact. The app's cite was correct | 1.0 |
+| Section 6 worked example | Page 4 image | Reproduced digit for digit: 249 24 36, 258 19 57, 08 07 21 plus 3, 08 07 24, PEBD 1986 11 16 | 1.0 |
+| Six-step method, begin dates unchanged including the 31st, inclusive day per period | Para 6.b steps 1 to 6 | Exact | 1.0 |
+| Foundational PEBD from contractual documents | Para 6.a | Exact | 1.0 |
+| February 28 ending in a leap year | Para 6.b step 2 says change every Feb 28 or 29 to 30. DoDFMR 2.4.1.2.2, the PAA's own reference B, keeps a leap-year Feb 28 | Conflict between sources. The app follows the DoDFMR and raises a note naming both texts when the case arises. Two days per affected period. Raise with M&RA for a PAA correction | 0.8 |
+| MCTAP recipient in PLC | Para 7.b Rule 2, Note 2, Note 5 | Implemented as Rule 2 through the MCTAP field: inactive PLC rows excluded, OCS retained, SMCR retained. Note 2's flat "date of commissioning" is stated in the applied note. The statute variant type was removed as redundant | 0.9 |
+| MCTAP No | Para 7.b Rule 2 | "Date assigned to active duty". Matches the DoDFMR path the app computes | 0.95 |
+| Enlisted pathway table Rules 1 to 5 | Para 7.a | Rules 1, 2, 3, 4 fall out of the DEP rows and the foundational date. Rule 5 (MSO expired before assignment to active duty, exclude the gap) is expressed by entering the gap as no period, which the app supports | 0.85 |
+| Officer table Rules 1, 3 to 6 | Para 7.b | OCC, NROTC, Academy, interservice transfer, reappointment all reduce to "date of commissioning or active duty, recomputed to include prior creditable service", which is the app's method | 0.9 |
+| Coast Guard Reserve, Space Force Reserve | Para 4.a.4 | Added | 1.0 |
+| Medical retention due to misconduct | Para 5.2 | Added as an exclusion | 1.0 |
+| Terminated, voided, or fraudulent enlistment or commission, excluding ADSEP | Para 5.1 | Present. The "excluding ADSEP" qualifier lives in the label's absence; a note in the walkthrough would help | 0.9 |
+| Correction requests via chain of command, endorsed by the supporting IPAC, with all source documentation | Para 8.a | Added to the results guidance and the email package | 1.0 |
+| Reserve creditable service from the CRCR in the RT07 view | Note 7 | Added to the walkthrough | 0.9 |
+| All-excluded case | Para 6.a | The app now returns the foundational date with a note instead of refusing | 0.95 |
+
+Every source the app cites is now verified against its text. Remaining open items: the made-good contract floor, the Feb 29 representation, the PAA versus DoDFMR February conflict (a policy question, not a code question), and MCTFS practice on 205(f) for the rare 12203 appointee, which the PAA renders moot for Marine Corps purposes.

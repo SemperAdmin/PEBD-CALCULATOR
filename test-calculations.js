@@ -74,7 +74,10 @@ assertEqual(calculateDays('2024010', '20240110'), 0, 'Invalid start returns 0');
 
 // ---------- 3. Service creditability ----------
 console.log('\n[3] Service creditability');
-assertEqual(Object.keys(SERVICE_TYPES).length, 52, 'Service type catalog holds 52 entries');
+assertEqual(Object.keys(SERVICE_TYPES).length, 54, 'Service type catalog holds 54 entries');
+assertEqual(isServiceCreditable('Coast Guard Reserve', ENL), true, 'Coast Guard Reserve creditable (PAA 04-25 para 4.a.4)');
+assertEqual(isServiceCreditable('Space Force Reserve', ENL), true, 'Space Force Reserve creditable (PAA 04-25 para 4.a.4)');
+assertEqual(isServiceCreditable('Medical Retention Due to Misconduct', ENL), false, 'Medical retention due to misconduct excluded (PAA 04-25 para 5.2)');
 assertEqual(isServiceCreditable('Regular Marine Corps', ENL), true, 'Regular Marine Corps creditable');
 assertEqual(isServiceCreditable('Military Academy Service', OFF), false, 'Academy on Officer pathway NOT creditable');
 assertEqual(isServiceCreditable('Military Academy Service', ENL), true, 'Academy on Enlisted pathway creditable');
@@ -105,7 +108,7 @@ assertEqual(isServiceCreditable('Unknown Type', ENL), false, 'Unknown type defau
 const PLC_PRE_NO_IDT = 'PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)';
 const PLC_PRE_IDT = 'PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed)';
 const PLC_POST = 'PLC / Officer Candidate (Inactive After Initial ADT)';
-const PLC_POST_205F = 'PLC / Officer Candidate (Inactive After Initial ADT, 37 USC 205(f): 16401 Financial Assistance, 12203 Appointee)';
+const MCTAP = { plcFinancialAssistance: 'Yes' };
 const PLC_SELRES = 'PLC / Officer Candidate (Selected Reserve, Drilling)';
 const OCS_ADT = 'Officer Candidate Active Duty for Training (OCS)';
 [ENL, OFF].forEach(pw => {
@@ -113,10 +116,16 @@ const OCS_ADT = 'Officer Candidate Active Duty for Training (OCS)';
     assertEqual(isServiceCreditable(PLC_PRE_NO_IDT, pw), false, `Inactive PLC time before initial ADT without IDT excluded on ${tag} pathway (2.2.1.8.1)`);
     assertEqual(isServiceCreditable(PLC_PRE_IDT, pw), true, `Inactive PLC time before initial ADT with IDT creditable on ${tag} pathway (2.1.4.12.2.1)`);
     assertEqual(isServiceCreditable(PLC_POST, pw), true, `Inactive PLC time after initial ADT creditable on ${tag} pathway (2.1.3.2)`);
-    assertEqual(isServiceCreditable(PLC_POST_205F, pw), false, `Post-ADT PLC time excluded for a 12203 appointee with 16401 assistance on ${tag} pathway (37 USC 205(f))`);
     assertEqual(isServiceCreditable(PLC_SELRES, pw), true, `Drilling Selected Reserve PLC time creditable on ${tag} pathway`);
     assertEqual(isServiceCreditable(OCS_ADT, pw), true, `OCS active duty for training creditable on ${tag} pathway`);
 });
+// PAA 04-25 para 7.b Rule 2 and Note 5: MCTAP recipient on the Officer pathway.
+assertEqual(isServiceCreditable(PLC_PRE_IDT, OFF, MCTAP), false, 'MCTAP excludes inactive PLC time before ADT even with IDT');
+assertEqual(isServiceCreditable(PLC_POST, OFF, MCTAP), false, 'MCTAP excludes inactive PLC time after ADT');
+assertEqual(isServiceCreditable(OCS_ADT, OFF, MCTAP), true, 'MCTAP keeps OCS active duty (Rule 2: exclude periods not on active duty)');
+assertEqual(isServiceCreditable(PLC_SELRES, OFF, MCTAP), true, 'MCTAP keeps drilling SMCR time (Note 5)');
+assertEqual(isServiceCreditable(PLC_POST, ENL, MCTAP), true, 'MCTAP answer is ignored on the Enlisted pathway (Note 2 applies to commissioned members)');
+assertEqual(isServiceCreditable('Regular Marine Corps', OFF, MCTAP), true, 'MCTAP never touches non-PLC types');
 
 // ---------- 4. Time loss deductibility (DODFMR Table 1-2) ----------
 console.log('\n[4] Time loss deductibility');
@@ -607,21 +616,37 @@ r = computePEBD('20220617', OFF, [
 assertEqual(r.normalized, { years: 1, months: 9, days: 2 }, 'IDT path credits 1y 9m 2d across three rows');
 assertEqual(r.calculatedPEBD, '20200915', 'IDT path PEBD returns to the PLC enlistment date');
 
-// 37 U.S.C. 205(f): 12203 appointee with 16401 financial assistance. Only OCS credits.
+// MCTAP recipient (PAA 04-25 para 7.b Rule 2, 37 U.S.C. 205(f)): only OCS credits. Same rows,
+// the MCTAP answer alone changes the result.
 r = computePEBD('20220617', OFF, [
     { serviceType: PLC_PRE_NO_IDT, startDate: '20200915', endDate: '20210521' },
     { serviceType: OCS_ADT, startDate: '20210522', endDate: '20210730' },
-    { serviceType: PLC_POST_205F, startDate: '20210731', endDate: '20220616' }
-]);
-assertEqual(r.numPeriods, 1, '205(f) path counts only the OCS period');
-assertEqual(r.normalized, { years: 0, months: 2, days: 9 }, '205(f) path credit 0y 2m 9d');
-assertEqual(r.calculatedPEBD, '20220408', '205(f) path PEBD 20220408');
+    { serviceType: PLC_POST, startDate: '20210731', endDate: '20220616' }
+], [], MCTAP);
+assertEqual(r.numPeriods, 1, 'MCTAP path counts only the OCS period');
+assertEqual(r.normalized, { years: 0, months: 2, days: 9 }, 'MCTAP path credit 0y 2m 9d');
+assertEqual(r.calculatedPEBD, '20220408', 'MCTAP path PEBD 20220408');
 
-// 205(f) path anchored on the active duty date when no commissioned status bridges the gap.
+// MCTAP path anchored on the active duty date when no commissioned status bridges the gap.
 r = computePEBD('20220725', OFF, [
     { serviceType: OCS_ADT, startDate: '20210522', endDate: '20210730' }
-]);
-assertEqual(r.calculatedPEBD, '20220516', '205(f) path anchored on active duty entry gives 20220516');
+], [], MCTAP);
+assertEqual(r.calculatedPEBD, '20220516', 'MCTAP path anchored on active duty entry gives 20220516');
+
+// MCTAP with no OCS row entered: nothing credits, PEBD is the foundational date (Note 2 reading).
+r = computePEBD('20220617', OFF, [
+    { serviceType: PLC_POST, startDate: '20210731', endDate: '20220616' }
+], [], MCTAP);
+assertEqual(r.numPeriods, 0, 'MCTAP with only inactive rows credits nothing');
+assertEqual(r.calculatedPEBD, '20220617', 'MCTAP with only inactive rows returns the date of commissioning');
+
+// PAA 04-25 para 7.b Rule 2, MCTAP No: PEBD is the date assigned to active duty.
+r = computePEBD('20220617', OFF, [
+    { serviceType: PLC_PRE_NO_IDT, startDate: '20200915', endDate: '20210521' },
+    { serviceType: OCS_ADT, startDate: '20210522', endDate: '20210730' },
+    { serviceType: PLC_POST, startDate: '20210731', endDate: '20220616' }
+], [], { plcFinancialAssistance: 'No' });
+assertEqual(r.calculatedPEBD, '20210522', 'MCTAP No lands on the date assigned to active duty');
 
 // Drilling Selected Reserve time credits on every path.
 r = computePEBD('20220617', OFF, [
@@ -649,12 +674,13 @@ let w = buildRecordWarnings({
 assertEqual(w.length, 1, 'DODFMR path raises one note');
 assertEqual(w[0].startsWith('PEBD equals AFADBD. Expected when'), true, 'PEBD equal to AFADBD is a confirmation prompt, not an error');
 
-// 205(f) path with consistent fields: clean.
+// MCTAP path with consistent fields: only the applied note.
+const pdo = (period, serviceType, startDate, endDate) => ({ period, serviceType, startDate, endDate, creditable: isServiceCreditable(serviceType, OFF, MCTAP) });
 w = buildRecordWarnings({
-    calculatedPEBD: '20220408', doeaf: '20200915', afadbd: '20210522', plcFinancialAssistance: 'Yes',
-    periodDetails: [pd(1, PLC_PRE_NO_IDT, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730'), pd(3, PLC_POST_205F, '20210731', '20220616')]
+    calculatedPEBD: '20220408', doeaf: '20200915', afadbd: '20210522', plcFinancialAssistance: 'Yes', pathwayType: OFF, numPeriods: 1,
+    periodDetails: [pdo(1, PLC_PRE_NO_IDT, '20200915', '20210521'), pdo(2, OCS_ADT, '20210522', '20210730'), pdo(3, PLC_POST, '20210731', '20220616')]
 });
-assertEqual(w, [], '205(f) path with consistent MCTFS fields raises no warnings');
+assertEqual(w.length === 1 && w[0].startsWith('MCTAP applied') && w[0].includes('2 inactive PLC period(s) excluded'), true, 'MCTAP path raises only the applied note, naming the excluded rows');
 
 // A PEBD later than DOEAF with nothing excluded needs an explanation.
 w = buildRecordWarnings({
@@ -665,7 +691,7 @@ assertEqual(w, ['PEBD is later than DOEAF with no excluded service to explain th
 
 // Zeroed AFADBD on a member with active service.
 w = buildRecordWarnings({
-    calculatedPEBD: '20220408', doeaf: '', afadbd: '00000000', plcFinancialAssistance: 'Yes',
+    calculatedPEBD: '20220408', doeaf: '', afadbd: '00000000', plcFinancialAssistance: '',
     periodDetails: [pd(1, PLC_PRE_NO_IDT, '20200915', '20210521'), pd(2, OCS_ADT, '20210522', '20210730')]
 });
 assertEqual(w, ['AFADBD is missing on a member with active service. Report as a separate MCTFS record error.'], 'Zeroed AFADBD warning fires alone');
@@ -677,12 +703,29 @@ w = buildRecordWarnings({
 });
 assertEqual(w, [], 'Blank optional fields raise nothing');
 
-// The 205(f) variant with the financial assistance field set to No.
+// MCTAP Yes on the Enlisted pathway: recorded, not applied.
 w = buildRecordWarnings({
-    calculatedPEBD: '20220408', doeaf: '', afadbd: '', plcFinancialAssistance: 'No',
-    periodDetails: [pd(1, PLC_POST_205F, '20210731', '20220616')]
+    calculatedPEBD: '20200915', doeaf: '', afadbd: '', plcFinancialAssistance: 'Yes', pathwayType: ENL, numPeriods: 1,
+    periodDetails: [pd(1, PLC_POST, '20210731', '20220616')]
 });
-assertEqual(w, ['Period 1 uses the 37 U.S.C. 205(f) variant but the financial assistance field says No.'], '205(f) row with No warns');
+assertEqual(w.length === 1 && w[0].startsWith('MCTAP answered Yes on the Enlisted pathway'), true, 'MCTAP on the Enlisted pathway is flagged as not applied');
+// All periods excluded: PEBD equals the foundational date.
+w = buildRecordWarnings({
+    calculatedPEBD: '20250101', doeaf: '', afadbd: '', plcFinancialAssistance: '', pathwayType: ENL, numPeriods: 0,
+    periodDetails: [pd(1, 'State Guard', '20200101', '20201231')]
+});
+assertEqual(w, ['No period entered is creditable. The PEBD equals the foundational date (PAA 04-25 para 6.a).'], 'All-excluded case is explained');
+// Leap-year February 28 ending: PAA text versus DoDFMR note.
+w = buildRecordWarnings({
+    calculatedPEBD: '20241103', doeaf: '', afadbd: '', plcFinancialAssistance: '', pathwayType: ENL, numPeriods: 1,
+    periodDetails: [pd(1, 'Regular Marine Corps', '20240101', '20240228')]
+});
+assertEqual(w.length === 1 && w[0].includes('February 28 of a leap year') && w[0].includes('PAA 04-25 para 6.b step 2'), true, 'Leap Feb 28 ending raises the PAA versus DoDFMR note');
+w = buildRecordWarnings({
+    calculatedPEBD: '20241103', doeaf: '', afadbd: '', plcFinancialAssistance: '', pathwayType: ENL, numPeriods: 1,
+    periodDetails: [pd(1, 'Regular Marine Corps', '20230101', '20230228')]
+});
+assertEqual(w, [], 'Non-leap Feb 28 ending raises nothing');
 
 // MARADMIN 052/26 para 3.c routing on the PEBD of record.
 w = buildRecordWarnings({
@@ -716,12 +759,6 @@ w = buildRecordWarnings({
 });
 assertEqual(w.length === 1 && w[0].startsWith('Lost time made good'), true, 'Made-good loss raises the contract floor note');
 
-// Yes with the ordinary post-ADT variant is legitimate for a 531 appointee: no warning.
-w = buildRecordWarnings({
-    calculatedPEBD: '20210522', doeaf: '', afadbd: '', plcFinancialAssistance: 'Yes',
-    periodDetails: [pd(1, PLC_POST, '20210731', '20220616')]
-});
-assertEqual(w, [], 'Yes with the ordinary post-ADT variant stays quiet');
 
 // Every guided example card's expected PEBD, computed from the shipped example definitions.
 const SHIPPED_EXAMPLES = (function loadShippedExamples(src) {
@@ -740,7 +777,15 @@ SHIPPED_EXAMPLES.forEach((ex, k) => {
         ex.losses.map(l => ({ lossType: l.type, startDate: l.start, endDate: l.end, isOfficerTime: !!l.officer })));
     assertEqual(res.calculatedPEBD, EXPECTED_EXAMPLE_PEBDS[k], `Guided example ${k + 1} computes ${EXPECTED_EXAMPLE_PEBDS[k]}`);
 });
-assertEqual(SHIPPED_EXAMPLES[6].plcFinancialAssistance, 'No', 'PLC example loads with financial assistance answered');
+assertEqual(SHIPPED_EXAMPLES[6].plcFinancialAssistance, 'No', 'PLC example loads with the MCTAP question answered');
+{
+    const ex = SHIPPED_EXAMPLES[6];
+    const res = computePEBD(ex.foundational, ex.pathway, ex.periods.map(p => ({ serviceType: p.type, startDate: p.start, endDate: p.end })), [], MCTAP);
+    assertEqual(res.calculatedPEBD, '20220408', 'Guided example 7 with MCTAP Yes computes 20220408');
+}
+['MCTAP', 'MCO 1560.33', 'PAA 04-25 para 7.b Rule 2', 'chain of command', 'endorsed by the supporting IPAC', 'RT07'].forEach(ref => {
+    assertEqual(CALC_SOURCE.includes(ref), true, `Page carries PAA 04-25 term: ${ref}`);
+});
 
 // ---------- Summary ----------
 

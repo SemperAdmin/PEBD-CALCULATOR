@@ -23,8 +23,13 @@ officer records. The fact pattern below is anonymized. Do not add any real Marin
   1 August 1979.
 - 37 U.S.C. 205(f): an officer appointed under 10 U.S.C. 12203 after receiving PLC financial assistance under
   10 U.S.C. 16401 loses post-1999 inactive PLC time, except active duty and Selected Reserve time. The DoDFMR
-  chapter does not mention PLC, 16401, or 12203. MCTFS follows the DoDFMR. Current PLC graduates receive regular
-  appointments under 10 U.S.C. 531, which 205(f) does not name.
+  chapter does not mention PLC, 16401, or 12203.
+- PAA 04-25 para 7.b Rule 2 implements 205(f) as Marine Corps policy without the 12203 condition: a Marine Corps
+  Tuition Assistance Program (MCTAP, MCO 1560.33) recipient is "upon commissioning, recomputed PEBD to exclude
+  periods not on active duty"; a non-recipient's PEBD is the "date assigned to active duty". Note 5: an MCTAP
+  recipient serving in the SMCR keeps the initial entry date. Note 2 states the MCTAP result as the date of
+  commissioning; Rule 2 credits active duty before commissioning. The app follows Rule 2 and says so in a note.
+  The 10 U.S.C. 531 question is moot under the PAA.
 - Consequence for a PLC candidate with no IDT before OCS: the pre-OCS inactive time is excluded, the OCS weeks
   credit, the post-OCS inactive time credits, and the PEBD lands on the first OCS report date, equal to AFADBD.
   That is a computed result, not a shortcut. 205(f) moves the PEBD later only for a 12203 appointee with
@@ -52,8 +57,9 @@ Expected results, verified against the shipped engine on this branch:
 |---|---|---|---|---|
 | DoDFMR, no IDT before OCS | 20220617 | OCS 20210522 to 20210730, post-OCS Reserve 20210731 to 20220616 | 1y 0m 25d | 20210522 |
 | IDT performed before OCS | 20220617 | All three rows | 1y 9m 2d | 20200915 |
-| 37 U.S.C. 205(f), 12203 appointee with 16401 assistance | 20220617 | OCS only | 0y 2m 9d | 20220408 |
-| 205(f), no bridging commissioned status | 20220725 | OCS only | 0y 2m 9d | 20220516 |
+| MCTAP recipient, PAA 04-25 para 7.b Rule 2 (37 U.S.C. 205(f)) | 20220617 | OCS only | 0y 2m 9d | 20220408 |
+| MCTAP, no bridging commissioned status | 20220725 | OCS only | 0y 2m 9d | 20220516 |
+| MCTAP, Note 2 reading (no OCS row entered) | 20220617 | none | 0 | 20220617 |
 
 ## Work items
 
@@ -66,9 +72,12 @@ Six entries, category "Officer Candidate". Keep both copies identical. Section 1
 | PLC / Officer Candidate (Inactive Before Initial ADT, No IDT) | false | 2.2.1.8.1 |
 | PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed) | true | 2.1.4.12.2.1 |
 | PLC / Officer Candidate (Inactive After Initial ADT) | true | 2.1.3.2 |
-| PLC / Officer Candidate (Inactive After Initial ADT, 37 USC 205(f): 16401 Financial Assistance, 12203 Appointee) | false | 37 U.S.C. 205(f) |
 | PLC / Officer Candidate (Selected Reserve, Drilling) | true | 2.1.3.2 |
 | Officer Candidate Active Duty for Training (OCS) | true | 2.1.3.2 |
+
+The MCTAP answer on the form, not a service type, applies PAA 04-25 para 7.b Rule 2: on the Officer pathway
+with MCTAP Yes, every Officer Candidate row other than OCS active duty and the Selected Reserve variant is
+excluded by `isServiceCreditable(serviceType, pathwayType, { plcFinancialAssistance })`.
 
 The ROTC post-1979 row was relabeled "ROTC (On/After 1 Aug 1979, Concurrent SelRes Drilling)" to carry the
 2.1.4.10 condition. Keep `isServiceCreditable` as the single decision point.

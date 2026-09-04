@@ -1419,7 +1419,7 @@
                     <li><strong>Enter the Foundational PEBD.</strong> This is the beginning date of the Marine's most recent period of continuous service for pay, in YYYYMMDD format (example: 20240115). Validate it against the DD Form 4 or DD Form 1966.</li>
                     <li><strong>Select Marine Status and Pathway Type.</strong> The pathway drives two rules - Military Academy service credits only on enlisted pathways (PAA 04-25 para 4.b.4), and the Officer pathway opens the PLC financial assistance field. Naval Academy Preparatory School (NAPS) time is enlisted service and credits on every pathway, including Officer (PAA 04-25 Note 8).</li>
                     <li><strong>Enter Platoon Leaders Class time in three pieces.</strong> For a Reserve PLC enlistment on or after 29 Nov 1989: the inactive time before the first OCS increment is excluded unless the candidate performed IDT (DODFMR Vol 7A Ch 1 para 2.2.1.8.1), the OCS weeks are active duty for training and credit, and the inactive time after the first increment counts as ordinary Reserve service (para 2.1.3.2). The result normally lands on the first OCS report date. For an officer, the foundational PEBD is the date of acceptance of the commission, not the date of rank (para 2.4.1.1.2).</li>
-                    <li><strong>Answer the PLC financial assistance question for officer candidates.</strong> The calculator will not score a PLC row until it is answered. The answer changes the result only for an officer appointed under 10 U.S.C. 12203 who received financial assistance under 10 U.S.C. 16401: 37 U.S.C. 205(f) then also excludes the inactive PLC time after the first increment. Use the 205(f) service type for that period. The DODFMR chapter does not implement 205(f), so confirm the appointment authority on the NAVMC 763 and the assistance from the PLC contract annex before filing a correction.</li>
+                    <li><strong>Answer the MCTAP question for officer candidates.</strong> The calculator will not score a PLC row until it is answered. Yes applies PAA 04-25 para 7.b Rule 2: at commissioning the PEBD is recomputed to exclude periods not on active duty, so inactive PLC rows drop out and OCS credits. Note 5: an MCTAP recipient serving in the SMCR keeps the initial entry date, so enter that time with the Selected Reserve type. No leaves the DODFMR rules in force and the PEBD is the date assigned to active duty. Confirm MCTAP from the PLC contract and MCO 1560.33 records before filing a correction. Reserve creditable service is also carried in the Career Retirement Credit Record in the MCTFS RT07 view (PAA 04-25 Note 7).</li>
                     <li><strong>Transcribe DOEAF and AFADBD from MCTFS (optional).</strong> With these two dates entered, the result view lists record notes: a PEBD later than DOEAF with nothing excluded, a PEBD equal to AFADBD (expected for a post-1989 Reserve enlistment with no IDT before the initial ADT, confirm the facts), a zeroed AFADBD on a member with active service, and a 205(f) row entered with the financial assistance field set to No. Enter 00000000 for AFADBD when the record shows zeros.</li>
                     <li><strong>Add each period of prior service.</strong> One row per separate period, with service type and inclusive start/end dates. The Creditable column updates as you type - a green check in the Days column means the dates are valid. Use "Add Service Period" for more rows.</li>
                     <li><strong>Record any time loss.</strong> Add a row for AWOL, confinement, or other lost time. Deductible loss is computed on the 30-day basis per DODFMR Vol 7A Ch 1 and reduces creditable service. Check "Officer Time?" for loss during commissioned service - it is recorded but not deducted.</li>
@@ -1477,8 +1477,8 @@
                 </div>
                 <div class="example-card">
                     <h4>7. PLC Officer Candidate (DODFMR 2.2.1.8.1)</h4>
-                    <p>A Reserve PLC enlistment on or after 29 Nov 1989 with no IDT before OCS. The inactive time before the initial ADT is excluded, the OCS weeks credit, and the inactive time after OCS counts as ordinary Reserve service. The PEBD lands on the OCS report date, matching AFADBD. To see 37 U.S.C. 205(f) for a 12203 appointee with 16401 financial assistance, change row 3 to the 205(f) variant and recalculate.</p>
-                    <div class="example-expect">Expected: 1y 0m 25d creditable, PEBD 20210522. 205(f) variant: 0y 2m 9d, PEBD 20220408</div>
+                    <p>A Reserve PLC enlistment on or after 29 Nov 1989 with no IDT before OCS. The inactive time before the initial ADT is excluded, the OCS weeks credit, and the inactive time after OCS counts as ordinary Reserve service. The PEBD lands on the OCS report date, matching AFADBD. For an MCTAP recipient (PAA 04-25 para 7.b Rule 2), set the MCTAP field to Yes and recalculate: the inactive PLC rows drop out and only OCS credits.</p>
+                    <div class="example-expect">Expected: 1y 0m 25d creditable, PEBD 20210522. MCTAP Yes: 0y 2m 9d, PEBD 20220408</div>
                     <button class="example-load-btn" onclick="loadExample(6)">Load Example</button>
                 </div>
             </div>
@@ -1526,13 +1526,13 @@
                     <span class="field-hint">The PEBD MCTFS carries today. With it entered, the result states whether the record needs a D188 remark update at PAC level or an MMPB-21 correction (MARADMIN 052/26 para 3.c).</span>
                 </div>
                 <div class="form-group hidden" id="plcFaGroup">
-                    <label for="plcFinancialAssistance">PLC financial assistance (10 U.S.C. 16401)?</label>
-                    <select id="plcFinancialAssistance" onchange="refreshPathwayFields()">
+                    <label for="plcFinancialAssistance">PLC Marine Corps Tuition Assistance Program (MCTAP)?</label>
+                    <select id="plcFinancialAssistance" onchange="refreshPathwayFields(); updateAllPeriods()">
                         <option value="">Not applicable / not answered</option>
-                        <option value="Yes">Yes - received financial assistance</option>
-                        <option value="No">No - no financial assistance</option>
+                        <option value="Yes">Yes - MCTAP recipient</option>
+                        <option value="No">No - not an MCTAP recipient</option>
                     </select>
-                    <span class="field-hint">Financial assistance means the Marine Corps Tuition Assistance Program for PLC members (MCO 1560.33, reference D of MARADMIN 052/26). Required when any period uses a PLC / Officer Candidate type. Under the DoDFMR the answer changes nothing: inactive PLC time before the initial ADT is excluded without IDT (para 2.2.1.8.1) and Reserve time after it counts (para 2.1.3.2). Yes matters only for an officer appointed under 10 U.S.C. 12203, where 37 U.S.C. 205(f) also excludes inactive PLC time after the initial ADT. Use the 205(f) service type for that period.</span>
+                    <span class="field-hint">MCTAP under MCO 1560.33 (10 U.S.C. 16401, 37 U.S.C. 205(f)). Required when any period uses a PLC / Officer Candidate type. Yes on the Officer pathway applies PAA 04-25 para 7.b Rule 2: the PEBD is recomputed at commissioning to exclude periods not on active duty, so inactive PLC rows drop out and OCS active duty stays. Note 5: an MCTAP recipient serving in the SMCR keeps the initial entry date, so use the Selected Reserve type. No follows the DoDFMR: inactive time before the initial ADT is excluded without IDT (para 2.2.1.8.1), time after it counts (para 2.1.3.2), and the PEBD is the date assigned to active duty (PAA 04-25 para 7.b Rule 2). PLC Law: MCRCO 1131.1A.</span>
                 </div>
             </div>
         </div>
@@ -1716,7 +1716,7 @@
                 <!-- MMPB-21 Escalation Package (MARADMIN 052/26 para 3.c) -->
                 <div class="companion-prompt">
                     <p class="companion-prompt-title">PAC Action: D188 Remark or MMPB-21</p>
-                    <p class="companion-prompt-text"><a href="https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/" target="_blank" rel="noopener" style="color: var(--color-primary); text-decoration: underline;">MARADMIN 052/26</a> para 3.c gives PAC two paths. If creditable periods are missing from the MCTFS D188 remark but the PEBD is right, PAC updates the remark and uploads Key Supporting Documents to the OMPF; no MMPB-21 action. If the PEBD of record is incorrect after validation against the OMPF and the D188 remark, PAC follows the PRIUM and forwards the case to MMPB-21 with the package below. MMPB-21 assigns an action officer and forwards adjustments to MISSO 9 for reporting (para 3.d).</p>
+                    <p class="companion-prompt-text"><a href="https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/" target="_blank" rel="noopener" style="color: var(--color-primary); text-decoration: underline;">MARADMIN 052/26</a> para 3.c gives PAC two paths. If creditable periods are missing from the MCTFS D188 remark but the PEBD is right, PAC updates the remark and uploads Key Supporting Documents to the OMPF; no MMPB-21 action. If the PEBD of record is incorrect after validation against the OMPF and the D188 remark, PAC follows the PRIUM and forwards the case to MMPB-21 with the package below. PAA 04-25 para 8.a: the request goes via the chain of command, endorsed by the supporting IPAC, with all source documentation. MMPB-21 assigns an action officer and forwards adjustments to MISSO 9 for reporting (MARADMIN para 3.d).</p>
                     <div class="companion-actions">
                         <button class="companion-open-btn" type="button" onclick="emailMmpb21Package()">
                             <svg class="feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
@@ -1800,6 +1800,8 @@
             "Army Reserve": { creditable: true, category: "Reserve" },
             "Navy Reserve": { creditable: true, category: "Reserve" },
             "Marine Corps Reserve": { creditable: true, category: "Reserve" },
+            "Coast Guard Reserve": { creditable: true, category: "Reserve" },
+            "Space Force Reserve": { creditable: true, category: "Reserve" },
             "Air Force Reserve": { creditable: true, category: "Reserve" },
             "Army National Guard": { creditable: true, category: "Reserve" },
             "Air National Guard": { creditable: true, category: "Reserve" },
@@ -1832,6 +1834,7 @@
             "USUHS Student (DOM)": { creditable: false, category: "Excluded" },
             "Inactive National Guard": { creditable: false, category: "Excluded" },
             "Fraudulent, Voided, or Invalidated Enlistment": { creditable: false, category: "Excluded" },
+            "Medical Retention Due to Misconduct": { creditable: false, category: "Excluded" },
             "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
             "Delayed Entry Program (Enlisted 1 Jan 1985 to 28 Nov 1989)": { creditable: false, category: "DEP" },
             "Delayed Entry Program (Reserve 10 USC 12103, Post-1989, IDT Performed)": { creditable: true, category: "DEP" },
@@ -1841,23 +1844,32 @@
             // DoDFMR Vol 7A Ch 1 para 2.2.1.8.1: for a Reserve enlistment on or after 29 Nov 1989
             // under 10 U.S.C. 12103(b)/(d), inactive time before the initial ADT is excluded
             // unless IDT was performed. Para 2.1.3.2: Reserve time after the initial ADT counts.
-            // 37 U.S.C. 205(f) (not implemented in the DoDFMR chapter): an officer appointed
-            // under 10 U.S.C. 12203 after 16401 financial assistance loses post-1999 inactive
-            // PLC time, except active duty and Selected Reserve time.
+            // PAA 04-25 para 7.b Rule 2 and Note 5 (implementing 37 U.S.C. 205(f)): a Marine Corps
+            // Tuition Assistance Program (MCTAP) recipient is recomputed at commissioning to
+            // exclude periods not on active duty, unless serving in the SMCR. The MCTAP answer
+            // on the form drives that exclusion in isServiceCreditable, not a separate type.
             "PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)": { creditable: false, category: "Officer Candidate" },
             "PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed)": { creditable: true, category: "Officer Candidate" },
             "PLC / Officer Candidate (Inactive After Initial ADT)": { creditable: true, category: "Officer Candidate" },
-            "PLC / Officer Candidate (Inactive After Initial ADT, 37 USC 205(f): 16401 Financial Assistance, 12203 Appointee)": { creditable: false, category: "Officer Candidate" },
             "PLC / Officer Candidate (Selected Reserve, Drilling)": { creditable: true, category: "Officer Candidate" },
             "Officer Candidate Active Duty for Training (OCS)": { creditable: true, category: "Officer Candidate" }
         };
 
         // Academy service credits toward PEBD only on enlisted pathways (PAA 04-25)
-        function isServiceCreditable(serviceType, pathwayType) {
+        // opts.plcFinancialAssistance: 'Yes' applies PAA 04-25 para 7.b Rule 2 on the Officer
+        // pathway: inactive PLC periods are excluded, OCS active duty and drilling SMCR time stay.
+        function isServiceCreditable(serviceType, pathwayType, opts) {
             if (serviceType === "Military Academy Service") {
                 return !(pathwayType && pathwayType.includes("Officer"));
             }
-            return SERVICE_TYPES[serviceType]?.creditable || false;
+            const entry = SERVICE_TYPES[serviceType];
+            if (!entry) return false;
+            if (entry.category === "Officer Candidate" && opts && opts.plcFinancialAssistance === 'Yes'
+                && pathwayType && pathwayType.includes("Officer")
+                && serviceType !== OCS_ADT_TYPE && !serviceType.includes("Selected Reserve")) {
+                return false;
+            }
+            return entry.creditable;
         }
 
         // Status helpers for the MCTFS cross-checks. Category "Active" and OCS active
@@ -1918,13 +1930,26 @@
                 warnings.push('Lost time made good: computed on the more favorable basis (DoDFMR Vol 7A Ch 1 para 2.4.1.3.2.1). The contract floor in para 2.4.1.3.2.3 is not applied. If net creditable service for that enlistment is below the contract length, use the contract length.');
             }
 
-            // The 37 U.S.C. 205(f) variant requires financial assistance under 10 U.S.C. 16401.
+            // PAA 04-25 para 7.b Rule 2: MCTAP recipient on the Officer pathway.
             const fa = ctx.plcFinancialAssistance || '';
-            periods.forEach(p => {
-                if (fa === 'No' && p.serviceType.includes('205(f)')) {
-                    warnings.push(`Period ${p.period} uses the 37 U.S.C. 205(f) variant but the financial assistance field says No.`);
-                }
-            });
+            const officerPath = !!(ctx.pathwayType && ctx.pathwayType.includes('Officer'));
+            const inactivePlc = periods.filter(p => isReserveStatusType(p.serviceType) && isOfficerCandidateType(p.serviceType) && !p.serviceType.includes('Selected Reserve'));
+            if (fa === 'Yes' && officerPath && inactivePlc.length) {
+                warnings.push(`MCTAP applied (PAA 04-25 para 7.b Rule 2, MCO 1560.33, 37 U.S.C. 205(f)): ${inactivePlc.length} inactive PLC period(s) excluded; OCS active duty retained. Note 2 of the PAA states the result as the date of commissioning; Rule 2 credits active duty before commissioning. This tool follows Rule 2.`);
+            }
+            if (fa === 'Yes' && !officerPath && inactivePlc.length) {
+                warnings.push('MCTAP answered Yes on the Enlisted pathway. PAA 04-25 Note 2 applies to commissioned PLC members only, so no exclusion was applied.');
+            }
+            const creditableCount = ctx.numPeriods !== undefined ? ctx.numPeriods : periods.filter(p => p.creditable).length;
+            if (creditableCount === 0 && periods.length) {
+                warnings.push('No period entered is creditable. The PEBD equals the foundational date (PAA 04-25 para 6.a).');
+            }
+            // PAA 04-25 para 6.b step 2 converts every February 28 ending to 30. DoDFMR Vol 7A Ch 1
+            // para 2.4.1.2.2 keeps February 28 of a leap year. This tool follows the DoDFMR.
+            const leapFeb28 = periods.filter(p => p.creditable && p.endDate.slice(4) === '0228' && isLeapYear(parseInt(p.endDate.slice(0, 4), 10)));
+            if (leapFeb28.length) {
+                warnings.push(`Period(s) ${leapFeb28.map(p => p.period).join(', ')} end on February 28 of a leap year. DoDFMR Vol 7A Ch 1 para 2.4.1.2.2 keeps the 28th, which this tool applies. PAA 04-25 para 6.b step 2 would convert it to 30, adding 2 days per period. Cite the DoDFMR if PAC applies the PAA text.`);
+            }
             return warnings;
         }
 
@@ -2068,13 +2093,13 @@
         // Creditable service on the DODFMR six-step method.
         // periods: [{ serviceType, startDate, endDate }]
         // timeLosses: [{ lossType, startDate, endDate, isOfficerTime, madeGood }]
-        function computeCreditableService(periods, timeLosses, pathwayType) {
+        function computeCreditableService(periods, timeLosses, pathwayType, opts) {
             const beginningDates = [];
             const endingDates = [];
             (periods || []).forEach(p => {
                 if (!p.serviceType || !p.startDate || !p.endDate) return;
                 if (calculateDays(p.startDate, p.endDate) <= 0) return;
-                if (!isServiceCreditable(p.serviceType, pathwayType)) return;
+                if (!isServiceCreditable(p.serviceType, pathwayType, opts)) return;
                 const sy = parseInt(p.startDate.substring(0, 4), 10);
                 const sm = parseInt(p.startDate.substring(4, 6), 10);
                 const sd = parseInt(p.startDate.substring(6, 8), 10);
@@ -2111,8 +2136,8 @@
             return { beginTotals, endTotals, difference, inclusiveAdjusted, afterTimeLoss, timeLossTotals, timeLossApplied, lossResults, normalized, numPeriods: beginningDates.length };
         }
         // Full computation: creditable service subtracted from the foundational PEBD.
-        function computePEBD(foundationalPEBD, pathwayType, periods, timeLosses = []) {
-            const service = computeCreditableService(periods, timeLosses, pathwayType);
+        function computePEBD(foundationalPEBD, pathwayType, periods, timeLosses = [], opts) {
+            const service = computeCreditableService(periods, timeLosses, pathwayType, opts);
             const n = service.normalized;
             const calculatedPEBD = service.numPeriods ? subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days) : foundationalPEBD;
             return Object.assign({ calculatedPEBD }, service);
@@ -2417,13 +2442,15 @@
             const startDate = startInput.value.trim();
             const endDate = endInput.value.trim();
             const pathwayType = document.getElementById('pathwayType').value;
+            const faEl = document.getElementById('plcFinancialAssistance');
+            const opts = { plcFinancialAssistance: faEl ? faEl.value : '' };
 
             const creditableCell = document.getElementById(`creditable-${periodIndex}`);
             const daysCell = document.getElementById(`days-${periodIndex}`);
 
             // Creditable status honors the academy/pathway rule
             if (serviceType) {
-                const creditable = isServiceCreditable(serviceType, pathwayType);
+                const creditable = isServiceCreditable(serviceType, pathwayType, opts);
                 creditableCell.innerHTML = `<span class="${creditable ? 'creditable-yes' : 'creditable-no'}">${creditable ? 'Yes' : 'No'}</span>`;
             } else {
                 creditableCell.innerHTML = '';
@@ -2548,7 +2575,7 @@
                     const notes = notesInput.value;
 
                     if (serviceType && startDate && endDate) {
-                        const isCreditable = isServiceCreditable(serviceType, pathwayType);
+                        const isCreditable = isServiceCreditable(serviceType, pathwayType, { plcFinancialAssistance });
                         const days = calculateDays(startDate, endDate);
                         
                         if (days > 0) {
@@ -2593,13 +2620,13 @@
                     }
                 });
 
-                const service = computeCreditableService(periodDetails, lossInputs, pathwayType);
+                const service = computeCreditableService(periodDetails, lossInputs, pathwayType, { plcFinancialAssistance });
                 const timeLossDetails = lossInputs.map((t, k) => Object.assign({}, t, service.lossResults[k] || {})).filter(t => t.lost);
                 let calculatedPEBD = foundationalPEBD;
 
-                if (service.numPeriods > 0) {
+                if (service.numPeriods > 0 || periodDetails.length > 0) {
                     const n = service.normalized;
-                    calculatedPEBD = subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days);
+                    calculatedPEBD = service.numPeriods > 0 ? subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days) : foundationalPEBD;
 
                     calculationResult = {
                         foundationalPEBD,
@@ -2621,7 +2648,7 @@
                         afadbd,
                         pebdOfRecord,
                         plcFinancialAssistance,
-                        recordWarnings: buildRecordWarnings({ calculatedPEBD, doeaf, afadbd, pebdOfRecord, plcFinancialAssistance, periodDetails, timeLossDetails }),
+                        recordWarnings: buildRecordWarnings({ calculatedPEBD, doeaf, afadbd, pebdOfRecord, plcFinancialAssistance, pathwayType, periodDetails, timeLossDetails, numPeriods: service.numPeriods }),
                         calculationDate: new Date().toLocaleString()
                     };
 
@@ -2629,7 +2656,7 @@
                     document.getElementById('printBtn').disabled = false;
                     showToast('PEBD calculated.', 'success');
                 } else {
-                    showToast('No creditable service periods entered. Add at least one complete, creditable period.', 'warning', 5000);
+                    showToast('No service periods entered. Add at least one complete period, or use the foundational PEBD as the result when there is no prior service.', 'warning', 5000);
                 }
             } catch (error) {
                 showToast('Error in calculation: ' + error.message, 'error', 6000);
@@ -3084,6 +3111,7 @@ ${recordWarningsHTML}
                 'Para 3.a: Marine notified the servicing PAC by EPAR.',
                 'Para 3.c: PAC validated creditable service against the OMPF and the MCTFS D188 remark. D188 remark and Key Supporting Documents updated as required.',
                 'Para 3.c: PEBD of record found incorrect. Case forwarded to MMPB-21 per the PRIUM for validation and correction.',
+                'PAA 04-25 para 8.a: submitted via the chain of command, endorsed by the supporting IPAC, with all necessary source documentation attached.',
                 'Para 3.d: MMPB-21 to assign an action officer and forward the adjustment to MISSO 9 for reporting.',
                 '',
                 cui
