@@ -626,6 +626,29 @@
             background-color: var(--color-status-stale-bg);
         }
 
+        .field-hint {
+            font-size: 0.8rem;
+            color: var(--color-muted-foreground);
+            margin-top: 6px;
+        }
+
+        .record-checks {
+            margin: 30px 0 0 0;
+        }
+        .record-checks h3 { margin: 0 0 10px 0; }
+        .record-summary {
+            font-size: 0.9rem;
+            color: var(--color-muted-foreground);
+            margin: 0;
+        }
+        .record-warnings {
+            list-style: disc;
+            margin: 10px 0 0 22px;
+            padding: 0;
+            color: var(--color-status-aging-strong);
+        }
+        .record-warnings li { margin-bottom: 6px; }
+
         .empty-state {
             text-align: center;
             padding: 20px;
@@ -1394,11 +1417,14 @@
             <div class="guide-body">
                 <ol>
                     <li><strong>Enter the Foundational PEBD.</strong> This is the beginning date of the Marine's most recent period of continuous service for pay, in YYYYMMDD format (example: 20240115). Validate it against the DD Form 4 or DD Form 1966.</li>
-                    <li><strong>Select Marine Status and Pathway Type.</strong> The pathway drives special rules - Military Academy service credits only on enlisted pathways (PAA 04-25 para 4.b.4). Naval Academy Preparatory School (NAPS) time is enlisted service and credits on every pathway, including Officer (PAA 04-25 Note 8).</li>
+                    <li><strong>Select Marine Status and Pathway Type.</strong> The pathway drives two rules - Military Academy service credits only on enlisted pathways (PAA 04-25 para 4.b.4), and the Officer pathway opens the PLC financial assistance field. Naval Academy Preparatory School (NAPS) time is enlisted service and credits on every pathway, including Officer (PAA 04-25 Note 8).</li>
+                    <li><strong>Enter Platoon Leaders Class time in three pieces.</strong> For a Reserve PLC enlistment on or after 29 Nov 1989: the inactive time before the first OCS increment is excluded unless the candidate performed IDT (DODFMR Vol 7A Ch 1 para 2.2.1.8.1), the OCS weeks are active duty for training and credit, and the inactive time after the first increment counts as ordinary Reserve service (para 2.1.3.2). The result normally lands on the first OCS report date. For an officer, the foundational PEBD is the date of acceptance of the commission, not the date of rank (para 2.4.1.1.2).</li>
+                    <li><strong>Answer the MCTAP question for officer candidates.</strong> The calculator will not score a PLC row until it is answered. Yes applies PAA 04-25 para 7.b Rule 2: at commissioning the PEBD is recomputed to exclude periods not on active duty, so inactive PLC rows drop out and OCS credits. Note 5: an MCTAP recipient serving in the SMCR keeps the initial entry date, so enter that time with the Selected Reserve type. No leaves the DODFMR rules in force and the PEBD is the date assigned to active duty. Confirm MCTAP from the PLC contract and MCO 1560.33 records before filing a correction. Reserve creditable service is also carried in the Career Retirement Credit Record in the MCTFS RT07 view (PAA 04-25 Note 7).</li>
+                    <li><strong>Transcribe DOEAF and AFADBD from MCTFS (optional).</strong> With these two dates entered, the result view lists record notes: a PEBD later than DOEAF with nothing excluded, a PEBD equal to AFADBD (expected for a post-1989 Reserve enlistment with no IDT before the initial ADT, confirm the facts), a zeroed AFADBD on a member with active service, and a 205(f) row entered with the financial assistance field set to No. Enter 00000000 for AFADBD when the record shows zeros.</li>
                     <li><strong>Add each period of prior service.</strong> One row per separate period, with service type and inclusive start/end dates. The Creditable column updates as you type - a green check in the Days column means the dates are valid. Use "Add Service Period" for more rows.</li>
                     <li><strong>Record any time loss.</strong> Add a row for AWOL, confinement, or other lost time. Deductible loss is computed on the 30-day basis per DODFMR Vol 7A Ch 1 and reduces creditable service. Check "Officer Time?" for loss during commissioned service - it is recorded but not deducted.</li>
-                    <li><strong>Click Calculate PEBD.</strong> The breakdown shows the PAA 04-25 six-step method: begin totals, end totals, difference, +1 inclusive day per period, time loss, and the normalized result subtracted from the foundational PEBD.</li>
-                    <li><strong>Act on the result.</strong> Print the CUI-marked report, send the MMPB-21 escalation package if the PEBD of record needs correction (MARADMIN 052/26), or open the Pay Comparison tool to quantify the pay impact.</li>
+                    <li><strong>Click Calculate PEBD.</strong> The breakdown shows the six-step method of DODFMR Vol 7A Ch 1 para 2.4.1.2 (also PAA 04-25): begin totals, end totals with the 31st and February 28 or 29 adjusted to 30 (February 28 of a leap year stays 28), difference, +1 inclusive day per period, time loss, and the normalized result subtracted from the foundational PEBD.</li>
+                    <li><strong>Act on the result (MARADMIN 052/26).</strong> Enter the PEBD of record so the result states which path applies. Para 3.a: the Marine sends the EPAR text to the servicing PAC with Key Supporting Documents. Para 3.c: if the PEBD is right but a period is missing from the MCTFS D188 remark, PAC updates the remark and uploads the documents to the OMPF, with no MMPB-21 action. If the PEBD of record is incorrect after validation, PAC follows the PRIUM and sends the package to MMPB-21, which forwards adjustments to MISSO 9 (para 3.d). Print the CUI-marked report for either path, or open the Pay Comparison tool to quantify the pay impact.</li>
                 </ol>
                 <div class="guide-note">
                     <strong>Verify before official use.</strong> This tool is a reference. Confirm every result against source documents (DD Form 4, DD Form 214, NAVMC 763) and the MCTFS D188 remark before submitting a correction.
@@ -1449,6 +1475,12 @@
                     <div class="example-expect">Expected: 0y 9m 25d creditable, PEBD 20220802. Academy years add nothing</div>
                     <button class="example-load-btn" onclick="loadExample(5)">Load Example</button>
                 </div>
+                <div class="example-card">
+                    <h4>7. PLC Officer Candidate (DODFMR 2.2.1.8.1)</h4>
+                    <p>A Reserve PLC enlistment on or after 29 Nov 1989 with no IDT before OCS. The inactive time before the initial ADT is excluded, the OCS weeks credit, and the inactive time after OCS counts as ordinary Reserve service. The PEBD lands on the OCS report date, matching AFADBD. For an MCTAP recipient (PAA 04-25 para 7.b Rule 2), set the MCTAP field to Yes and recalculate: the inactive PLC rows drop out and only OCS credits.</p>
+                    <div class="example-expect">Expected: 1y 0m 25d creditable, PEBD 20210522. MCTAP Yes: 0y 2m 9d, PEBD 20220408</div>
+                    <button class="example-load-btn" onclick="loadExample(6)">Load Example</button>
+                </div>
             </div>
         </details>
 
@@ -1459,7 +1491,7 @@
                 <div class="form-group">
                     <label for="foundationalPEBD">Foundational PEBD (YYYYMMDD):</label>
                     <input type="text" id="foundationalPEBD" placeholder="YYYYMMDD" maxlength="8" oninput="refreshCuiBanner()">
-                    <span style="font-size: 0.8rem; color: var(--color-muted-foreground);">Beginning date of the most recent period of continuous service for pay</span>
+                    <span class="field-hint">Beginning date of the most recent period of continuous service for pay (DODFMR Vol 7A Ch 1 para 2.4.1.1). Enlisted: date of enlistment, DD Form 4 block 5. Officer: date of acceptance of the commission, the oath date, not the date of rank (para 2.4.1.1.2).</span>
                 </div>
                 <div class="form-group">
                     <label for="marineStatus">Marine Status:</label>
@@ -1470,10 +1502,37 @@
                 </div>
                 <div class="form-group">
                     <label for="pathwayType">Pathway Type:</label>
-                    <select id="pathwayType" onchange="updateAllPeriods()">
+                    <select id="pathwayType" onchange="updateAllPeriods(); refreshPathwayFields()">
                         <option value="Enlisted DEP/Direct/Reenlisted/Prior Service">Enlisted DEP/Direct/Reenlisted/Prior Service</option>
                         <option value="Officer OCC/PLC/NROTC/Academy">Officer OCC/PLC/NROTC/Academy</option>
                     </select>
+                    <span class="field-hint">Drives two rules only: Military Academy service is excluded on the Officer pathway (PAA 04-25 para 4.b.4), and the Officer pathway opens the PLC financial assistance field. PLC creditability itself comes from the service type chosen on each row (37 U.S.C. 205(f)).</span>
+                </div>
+            </div>
+            <div class="grid grid-3" style="margin-top: 16px;">
+                <div class="form-group">
+                    <label for="doeaf">DOEAF (YYYYMMDD, optional):</label>
+                    <input type="text" id="doeaf" placeholder="YYYYMMDD" maxlength="8" oninput="refreshCuiBanner(); refreshPathwayFields()">
+                    <span class="field-hint">Date of Entry Armed Forces from MCTFS. Used only to cross-check the result.</span>
+                </div>
+                <div class="form-group">
+                    <label for="afadbd">AFADBD (YYYYMMDD, optional):</label>
+                    <input type="text" id="afadbd" placeholder="YYYYMMDD or 00000000" maxlength="8" oninput="refreshCuiBanner(); refreshPathwayFields()">
+                    <span class="field-hint">Armed Forces Active Duty Base Date from MCTFS. Enter 00000000 when the record shows zeros.</span>
+                </div>
+                <div class="form-group">
+                    <label for="pebdOfRecord">PEBD of Record (YYYYMMDD, optional):</label>
+                    <input type="text" id="pebdOfRecord" placeholder="YYYYMMDD" maxlength="8" oninput="refreshCuiBanner(); refreshPathwayFields()">
+                    <span class="field-hint">The PEBD MCTFS carries today. With it entered, the result states whether the record needs a D188 remark update at PAC level or an MMPB-21 correction (MARADMIN 052/26 para 3.c).</span>
+                </div>
+                <div class="form-group hidden" id="plcFaGroup">
+                    <label for="plcFinancialAssistance">PLC Marine Corps Tuition Assistance Program (MCTAP)?</label>
+                    <select id="plcFinancialAssistance" onchange="refreshPathwayFields(); updateAllPeriods()">
+                        <option value="">Not applicable / not answered</option>
+                        <option value="Yes">Yes - MCTAP recipient</option>
+                        <option value="No">No - not an MCTAP recipient</option>
+                    </select>
+                    <span class="field-hint">MCTAP under MCO 1560.33 (10 U.S.C. 16401, 37 U.S.C. 205(f)). Required when any period uses a PLC / Officer Candidate type. Yes on the Officer pathway applies PAA 04-25 para 7.b Rule 2: the PEBD is recomputed at commissioning to exclude periods not on active duty, so inactive PLC rows drop out and OCS active duty stays. Note 5: an MCTAP recipient serving in the SMCR keeps the initial entry date, so use the Selected Reserve type. No follows the DoDFMR: inactive time before the initial ADT is excluded without IDT (para 2.2.1.8.1), time after it counts (para 2.1.3.2), and the PEBD is the date assigned to active duty (PAA 04-25 para 7.b Rule 2). PLC Law: MCRCO 1131.1A.</span>
                 </div>
             </div>
         </div>
@@ -1512,7 +1571,7 @@
                 Record periods of lost time (AWOL, confinement, suspension, etc.). Deductible time loss reduces creditable service and shifts the calculated PEBD later.
             </p>
             <p class="time-loss-note">
-                <strong><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>DODFMR Chapter 1:</strong> Time loss applies to enlisted service. Check <strong>"Officer Time?"</strong> for any loss that occurred during commissioned service — those periods are recorded in the analysis but are NOT deducted from the calculation.
+                <strong><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>DODFMR Chapter 1:</strong> Time loss applies to enlisted service. Check <strong>"Officer Time?"</strong> for any loss that occurred during commissioned service — those periods are recorded in the analysis but are NOT deducted from the calculation. Check <strong>"Made Good?"</strong> when the member made good the lost time and completed the enlistment: the loss is then computed on both the 30-day and day-to-day bases and the smaller figure is used (para 2.4.1.3.2.1).
             </p>
             <div class="table-container">
                 <table id="timeLossTable" aria-label="Time loss periods entry table">
@@ -1523,6 +1582,7 @@
                             <th>Start Date<br>(YYYYMMDD)</th>
                             <th>End Date<br>(YYYYMMDD)</th>
                             <th>Officer Time?</th>
+                            <th>Made Good?</th>
                             <th>Deductible?</th>
                             <th>Days</th>
                             <th>Notes</th>
@@ -1636,10 +1696,27 @@
                     </div>
                 </div>
 
-                <!-- MMPB-21 Escalation Package (MARADMIN 052/26 Step 3) -->
+                <!-- Record cross-checks: DOEAF, AFADBD, PLC financial assistance, same-status consistency -->
+                <div class="record-checks" id="recordChecks">
+                    <h3>Record Cross-Checks:</h3>
+                    <p class="record-summary" id="recordChecksSummary"></p>
+                    <ul class="record-warnings" id="recordWarningsList"></ul>
+                </div>
+
+                <!-- Marine's EPAR to the servicing PAC (MARADMIN 052/26 para 3.a) -->
                 <div class="companion-prompt">
-                    <p class="companion-prompt-title">Escalate to MMPB-21</p>
-                    <p class="companion-prompt-text">If the calculated PEBD differs from the PEBD of record and PAC has validated the discrepancy against the OMPF and the MCTFS D188 remark, send the pre-filled correction package to MMPB-21 per <a href="https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/" target="_blank" rel="noopener" style="color: var(--color-primary); text-decoration: underline;">MARADMIN 052/26</a>.</p>
+                    <p class="companion-prompt-title">Marine's EPAR to the Servicing PAC</p>
+                    <p class="companion-prompt-text">MARADMIN 052/26 para 3.a: the Marine notifies the servicing PAC or reporting unit by Electronic Personnel Admin Request. Copy this text into the EPAR and attach the Key Supporting Documents.</p>
+                    <textarea id="eparText" readonly rows="9" style="width: 100%; font-family: monospace; font-size: 0.8rem; padding: 10px; border: 2px solid var(--color-border); border-radius: 8px; box-sizing: border-box;" aria-label="EPAR request text"></textarea>
+                    <div class="companion-actions">
+                        <button class="companion-open-btn" type="button" onclick="copyEparText()">Copy EPAR Text</button>
+                    </div>
+                </div>
+
+                <!-- MMPB-21 Escalation Package (MARADMIN 052/26 para 3.c) -->
+                <div class="companion-prompt">
+                    <p class="companion-prompt-title">PAC Action: D188 Remark or MMPB-21</p>
+                    <p class="companion-prompt-text"><a href="https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/" target="_blank" rel="noopener" style="color: var(--color-primary); text-decoration: underline;">MARADMIN 052/26</a> para 3.c gives PAC two paths. If creditable periods are missing from the MCTFS D188 remark but the PEBD is right, PAC updates the remark and uploads Key Supporting Documents to the OMPF; no MMPB-21 action. If the PEBD of record is incorrect after validation against the OMPF and the D188 remark, PAC follows the PRIUM and forwards the case to MMPB-21 with the package below. PAA 04-25 para 8.a: the request goes via the chain of command, endorsed by the supporting IPAC, with all source documentation. MMPB-21 assigns an action officer and forwards adjustments to MISSO 9 for reporting (MARADMIN para 3.d).</p>
                     <div class="companion-actions">
                         <button class="companion-open-btn" type="button" onclick="emailMmpb21Package()">
                             <svg class="feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
@@ -1702,6 +1779,11 @@
             maradminReference: 'https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/'
         };
 
+
+        // --- PEBD LOGIC (loaded by test-calculations.js, keep DOM-free) ---
+        // Everything between these markers is pure. The test suite extracts this block
+        // out of the page and runs it, so the shipped code is what gets tested.
+
         // Service Type Definitions from PAA 04-25.
         // DEP creditability follows DODFMR Vol 7A - before 1 Jan 1985 creditable,
         // on or after only with post-1989 IDT drills.
@@ -1718,6 +1800,8 @@
             "Army Reserve": { creditable: true, category: "Reserve" },
             "Navy Reserve": { creditable: true, category: "Reserve" },
             "Marine Corps Reserve": { creditable: true, category: "Reserve" },
+            "Coast Guard Reserve": { creditable: true, category: "Reserve" },
+            "Space Force Reserve": { creditable: true, category: "Reserve" },
             "Air Force Reserve": { creditable: true, category: "Reserve" },
             "Army National Guard": { creditable: true, category: "Reserve" },
             "Air National Guard": { creditable: true, category: "Reserve" },
@@ -1726,12 +1810,13 @@
             "NOAA Officer Service": { creditable: true, category: "Other" },
             "NOAA Deck Officer Service": { creditable: true, category: "Other" },
             "Military Academy Service": { creditable: true, category: "Academy" },
+            "Military Academy Service (Retained Reserve Commission/Warrant)": { creditable: true, category: "Academy" },
             "Fleet Reserve": { creditable: true, category: "Reserve" },
             "Fleet Marine Corps Reserve": { creditable: true, category: "Reserve" },
             "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
             "Naval Academy Preparatory School (NAPS)": { creditable: true, category: "Academy" },
             "Temporary Coast Guard Reserve": { creditable: true, category: "Reserve" },
-            "ROTC (Post 1979 w/Reserve)": { creditable: true, category: "ROTC" },
+            "ROTC (On/After 1 Aug 1979, Concurrent SelRes Drilling)": { creditable: true, category: "ROTC" },
             "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
             "ROTC (Pre-1964)": { creditable: false, category: "ROTC" },
             "Service with Retired Pay": { creditable: true, category: "Retired" },
@@ -1748,50 +1833,124 @@
             "AFHPSP/FAP (Post 1981)": { creditable: false, category: "Excluded" },
             "USUHS Student (DOM)": { creditable: false, category: "Excluded" },
             "Inactive National Guard": { creditable: false, category: "Excluded" },
+            "Fraudulent, Voided, or Invalidated Enlistment": { creditable: false, category: "Excluded" },
+            "Medical Retention Due to Misconduct": { creditable: false, category: "Excluded" },
             "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
-            "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" }
+            "Delayed Entry Program (Enlisted 1 Jan 1985 to 28 Nov 1989)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (Reserve 10 USC 12103, Post-1989, IDT Performed)": { creditable: true, category: "DEP" },
+            "Delayed Entry Program (Reserve 10 USC 12103, Post-1989, No IDT)": { creditable: false, category: "DEP" },
+            "Delayed Entry Program (Regular 10 USC 513, Post-1989)": { creditable: false, category: "DEP" },
+            // Marine Corps Platoon Leaders Class / officer candidate enlistments.
+            // DoDFMR Vol 7A Ch 1 para 2.2.1.8.1: for a Reserve enlistment on or after 29 Nov 1989
+            // under 10 U.S.C. 12103(b)/(d), inactive time before the initial ADT is excluded
+            // unless IDT was performed. Para 2.1.3.2: Reserve time after the initial ADT counts.
+            // PAA 04-25 para 7.b Rule 2 and Note 5 (implementing 37 U.S.C. 205(f)): a Marine Corps
+            // Tuition Assistance Program (MCTAP) recipient is recomputed at commissioning to
+            // exclude periods not on active duty, unless serving in the SMCR. The MCTAP answer
+            // on the form drives that exclusion in isServiceCreditable, not a separate type.
+            "PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)": { creditable: false, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed)": { creditable: true, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Inactive After Initial ADT)": { creditable: true, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Selected Reserve, Drilling)": { creditable: true, category: "Officer Candidate" },
+            "Officer Candidate Active Duty for Training (OCS)": { creditable: true, category: "Officer Candidate" }
         };
 
         // Academy service credits toward PEBD only on enlisted pathways (PAA 04-25)
-        function isServiceCreditable(serviceType, pathwayType) {
+        // opts.plcFinancialAssistance: 'Yes' applies PAA 04-25 para 7.b Rule 2 on the Officer
+        // pathway: inactive PLC periods are excluded, OCS active duty and drilling SMCR time stay.
+        function isServiceCreditable(serviceType, pathwayType, opts) {
             if (serviceType === "Military Academy Service") {
                 return !(pathwayType && pathwayType.includes("Officer"));
             }
-            return SERVICE_TYPES[serviceType]?.creditable || false;
-        }
-
-        // Toast notifications replace alert() dialogs
-        function showToast(message, type = 'info', duration = 3500) {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add('show'));
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, duration);
-        }
-
-        // CR-05 dynamic CUI banners - visible only while the form holds data
-        function hasFormData() {
-            const pebd = document.getElementById('foundationalPEBD');
-            if (pebd && pebd.value.trim()) return true;
-            const inputs = document.querySelectorAll('[data-period][data-field], [data-timeloss][data-field]');
-            for (const el of inputs) {
-                if (el.type === 'checkbox') { if (el.checked) return true; }
-                else if (el.value && String(el.value).trim()) return true;
+            const entry = SERVICE_TYPES[serviceType];
+            if (!entry) return false;
+            if (entry.category === "Officer Candidate" && opts && opts.plcFinancialAssistance === 'Yes'
+                && pathwayType && pathwayType.includes("Officer")
+                && serviceType !== OCS_ADT_TYPE && !serviceType.includes("Selected Reserve")) {
+                return false;
             }
-            return false;
+            return entry.creditable;
         }
-        function refreshCuiBanner() {
-            const on = hasFormData();
-            document.getElementById('cuiTopBanner')?.classList.toggle('active', on);
-            document.getElementById('cuiBottomBanner')?.classList.toggle('active', on);
+
+        // Status helpers for the MCTFS cross-checks. Category "Active" and OCS active
+        // duty for training are active status. Reserve categories and inactive PLC
+        // officer candidate time are Reserve status.
+        const OCS_ADT_TYPE = "Officer Candidate Active Duty for Training (OCS)";
+        function isOfficerCandidateType(serviceType) {
+            return SERVICE_TYPES[serviceType]?.category === "Officer Candidate";
+        }
+        function isActiveStatusType(serviceType) {
+            return serviceType === OCS_ADT_TYPE || SERVICE_TYPES[serviceType]?.category === "Active";
+        }
+        function isReserveStatusType(serviceType) {
+            const cat = SERVICE_TYPES[serviceType]?.category;
+            return cat === "Reserve" || (cat === "Officer Candidate" && serviceType !== OCS_ADT_TYPE);
+        }
+        // Non-blocking warnings against the MCTFS record.
+        // ctx: { calculatedPEBD, doeaf, afadbd, plcFinancialAssistance, periodDetails }
+        // periodDetails: [{ period, serviceType, startDate, endDate, creditable }]
+        function buildRecordWarnings(ctx) {
+            const warnings = [];
+            const periods = ctx.periodDetails || [];
+            const doeaf = (ctx.doeaf || '').trim();
+            const afadbd = (ctx.afadbd || '').trim();
+            const hasExcluded = periods.some(p => !p.creditable);
+            const hasReserve = periods.some(p => isReserveStatusType(p.serviceType));
+            const hasActive = periods.some(p => isActiveStatusType(p.serviceType));
+
+            if (parseDate(doeaf) && ctx.calculatedPEBD > doeaf && !hasExcluded) {
+                warnings.push('PEBD is later than DOEAF with no excluded service to explain the gap. Verify creditability of each period.');
+            }
+            // A PEBD equal to the first active duty date is the expected outcome for a Reserve
+            // enlistment on or after 29 Nov 1989 with no IDT before the initial ADT
+            // (DoDFMR Vol 7A Ch 1 para 2.2.1.8.1). Confirm the facts rather than assume an error.
+            if (parseDate(afadbd) && ctx.calculatedPEBD === afadbd && hasReserve) {
+                warnings.push('PEBD equals AFADBD. Expected when the Reserve enlistment is on or after 29 Nov 1989 and no IDT was performed before the initial ADT (DoDFMR Vol 7A Ch 1 para 2.2.1.8.1). Confirm no IDT was performed and no Reserve service after the initial ADT was excluded.');
+            }
+            // A zeroed AFADBD is a record error. A blank AFADBD next to a filled DOEAF means the
+            // user transcribed the MCTFS fields and the record had nothing to transcribe.
+            if (hasActive && (afadbd === '00000000' || (afadbd === '' && doeaf !== ''))) {
+                warnings.push('AFADBD is missing on a member with active service. Report as a separate MCTFS record error.');
+            }
+
+            // MARADMIN 052/26 para 3.c routing: a matching record with a missing period is a D188
+            // remark update at PAC level; a differing record goes to MMPB-21 per the PRIUM.
+            const rec = (ctx.pebdOfRecord || '').trim();
+            if (parseDate(rec)) {
+                if (rec === ctx.calculatedPEBD) {
+                    warnings.push('Calculated PEBD matches the PEBD of record. No MMPB-21 action. If any creditable period is missing from the MCTFS D188 remark, PAC updates the remark and uploads Key Supporting Documents to the OMPF (MARADMIN 052/26 para 3.c).');
+                } else {
+                    warnings.push(`Calculated PEBD ${ctx.calculatedPEBD} differs from the PEBD of record ${rec} (${rec < ctx.calculatedPEBD ? 'record is earlier, member may be overpaid' : 'record is later, member may be underpaid'}). After PAC validation against the OMPF and the D188 remark, forward to MMPB-21 per the PRIUM (MARADMIN 052/26 para 3.c).`);
+                }
+            }
+
+            // Lost time made good uses the more favorable basis, but the contract floor in
+            // 2.4.1.3.2.3 needs the enlistment contract length, which the form does not capture.
+            if ((ctx.timeLossDetails || []).some(t => t.applied && t.madeGood)) {
+                warnings.push('Lost time made good: computed on the more favorable basis (DoDFMR Vol 7A Ch 1 para 2.4.1.3.2.1). The contract floor in para 2.4.1.3.2.3 is not applied. If net creditable service for that enlistment is below the contract length, use the contract length.');
+            }
+
+            // PAA 04-25 para 7.b Rule 2: MCTAP recipient on the Officer pathway.
+            const fa = ctx.plcFinancialAssistance || '';
+            const officerPath = !!(ctx.pathwayType && ctx.pathwayType.includes('Officer'));
+            const inactivePlc = periods.filter(p => isReserveStatusType(p.serviceType) && isOfficerCandidateType(p.serviceType) && !p.serviceType.includes('Selected Reserve'));
+            if (fa === 'Yes' && officerPath && inactivePlc.length) {
+                warnings.push(`MCTAP applied (PAA 04-25 para 7.b Rule 2, MCO 1560.33, 37 U.S.C. 205(f)): ${inactivePlc.length} inactive PLC period(s) excluded; OCS active duty retained. Note 2 of the PAA states the result as the date of commissioning; Rule 2 credits active duty before commissioning. This tool follows Rule 2.`);
+            }
+            if (fa === 'Yes' && !officerPath && inactivePlc.length) {
+                warnings.push('MCTAP answered Yes on the Enlisted pathway. PAA 04-25 Note 2 applies to commissioned PLC members only, so no exclusion was applied.');
+            }
+            const creditableCount = ctx.numPeriods !== undefined ? ctx.numPeriods : periods.filter(p => p.creditable).length;
+            if (creditableCount === 0 && periods.length) {
+                warnings.push('No period entered is creditable. The PEBD equals the foundational date (PAA 04-25 para 6.a).');
+            }
+            // PAA 04-25 para 6.b step 2 converts every February 28 ending to 30. DoDFMR Vol 7A Ch 1
+            // para 2.4.1.2.2 keeps February 28 of a leap year. This tool follows the DoDFMR.
+            const leapFeb28 = periods.filter(p => p.creditable && p.endDate.slice(4) === '0228' && isLeapYear(parseInt(p.endDate.slice(0, 4), 10)));
+            if (leapFeb28.length) {
+                warnings.push(`Period(s) ${leapFeb28.map(p => p.period).join(', ')} end on February 28 of a leap year. DoDFMR Vol 7A Ch 1 para 2.4.1.2.2 keeps the 28th, which this tool applies. PAA 04-25 para 6.b step 2 would convert it to 30, adding 2 days per period. Cite the DoDFMR if PAC applies the PAA text.`);
+            }
+            return warnings;
         }
 
         // Time Loss Types per DODFMR Vol 7A Ch 1 Table 1-2.
@@ -1805,6 +1964,8 @@
             "Confinement (Civil, Convicted)": { deductible: true, category: "Disciplinary" },
             "Misconduct Disease/Injury (Alcohol/Drugs)": { deductible: true, category: "Disciplinary" },
             "Unauthorized Absence (Other)": { deductible: true, category: "Unauthorized Absence" },
+            "Unauthorized Absence (Excused as Unavoidable)": { deductible: false, category: "Unauthorized Absence" },
+            "Confinement (Acquitted or Sentence Set Aside)": { deductible: false, category: "Disciplinary" },
             "Dropped from Rolls": { deductible: true, category: "Administrative" },
             "Excess Leave (Unauthorized)": { deductible: true, category: "Administrative" },
             "Excess Leave (Authorized)": { deductible: false, category: "Administrative" },
@@ -1817,6 +1978,43 @@
             "Training": { deductible: false, category: "Duty" },
             "Hospitalization": { deductible: false, category: "Medical" }
         };
+
+        function isTimeLossDeductible(lossType) {
+            return TIME_LOSS_TYPES[lossType]?.deductible || false;
+        }
+
+        // Parse YYYYMMDD date - rejects malformed strings and impossible calendar dates
+        function parseDate(dateStr) {
+            if (!dateStr || !/^\d{8}$/.test(dateStr)) return null;
+            const year = parseInt(dateStr.substring(0, 4), 10);
+            const month = parseInt(dateStr.substring(4, 6), 10) - 1;
+            const day = parseInt(dateStr.substring(6, 8), 10);
+            const d = new Date(year, month, day);
+            // Round-trip check catches 20240231, month 13, day 00, etc.
+            if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
+            return d;
+        }
+
+        // Real-time validation for a date pair - returns errors/warnings
+        function validateDatePair(startStr, endStr) {
+            const errors = [];
+            const warnings = [];
+            const start = parseDate(startStr);
+            const end = parseDate(endStr);
+            if (startStr && startStr.length === 8 && !start) errors.push('Start date is not a valid calendar date');
+            if (endStr && endStr.length === 8 && !end) errors.push('End date is not a valid calendar date');
+            if (start && end && end < start) errors.push('End date precedes start date');
+            if (start && start > new Date()) warnings.push('Start date is in the future');
+            return { errors, warnings, start, end };
+        }
+
+        // Calculate days between dates
+        function calculateDays(startDate, endDate) {
+            const start = parseDate(startDate);
+            const end = parseDate(endDate);
+            if (!start || !end || end < start) return 0;
+            return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        }
 
         // Lost time per DODFMR Vol 7A Ch 1, para 2.4.1.3.1 - computed on the
         // 30-day-month basis as years/months/days with +1 inclusive day.
@@ -1846,13 +2044,199 @@
             return { years, months, days };
         }
 
+        // Lost time on the day-to-day basis, converted to years/months/days on 30-day months
+        // (DODFMR Vol 7A Ch 1 para 2.4.1.3.2.1).
+        function computeLostTimeDayToDay(startDate, endDate) {
+            const days = calculateDays(startDate, endDate);
+            if (days <= 0) return null;
+            return { years: Math.floor(days / 360), months: Math.floor((days % 360) / 30), days: days % 30 };
+        }
+        function ymdTotalDays(t) {
+            return t.years * 360 + t.months * 30 + t.days;
+        }
+        // Lost time not made good: 30-day basis (2.4.1.3.1). Lost time made good: compute both
+        // bases and discard the one showing more days lost (2.4.1.3.2.1).
+        function selectLostTime(startDate, endDate, madeGood) {
+            const thirty = computeLostTime(startDate, endDate);
+            if (!thirty) return null;
+            if (!madeGood) return { lost: thirty, basis: '30-day' };
+            const daily = computeLostTimeDayToDay(startDate, endDate);
+            if (daily && ymdTotalDays(daily) < ymdTotalDays(thirty)) return { lost: daily, basis: 'day-to-day' };
+            return { lost: thirty, basis: '30-day' };
+        }
+
         function fmtYMD(t) {
             return `${t.years}y ${t.months}m ${t.days}d`;
         }
 
-        function isTimeLossDeductible(lossType) {
-            return TIME_LOSS_TYPES[lossType]?.deductible || false;
+        function isLeapYear(y) {
+            return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
         }
+        // Ending date adjustments (DODFMR Vol 7A Ch 1 para 2.4.1.2.2): the 31st becomes 30,
+        // February 28 of a non-leap year becomes 30, February 29 becomes 30, and February 28
+        // of a leap year is left alone.
+        function adjustEndDay(year, month, day) {
+            if (day === 31) return 30;
+            if (month === 2 && day === 29) return 30;
+            if (month === 2 && day === 28 && !isLeapYear(year)) return 30;
+            return day;
+        }
+        // Convert to full years, months, and days on the 30-day, 12-month basis (2.4.1.2.5).
+        function normalizeYMD(t) {
+            const n = { years: t.years, months: t.months, days: t.days };
+            while (n.days < 0) { n.days += 30; n.months -= 1; }
+            while (n.months < 0) { n.months += 12; n.years -= 1; }
+            while (n.days >= 30) { n.days -= 30; n.months += 1; }
+            while (n.months >= 12) { n.months -= 12; n.years += 1; }
+            return n;
+        }
+        // Creditable service on the DODFMR six-step method.
+        // periods: [{ serviceType, startDate, endDate }]
+        // timeLosses: [{ lossType, startDate, endDate, isOfficerTime, madeGood }]
+        function computeCreditableService(periods, timeLosses, pathwayType, opts) {
+            const beginningDates = [];
+            const endingDates = [];
+            (periods || []).forEach(p => {
+                if (!p.serviceType || !p.startDate || !p.endDate) return;
+                if (calculateDays(p.startDate, p.endDate) <= 0) return;
+                if (!isServiceCreditable(p.serviceType, pathwayType, opts)) return;
+                const sy = parseInt(p.startDate.substring(0, 4), 10);
+                const sm = parseInt(p.startDate.substring(4, 6), 10);
+                const sd = parseInt(p.startDate.substring(6, 8), 10);
+                const ey = parseInt(p.endDate.substring(0, 4), 10);
+                const em = parseInt(p.endDate.substring(4, 6), 10);
+                const ed = adjustEndDay(ey, em, parseInt(p.endDate.substring(6, 8), 10));
+                beginningDates.push({ year: sy, month: sm, day: sd });
+                endingDates.push({ year: ey, month: em, day: ed });
+            });
+
+            const timeLossTotals = { years: 0, months: 0, days: 0 };
+            let timeLossApplied = false;
+            const lossResults = (timeLosses || []).map(t => {
+                const sel = selectLostTime(t.startDate, t.endDate, !!t.madeGood);
+                if (!sel) return null;
+                const deductible = isTimeLossDeductible(t.lossType);
+                const applied = deductible && !t.isOfficerTime;
+                if (applied) {
+                    timeLossTotals.years += sel.lost.years;
+                    timeLossTotals.months += sel.lost.months;
+                    timeLossTotals.days += sel.lost.days;
+                    timeLossApplied = true;
+                }
+                return { lost: sel.lost, basis: sel.basis, deductible, applied };
+            });
+
+            const sum = arr => arr.reduce((t, d) => ({ years: t.years + d.year, months: t.months + d.month, days: t.days + d.day }), { years: 0, months: 0, days: 0 });
+            const beginTotals = sum(beginningDates);
+            const endTotals = sum(endingDates);
+            const difference = { years: endTotals.years - beginTotals.years, months: endTotals.months - beginTotals.months, days: endTotals.days - beginTotals.days };
+            const inclusiveAdjusted = { years: difference.years, months: difference.months, days: difference.days + beginningDates.length };
+            const afterTimeLoss = { years: inclusiveAdjusted.years - timeLossTotals.years, months: inclusiveAdjusted.months - timeLossTotals.months, days: inclusiveAdjusted.days - timeLossTotals.days };
+            const normalized = beginningDates.length ? normalizeYMD(afterTimeLoss) : { years: 0, months: 0, days: 0 };
+            return { beginTotals, endTotals, difference, inclusiveAdjusted, afterTimeLoss, timeLossTotals, timeLossApplied, lossResults, normalized, numPeriods: beginningDates.length };
+        }
+        // Full computation: creditable service subtracted from the foundational PEBD.
+        function computePEBD(foundationalPEBD, pathwayType, periods, timeLosses = [], opts) {
+            const service = computeCreditableService(periods, timeLosses, pathwayType, opts);
+            const n = service.normalized;
+            const calculatedPEBD = service.numPeriods ? subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days) : foundationalPEBD;
+            return Object.assign({ calculatedPEBD }, service);
+        }
+
+        // Subtract service from date using pure 30-day-month arithmetic (PAA 04-25).
+        // No Date constructor - it would roll a nominal day 29/30 in February into March.
+        function subtractServiceFromDate(dateStr, years, months, days) {
+            if (!/^\d{8}$/.test(dateStr)) return dateStr;
+            let y = parseInt(dateStr.substring(0, 4), 10);
+            let m = parseInt(dateStr.substring(4, 6), 10);
+            let d = parseInt(dateStr.substring(6, 8), 10);
+
+            y -= years;
+            m -= months;
+            d -= days;
+
+            // Borrow days from months on the 30-day convention
+            while (d <= 0) {
+                m -= 1;
+                d += 30;
+            }
+            // Borrow months from years
+            while (m <= 0) {
+                y -= 1;
+                m += 12;
+            }
+
+            // Clamp a nominal 30-day-convention result onto the real calendar
+            // (February 29/30 in the convention becomes the actual last day of February)
+            const lastDay = new Date(y, m, 0).getDate();
+            if (d > lastDay) d = lastDay;
+
+            return String(y) + String(m).padStart(2, '0') + String(d).padStart(2, '0');
+        }
+        // --- END PEBD LOGIC ---
+
+
+        // Show the PLC financial assistance field on the Officer pathway or whenever a
+        // period row carries an officer candidate type. Validate the optional MCTFS dates.
+        function officerCandidateRowsPresent() {
+            return Array.from(document.querySelectorAll('select[data-field="serviceType"]')).some(s => isOfficerCandidateType(s.value));
+        }
+        function refreshPathwayFields() {
+            const pathway = document.getElementById('pathwayType').value;
+            const group = document.getElementById('plcFaGroup');
+            const fa = document.getElementById('plcFinancialAssistance');
+            if (!group || !fa) return;
+            const rowsPresent = officerCandidateRowsPresent();
+            group.classList.toggle('hidden', !(pathway.includes('Officer') || rowsPresent));
+            fa.classList.toggle('input-invalid', rowsPresent && !fa.value);
+            ['doeaf', 'afadbd', 'pebdOfRecord'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const v = el.value.trim();
+                const zeroOk = id === 'afadbd' && v === '00000000';
+                el.classList.toggle('input-invalid', v.length === 8 && !zeroOk && !parseDate(v));
+            });
+        }
+
+        // Toast notifications replace alert() dialogs
+        function showToast(message, type = 'info', duration = 3500) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // CR-05 dynamic CUI banners - visible only while the form holds data
+        function hasFormData() {
+            const pebd = document.getElementById('foundationalPEBD');
+            if (pebd && pebd.value.trim()) return true;
+            for (const id of ['doeaf', 'afadbd', 'pebdOfRecord', 'plcFinancialAssistance']) {
+                const el = document.getElementById(id);
+                if (el && el.value && el.value.trim()) return true;
+            }
+            const inputs = document.querySelectorAll('[data-period][data-field], [data-timeloss][data-field]');
+            for (const el of inputs) {
+                if (el.type === 'checkbox') { if (el.checked) return true; }
+                else if (el.value && String(el.value).trim()) return true;
+            }
+            return false;
+        }
+        function refreshCuiBanner() {
+            const on = hasFormData();
+            document.getElementById('cuiTopBanner')?.classList.toggle('active', on);
+            document.getElementById('cuiBottomBanner')?.classList.toggle('active', on);
+        }
+
+
+
+
 
         let calculationResult = null;
         let timeLossIndexSeq = 0; // unique row indexes survive removals
@@ -1864,7 +2248,7 @@
         // Initialize time loss periods table (empty)
         function initializeTimeLossPeriods() {
             document.getElementById('timeLossBody').innerHTML =
-                '<tr class="timeloss-empty"><td colspan="9" class="empty-state">No time loss periods added. Click "Add Time Loss Period" if lost time applies.</td></tr>';
+                '<tr class="timeloss-empty"><td colspan="10" class="empty-state">No time loss periods added. Click "Add Time Loss Period" if lost time applies.</td></tr>';
             timeLossIndexSeq = 0;
         }
 
@@ -1894,6 +2278,7 @@
                 <td><input type="text" placeholder="YYYYMMDD" maxlength="8" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="startDate" aria-label="Start date for time loss period"></td>
                 <td><input type="text" placeholder="YYYYMMDD" maxlength="8" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="endDate" aria-label="End date for time loss period"></td>
                 <td style="text-align: center;"><input type="checkbox" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="officerTime" style="width: 18px; height: 18px; min-width: 18px;" aria-label="Officer time for this loss period" title="Check if this time loss occurred during commissioned service"></td>
+                <td style="text-align: center;"><input type="checkbox" onchange="updateTimeLossPeriod(${i})" data-timeloss="${i}" data-field="madeGood" style="width: 18px; height: 18px; min-width: 18px;" aria-label="Lost time made good" title="Check if the member made good the lost time and completed the enlistment (DODFMR 2.4.1.3.2)"></td>
                 <td id="timeloss-deductible-${i}"></td>
                 <td id="timeloss-days-${i}"></td>
                 <td><input type="text" placeholder="Reason/Details..." data-timeloss="${i}" data-field="notes" aria-label="Notes for time loss period"></td>
@@ -2029,30 +2414,7 @@
             });
         }
 
-        // Parse YYYYMMDD date - rejects malformed strings and impossible calendar dates
-        function parseDate(dateStr) {
-            if (!dateStr || !/^\d{8}$/.test(dateStr)) return null;
-            const year = parseInt(dateStr.substring(0, 4), 10);
-            const month = parseInt(dateStr.substring(4, 6), 10) - 1;
-            const day = parseInt(dateStr.substring(6, 8), 10);
-            const d = new Date(year, month, day);
-            // Round-trip check catches 20240231, month 13, day 00, etc.
-            if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
-            return d;
-        }
 
-        // Real-time validation for a date pair - returns errors/warnings
-        function validateDatePair(startStr, endStr) {
-            const errors = [];
-            const warnings = [];
-            const start = parseDate(startStr);
-            const end = parseDate(endStr);
-            if (startStr && startStr.length === 8 && !start) errors.push('Start date is not a valid calendar date');
-            if (endStr && endStr.length === 8 && !end) errors.push('End date is not a valid calendar date');
-            if (start && end && end < start) errors.push('End date precedes start date');
-            if (start && start > new Date()) warnings.push('Start date is in the future');
-            return { errors, warnings, start, end };
-        }
 
         function renderDaysWithValidation(daysCell, days, validation) {
             let dayDisplay = days > 0 ? String(days) : 'Invalid';
@@ -2068,13 +2430,6 @@
             daysCell.innerHTML = dayDisplay + icon;
         }
 
-        // Calculate days between dates
-        function calculateDays(startDate, endDate) {
-            const start = parseDate(startDate);
-            const end = parseDate(endDate);
-            if (!start || !end || end < start) return 0;
-            return Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-        }
 
         // Update period info with real-time validation feedback
         function updatePeriod(periodIndex) {
@@ -2087,13 +2442,15 @@
             const startDate = startInput.value.trim();
             const endDate = endInput.value.trim();
             const pathwayType = document.getElementById('pathwayType').value;
+            const faEl = document.getElementById('plcFinancialAssistance');
+            const opts = { plcFinancialAssistance: faEl ? faEl.value : '' };
 
             const creditableCell = document.getElementById(`creditable-${periodIndex}`);
             const daysCell = document.getElementById(`days-${periodIndex}`);
 
             // Creditable status honors the academy/pathway rule
             if (serviceType) {
-                const creditable = isServiceCreditable(serviceType, pathwayType);
+                const creditable = isServiceCreditable(serviceType, pathwayType, opts);
                 creditableCell.innerHTML = `<span class="${creditable ? 'creditable-yes' : 'creditable-no'}">${creditable ? 'Yes' : 'No'}</span>`;
             } else {
                 creditableCell.innerHTML = '';
@@ -2108,6 +2465,7 @@
             } else {
                 daysCell.innerHTML = '';
             }
+            refreshPathwayFields();
         }
 
         // Combined consent gate functions (DoD notice + legal terms, one click)
@@ -2161,6 +2519,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializePeriods();
             initializeTimeLossPeriods();
+            refreshPathwayFields();
             checkLegalConsent();
             refreshCuiBanner();
         });
@@ -2176,14 +2535,28 @@
                 const foundationalPEBD = document.getElementById('foundationalPEBD').value.trim();
                 const marineStatus = document.getElementById('marineStatus').value;
                 const pathwayType = document.getElementById('pathwayType').value;
+                const doeaf = document.getElementById('doeaf').value.trim();
+                const afadbd = document.getElementById('afadbd').value.trim();
+                const pebdOfRecord = document.getElementById('pebdOfRecord').value.trim();
+                const plcFinancialAssistance = document.getElementById('plcFinancialAssistance').value;
 
                 if (!parseDate(foundationalPEBD)) {
                     showToast('Foundational PEBD is required as a valid date in YYYYMMDD format.', 'error');
                     return;
                 }
+                if (doeaf && !parseDate(doeaf)) {
+                    showToast('DOEAF must be a valid date in YYYYMMDD format, or left blank.', 'error');
+                    return;
+                }
+                if (afadbd && afadbd !== '00000000' && !parseDate(afadbd)) {
+                    showToast('AFADBD must be a valid date in YYYYMMDD format, 00000000 for a zeroed record, or left blank.', 'error');
+                    return;
+                }
+                if (pebdOfRecord && !parseDate(pebdOfRecord)) {
+                    showToast('PEBD of Record must be a valid date in YYYYMMDD format, or left blank.', 'error');
+                    return;
+                }
 
-                const beginningDates = [];
-                const endingDates = [];
                 const periodDetails = [];
 
                 // Collect all periods from the dynamic rows
@@ -2202,7 +2575,7 @@
                     const notes = notesInput.value;
 
                     if (serviceType && startDate && endDate) {
-                        const isCreditable = isServiceCreditable(serviceType, pathwayType);
+                        const isCreditable = isServiceCreditable(serviceType, pathwayType, { plcFinancialAssistance });
                         const days = calculateDays(startDate, endDate);
                         
                         if (days > 0) {
@@ -2216,136 +2589,44 @@
                                 notes
                             });
                             
-                            if (isCreditable) {
-                                const startYear = parseInt(startDate.substring(0, 4));
-                                const startMonth = parseInt(startDate.substring(4, 6));
-                                const startDay = parseInt(startDate.substring(6, 8));
-                                
-                                let endYear = parseInt(endDate.substring(0, 4));
-                                let endMonth = parseInt(endDate.substring(4, 6));
-                                let endDay = parseInt(endDate.substring(6, 8));
-                                
-                                // Apply PAA 04-25 ending date adjustments
-                                if (endDay === 31) endDay = 30;
-                                if (endMonth === 2 && (endDay === 28 || endDay === 29)) endDay = 30;
-                                
-                                beginningDates.push({ year: startYear, month: startMonth, day: startDay });
-                                endingDates.push({ year: endYear, month: endMonth, day: endDay });
-                            }
                         }
                     }
                 });
 
-                // Collect time loss periods. Deductible, non-officer-time losses are
-                // computed on the 30-day-month basis per DODFMR Vol 7A Ch 1 para 2.4.1.3.1
-                // (years/months/days with +1 inclusive day) and reduce creditable service.
-                // "Officer Time?" periods are recorded but not deducted.
-                const timeLossDetails = [];
-                const timeLossTotals = { years: 0, months: 0, days: 0 };
-                let timeLossApplied = false;
+                // A PLC / Officer Candidate period cannot be scored until the 10 U.S.C. 16401
+                // financial assistance question is answered. It decides which 37 U.S.C. 205 rule applies.
+                if (periodDetails.some(p => isOfficerCandidateType(p.serviceType)) && !plcFinancialAssistance) {
+                    refreshPathwayFields();
+                    const fa = document.getElementById('plcFinancialAssistance');
+                    fa.classList.add('input-invalid');
+                    fa.focus();
+                    showToast('Answer the PLC financial assistance question before calculating. It decides which 37 U.S.C. 205 rule applies to the officer candidate periods.', 'warning', 6000);
+                    return;
+                }
+
+                // Collect time loss rows. Deductible, non-officer-time losses reduce creditable
+                // service on the 30-day basis (DODFMR Vol 7A Ch 1 para 2.4.1.3.1), or on the more
+                // favorable basis when made good (2.4.1.3.2.1). "Officer Time?" rows are recorded only.
+                const lossInputs = [];
                 document.querySelectorAll('#timeLossBody tr[id^="timeloss-period-"]').forEach((row, idx) => {
                     const lossType = row.querySelector('select[data-field="lossType"]').value;
                     const startDate = row.querySelector('input[data-field="startDate"]').value.trim();
                     const endDate = row.querySelector('input[data-field="endDate"]').value.trim();
                     const notes = row.querySelector('input[data-field="notes"]').value;
                     const isOfficerTime = row.querySelector('input[data-field="officerTime"]').checked;
-
-                    if (lossType && startDate.length === 8 && endDate.length === 8) {
-                        const lost = computeLostTime(startDate, endDate);
-                        const days = calculateDays(startDate, endDate);
-                        if (lost && days > 0) {
-                            const deductible = isTimeLossDeductible(lossType);
-                            const applied = deductible && !isOfficerTime;
-                            timeLossDetails.push({
-                                period: idx + 1,
-                                lossType,
-                                startDate,
-                                endDate,
-                                deductible,
-                                isOfficerTime,
-                                applied,
-                                days,
-                                lost,
-                                notes
-                            });
-                            if (applied) {
-                                timeLossTotals.years += lost.years;
-                                timeLossTotals.months += lost.months;
-                                timeLossTotals.days += lost.days;
-                                timeLossApplied = true;
-                            }
-                        }
+                    const madeGood = row.querySelector('input[data-field="madeGood"]').checked;
+                    if (lossType && startDate.length === 8 && endDate.length === 8 && calculateDays(startDate, endDate) > 0) {
+                        lossInputs.push({ period: idx + 1, lossType, startDate, endDate, isOfficerTime, madeGood, notes, days: calculateDays(startDate, endDate) });
                     }
                 });
 
-                let beginTotals = { years: 0, months: 0, days: 0 };
-                let endTotals = { years: 0, months: 0, days: 0 };
+                const service = computeCreditableService(periodDetails, lossInputs, pathwayType, { plcFinancialAssistance });
+                const timeLossDetails = lossInputs.map((t, k) => Object.assign({}, t, service.lossResults[k] || {})).filter(t => t.lost);
                 let calculatedPEBD = foundationalPEBD;
 
-                if (beginningDates.length > 0 && endingDates.length > 0) {
-                    // Add up components
-                    beginTotals = beginningDates.reduce((totals, date) => ({
-                        years: totals.years + date.year,
-                        months: totals.months + date.month,
-                        days: totals.days + date.day
-                    }), { years: 0, months: 0, days: 0 });
-
-                    endTotals = endingDates.reduce((totals, date) => ({
-                        years: totals.years + date.year,
-                        months: totals.months + date.month,
-                        days: totals.days + date.day
-                    }), { years: 0, months: 0, days: 0 });
-
-                    // Calculate difference
-                    const difference = {
-                        years: endTotals.years - beginTotals.years,
-                        months: endTotals.months - beginTotals.months,
-                        days: endTotals.days - beginTotals.days
-                    };
-
-                    // Add inclusive days
-                    const inclusiveAdjusted = {
-                        years: difference.years,
-                        months: difference.months,
-                        days: difference.days + beginningDates.length
-                    };
-
-                    // Subtract deductible time loss on the 30-day basis (DODFMR Vol 7A Ch 1)
-                    const afterTimeLoss = {
-                        years: inclusiveAdjusted.years - timeLossTotals.years,
-                        months: inclusiveAdjusted.months - timeLossTotals.months,
-                        days: inclusiveAdjusted.days - timeLossTotals.days
-                    };
-
-                    // Normalize
-                    let normalized = { ...afterTimeLoss };
-                    
-                    // Handle negative days
-                    while (normalized.days < 0) {
-                        normalized.days += 30;
-                        normalized.months -= 1;
-                    }
-                    
-                    // Handle negative months
-                    while (normalized.months < 0) {
-                        normalized.months += 12;
-                        normalized.years -= 1;
-                    }
-                    
-                    // Handle excess days
-                    while (normalized.days >= 30) {
-                        normalized.days -= 30;
-                        normalized.months += 1;
-                    }
-                    
-                    // Handle excess months
-                    while (normalized.months >= 12) {
-                        normalized.months -= 12;
-                        normalized.years += 1;
-                    }
-
-                    // Calculate final PEBD
-                    calculatedPEBD = subtractServiceFromDate(foundationalPEBD, normalized.years, normalized.months, normalized.days);
+                if (service.numPeriods > 0 || periodDetails.length > 0) {
+                    const n = service.normalized;
+                    calculatedPEBD = service.numPeriods > 0 ? subtractServiceFromDate(foundationalPEBD, n.years, n.months, n.days) : foundationalPEBD;
 
                     calculationResult = {
                         foundationalPEBD,
@@ -2354,15 +2635,20 @@
                         pathwayType,
                         periodDetails,
                         timeLossDetails,
-                        beginTotals,
-                        endTotals,
-                        difference,
-                        inclusiveAdjusted,
-                        afterTimeLoss,
-                        timeLossTotals,
-                        timeLossApplied,
-                        normalized,
-                        numPeriods: beginningDates.length,
+                        beginTotals: service.beginTotals,
+                        endTotals: service.endTotals,
+                        difference: service.difference,
+                        inclusiveAdjusted: service.inclusiveAdjusted,
+                        afterTimeLoss: service.afterTimeLoss,
+                        timeLossTotals: service.timeLossTotals,
+                        timeLossApplied: service.timeLossApplied,
+                        normalized: n,
+                        numPeriods: service.numPeriods,
+                        doeaf,
+                        afadbd,
+                        pebdOfRecord,
+                        plcFinancialAssistance,
+                        recordWarnings: buildRecordWarnings({ calculatedPEBD, doeaf, afadbd, pebdOfRecord, plcFinancialAssistance, pathwayType, periodDetails, timeLossDetails, numPeriods: service.numPeriods }),
                         calculationDate: new Date().toLocaleString()
                     };
 
@@ -2370,43 +2656,13 @@
                     document.getElementById('printBtn').disabled = false;
                     showToast('PEBD calculated.', 'success');
                 } else {
-                    showToast('No creditable service periods entered. Add at least one complete, creditable period.', 'warning', 5000);
+                    showToast('No service periods entered. Add at least one complete period, or use the foundational PEBD as the result when there is no prior service.', 'warning', 5000);
                 }
             } catch (error) {
                 showToast('Error in calculation: ' + error.message, 'error', 6000);
             }
         }
 
-        // Subtract service from date using pure 30-day-month arithmetic (PAA 04-25).
-        // No Date constructor - it would roll a nominal day 29/30 in February into March.
-        function subtractServiceFromDate(dateStr, years, months, days) {
-            if (!/^\d{8}$/.test(dateStr)) return dateStr;
-            let y = parseInt(dateStr.substring(0, 4), 10);
-            let m = parseInt(dateStr.substring(4, 6), 10);
-            let d = parseInt(dateStr.substring(6, 8), 10);
-
-            y -= years;
-            m -= months;
-            d -= days;
-
-            // Borrow days from months on the 30-day convention
-            while (d <= 0) {
-                m -= 1;
-                d += 30;
-            }
-            // Borrow months from years
-            while (m <= 0) {
-                y -= 1;
-                m += 12;
-            }
-
-            // Clamp a nominal 30-day-convention result onto the real calendar
-            // (February 29/30 in the convention becomes the actual last day of February)
-            const lastDay = new Date(y, m, 0).getDate();
-            if (d > lastDay) d = lastDay;
-
-            return String(y) + String(m).padStart(2, '0') + String(d).padStart(2, '0');
-        }
 
         // Display results
         function displayResults() {
@@ -2487,7 +2743,7 @@
                         <td class="${detail.applied ? 'creditable-no' : 'creditable-yes'}">
                             ${detail.applied ? 'Yes' : (detail.deductible && detail.isOfficerTime ? 'No (Officer Time)' : 'No')}
                         </td>
-                        <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + ')' : ''}</td>
+                        <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + (detail.madeGood ? ', made good, ' + detail.basis + ' basis' : '') + ')' : ''}</td>
                         <td>${detail.notes}</td>
                     </tr>
                 `).join('');
@@ -2496,11 +2752,55 @@
                 timeLossAnalysis.classList.add('hidden');
             }
 
+            // Record cross-checks (DOEAF / AFADBD / PLC financial assistance)
+            const summary = [
+                'PLC financial assistance (10 U.S.C. 16401): ' + (data.plcFinancialAssistance || 'Not applicable'),
+                'DOEAF: ' + (data.doeaf || 'not entered'),
+                'AFADBD: ' + (data.afadbd || 'not entered'),
+                'PEBD of record: ' + (data.pebdOfRecord || 'not entered'),
+                data.recordWarnings.length ? data.recordWarnings.length + ' warning(s)' : 'No record warnings'
+            ];
+            document.getElementById('recordChecksSummary').textContent = summary.join(' | ');
+            const warnList = document.getElementById('recordWarningsList');
+            warnList.innerHTML = '';
+            data.recordWarnings.forEach(w => {
+                const li = document.createElement('li');
+                li.textContent = w;
+                warnList.appendChild(li);
+            });
+
+            // EPAR text for the Marine (MARADMIN 052/26 para 3.a). Dates and service types only.
+            const cuiMark = (window.COMPLIANCE_CONFIG && window.COMPLIANCE_CONFIG.cuiMarking) || 'CUI//SP-PRVCY';
+            const eparLines = [
+                cuiMark,
+                'EPAR - PEBD VERIFICATION REQUEST (MARADMIN 052/26 para 3.a)',
+                'Request the servicing PAC verify my Pay Entry Base Date against the OMPF and the MCTFS D188 remark.',
+                'PEBD of record: ' + (data.pebdOfRecord || 'not entered'),
+                'Reference calculation: PEBD ' + data.calculatedPEBD + ', net creditable service ' + fmtYMD(data.normalized) + ', foundational date ' + data.foundationalPEBD + '.',
+                'Periods claimed:',
+                ...data.periodDetails.map(p => '  ' + p.period + '. ' + p.serviceType + ' ' + p.startDate + ' to ' + p.endDate + (p.creditable ? '' : ' (not creditable)')),
+                'Key Supporting Documents attached: [list DD Form 4, DD Form 214, NAVMC 763, orders, or statement of service]',
+                'If a creditable period is missing from the D188 remark, request the remark be updated and the documents uploaded to my OMPF (para 3.c). If the PEBD of record is incorrect, request the case be forwarded to MMPB-21 per the PRIUM (para 3.c).',
+                cuiMark
+            ];
+            document.getElementById('eparText').value = eparLines.join('\n');
+
             // Wire the Pay Comparison handoff link (dates only, no personal data in the URL)
             document.getElementById('openPayComparison').href =
                 'pay-comparison.html?pebdA=' + data.foundationalPEBD + '&pebdB=' + data.calculatedPEBD;
 
             document.getElementById('results').classList.remove('hidden');
+        }
+
+        function copyEparText() {
+            const ta = document.getElementById('eparText');
+            const done = () => showToast('EPAR text copied.', 'success');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(ta.value).then(done).catch(() => { ta.select(); showToast('Select the text and copy it manually.', 'info'); });
+            } else {
+                ta.select();
+                showToast('Select the text and copy it manually.', 'info');
+            }
         }
 
         // Print report
@@ -2549,11 +2849,19 @@
                                 <td>${detail.startDate}</td>
                                 <td>${detail.endDate}</td>
                                 <td style="color: ${detail.applied ? 'red' : 'green'}; font-weight: bold;">${detail.applied ? 'Yes' : (detail.deductible && detail.isOfficerTime ? 'No (Officer Time)' : 'No')}</td>
-                                <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + ')' : ''}</td>
+                                <td>${detail.days}${detail.applied ? ' (' + fmtYMD(detail.lost) + (detail.madeGood ? ', made good, ' + detail.basis + ' basis' : '') + ')' : ''}</td>
                                 <td>${detail.notes}</td>
                             </tr>`).join('')}
                         </table>
                     </div>` : '';
+
+            const recordWarningsHTML = `
+                    <div class="section">
+                        <div class="section-title">RECORD CROSS-CHECKS</div>
+                        ${data.recordWarnings.length
+                            ? '<ul>' + data.recordWarnings.map(w => `<li>${w}</li>`).join('') + '</ul>'
+                            : '<p>No record warnings. DOEAF, AFADBD, and the PLC financial assistance answer are consistent with the calculated PEBD.</p>'}
+                    </div>`;
 
             return `
                 <!DOCTYPE html>
@@ -2580,7 +2888,7 @@
                     <div style="text-align: center; font-weight: bold; color: #6f42c1; border: 1px solid #6f42c1; padding: 3px; margin-bottom: 8px;">${cui}</div>
                     <div class="header">
                         <h1 class="title">MARINE CORPS PAY ENTRY BASE DATE (PEBD) CALCULATION REPORT</h1>
-                        <p class="subtitle">References: PAA 04-25 - Administrative Guidance on Creditable Service and PEBD; MARADMIN 052/26 - MCTFS Advisory to Identify Required Corrections to PEBD</p>
+                        <p class="subtitle">References: 37 U.S.C. 205; DODFMR 7000.14-R Vol 7A Ch 1 (May 2024); MCRCO 1100.1B; MCO 1560.33; 10 U.S.C. 12103; PAA 04-25; MARADMIN 052/26 - MCTFS Advisory to Identify Required Corrections to PEBD</p>
                         <p class="subtitle">Generated: ${data.calculationDate}</p>
                     </div>
 
@@ -2591,6 +2899,10 @@
                             <tr><td>Marine Status</td><td>${data.marineStatus}</td></tr>
                             <tr><td>Pathway Type</td><td>${data.pathwayType}</td></tr>
                             <tr><td>Foundational PEBD</td><td>${data.foundationalPEBD}</td></tr>
+                            <tr><td>PLC Financial Assistance (10 U.S.C. 16401)</td><td>${data.plcFinancialAssistance || 'Not applicable'}</td></tr>
+                            <tr><td>DOEAF (MCTFS)</td><td>${data.doeaf || 'Not entered'}</td></tr>
+                            <tr><td>AFADBD (MCTFS)</td><td>${data.afadbd || 'Not entered'}</td></tr>
+                            <tr><td>PEBD of Record (MCTFS)</td><td>${data.pebdOfRecord || 'Not entered'}</td></tr>
                         </table>
                     </div>
 
@@ -2622,6 +2934,7 @@
                         </table>
                     </div>
 ${timeLossSectionHTML}
+${recordWarningsHTML}
 
                     <div style="margin-top: 20px; font-size: 9px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
                         <p><strong>IMPORTANT NOTES:</strong> This calculation is for reference only. Official PEBD adjustments require proper channels. Verify against source documents (DD Form 4, DD Form 214, NAVMC 763).</p>
@@ -2677,7 +2990,7 @@ ${timeLossSectionHTML}
                 foundational: '20230301', status: 'Enlisted',
                 pathway: 'Enlisted DEP/Direct/Reenlisted/Prior Service',
                 periods: [
-                    { type: 'Delayed Entry Program (Post 1989 No IDT)', start: '20190115', end: '20190630', notes: 'No IDT drills - not creditable' },
+                    { type: 'Delayed Entry Program (Reserve 10 USC 12103, Post-1989, No IDT)', start: '20190115', end: '20190630', notes: 'No IDT drills before initial ADT - not creditable (DODFMR 2.2.1.8.1)' },
                     { type: 'Regular Marine Corps', start: '20190701', end: '20220630', notes: 'Active period - creditable' }
                 ],
                 losses: []
@@ -2688,6 +3001,17 @@ ${timeLossSectionHTML}
                 periods: [
                     { type: 'Naval Academy Preparatory School (NAPS)', start: '20180723', end: '20190517', notes: 'Enlisted service - credits on all pathways (PAA 04-25 Note 8)' },
                     { type: 'Military Academy Service', start: '20190628', end: '20230526', notes: 'Midshipman years - no credit on Officer pathway' }
+                ],
+                losses: []
+            },
+            {
+                foundational: '20220617', status: 'Officer',
+                pathway: 'Officer OCC/PLC/NROTC/Academy',
+                plcFinancialAssistance: 'No', doeaf: '20200915', afadbd: '20210522',
+                periods: [
+                    { type: 'PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)', start: '20200915', end: '20210521', notes: 'Inactive PLC time before OCS, no IDT - excluded (DODFMR 2.2.1.8.1)' },
+                    { type: 'Officer Candidate Active Duty for Training (OCS)', start: '20210522', end: '20210730', notes: 'OCS active duty for training - credits' },
+                    { type: 'PLC / Officer Candidate (Inactive After Initial ADT)', start: '20210731', end: '20220616', notes: 'Inactive Reserve time after the initial ADT - credits (DODFMR 2.1.3.2). Foundational date is the date of acceptance of the commission (DODFMR 2.4.1.1.2)' }
                 ],
                 losses: []
             }
@@ -2702,6 +3026,10 @@ ${timeLossSectionHTML}
             document.getElementById('foundationalPEBD').value = ex.foundational;
             document.getElementById('marineStatus').value = ex.status;
             document.getElementById('pathwayType').value = ex.pathway;
+            document.getElementById('plcFinancialAssistance').value = ex.plcFinancialAssistance || '';
+            document.getElementById('doeaf').value = ex.doeaf || '';
+            document.getElementById('afadbd').value = ex.afadbd || '';
+            document.getElementById('pebdOfRecord').value = ex.pebdOfRecord || '';
 
             while (servicePeriodRows().length < ex.periods.length) addServicePeriod();
             const rows = servicePeriodRows();
@@ -2723,9 +3051,11 @@ ${timeLossSectionHTML}
                 row.querySelector('input[data-field="startDate"]').value = t.start;
                 row.querySelector('input[data-field="endDate"]').value = t.end;
                 row.querySelector('input[data-field="officerTime"]').checked = !!t.officer;
+                row.querySelector('input[data-field="madeGood"]').checked = !!t.madeGood;
                 row.querySelector('input[data-field="notes"]').value = t.notes || '';
                 updateTimeLossPeriod(i);
             });
+            refreshPathwayFields();
 
             document.getElementById('results').classList.add('hidden');
             document.getElementById('printBtn').disabled = true;
@@ -2750,7 +3080,8 @@ ${timeLossSectionHTML}
                 cui,
                 '',
                 'PEBD CORRECTION REQUEST',
-                'Per MARADMIN 052/26',
+                'Per MARADMIN 052/26 para 3.c (PAC to MMPB-21)',
+                'References: 37 USC 205; DODFMR Vol 7A Ch 1 (May 2024); MCRCO 1100.1B; MCO 1560.33; 10 USC 12103; PAA 04-25',
                 '',
                 'Calculation Date: ' + (data.calculationDate || new Date().toISOString().slice(0, 10)),
                 '',
@@ -2758,6 +3089,10 @@ ${timeLossSectionHTML}
                 'Marine Status: ' + data.marineStatus,
                 'Pathway Type: ' + data.pathwayType,
                 'Foundational PEBD: ' + data.foundationalPEBD,
+                'PLC Financial Assistance (10 USC 16401): ' + (data.plcFinancialAssistance || 'Not applicable'),
+                'DOEAF (MCTFS): ' + (data.doeaf || 'not entered'),
+                'AFADBD (MCTFS): ' + (data.afadbd || 'not entered'),
+                'PEBD of Record (MCTFS): ' + (data.pebdOfRecord || 'not entered'),
                 'Service Periods (creditable): ' + data.numPeriods,
                 '',
                 '--- CALCULATED RESULT ---',
@@ -2765,14 +3100,19 @@ ${timeLossSectionHTML}
                 'Net Creditable Service: ' + data.normalized.years + ' years, ' + data.normalized.months + ' months, ' + data.normalized.days + ' days',
                 'Total Time Loss (30-day basis): ' + (data.timeLossApplied ? fmtYMD(data.timeLossTotals) : 'none'),
                 '',
+                '--- RECORD CROSS-CHECKS ---',
+                ...(data.recordWarnings.length ? data.recordWarnings.map((w, k) => (k + 1) + '. ' + w) : ['No record warnings.']),
+                '',
                 '--- ATTACHMENT INSTRUCTIONS ---',
                 'Before sending, attach the printed report.',
                 'Use the Print Report button on the results view to generate the PDF.',
                 '',
-                '--- WORKFLOW STAGE ---',
-                'Step 3 of MARADMIN 052/26: Escalation to MMPB-21.',
-                'Marine has notified PAC. PAC has validated against OMPF and MCTFS D188 remark.',
-                'Forwarding for review and adjustment via MISSO 9.',
+                '--- WORKFLOW STAGE (MARADMIN 052/26) ---',
+                'Para 3.a: Marine notified the servicing PAC by EPAR.',
+                'Para 3.c: PAC validated creditable service against the OMPF and the MCTFS D188 remark. D188 remark and Key Supporting Documents updated as required.',
+                'Para 3.c: PEBD of record found incorrect. Case forwarded to MMPB-21 per the PRIUM for validation and correction.',
+                'PAA 04-25 para 8.a: submitted via the chain of command, endorsed by the supporting IPAC, with all necessary source documentation attached.',
+                'Para 3.d: MMPB-21 to assign an action officer and forward the adjustment to MISSO 9 for reporting.',
                 '',
                 cui
             ];
@@ -2790,10 +3130,15 @@ ${timeLossSectionHTML}
             document.getElementById('foundationalPEBD').value = '';
             document.getElementById('marineStatus').value = 'Enlisted';
             document.getElementById('pathwayType').value = 'Enlisted DEP/Direct/Reenlisted/Prior Service';
+            document.getElementById('plcFinancialAssistance').value = '';
+            document.getElementById('doeaf').value = '';
+            document.getElementById('afadbd').value = '';
+            document.getElementById('pebdOfRecord').value = '';
 
             // Rebuild the dynamic period tables
             initializePeriods();
             initializeTimeLossPeriods();
+            refreshPathwayFields();
 
             document.getElementById('results').classList.add('hidden');
             document.getElementById('printBtn').disabled = true;

@@ -1,0 +1,166 @@
+PAA 04-25 
+SUBJ/ ADMINISTRATIVE GUIDANCE ON THE PROPER COMPUTATION OF CREDITABLE 
+SERVICE AND PAY ENTRY BASE DATE 
+REF/A/37 U.S.C § 205// 
+REF/B/DODFMR Volume 7A Chap 1// 
+REF/C/MCRO 1100.1B/ 
+REF/D/MCO 1560.33// 
+REF/E/10 USC 12103// 
+GENTEXT/REMARKS/1. This message is labeled Personnel Administrative Advisory (PAA) 04-25. All 
+current PAAs are located under the reference tab of the Manpower Information System Support Activity 
+(MISSA) portal. https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa. Request addressees 
+disseminate this PAA to subordinate organizations/units as applicable.  
+1. Background 
+In October 2024, the Assistant Deputy Commandant for Manpower & Reserve Affairs (ADC M&RA) 
+tasked the Pay Entry Base Date (PEBD) Working Group (WG) to conduct an end-to-end review of PEBD 
+processes and procedures. It was determined there is a need for clear and concise guidance within the 
+Marine Corps that clearly defines creditable service, standardizes the computation of PEBD, and defines 
+the business rules that govern the establishment and adjustment of PEBD.  
+2. Definitions 
+2.a PEBD is the actual or constructive date of original entry into the Armed Forces, which is creditable for 
+pay purposes calculated according to a 30-day month, for all months. 
+2.b Creditable Service is determined by adding together all eligible service periods to determine a 
+Marine’s PEBD. 
+3. Purpose 
+This advisory provides guidance to administrative personnel for the accurate establishment and 
+adjustment of PEBD by defining periods of creditable service per Ref (a) and Ref (b), standardizing the 
+process of PEBD computation, and applying PEBD business rules. 
+4. Periods of Creditable Service    
+4.a. Includes active or inactive service, in accordance with Ref (b), in any of the following:  
+1. Air Force of the United States (service without specification of a component). 
+2. Air National Guard. 
+3. Army National Guard of the United States (ARNGUS). 
+4. Army, Navy, Marine Corps, Air Force, Space Force, and Coast Guard Reserve. 
+5. Army of the United States (service without specification of a component). 
+6. Army Reserve National Guard (ARNG). 
+7. National Guard and National Guard of the United States. 
+8. Nurse Corps and Nurse Corps Reserve of the Public Health Service (PHS). 
+9. PHS and Reserve Corps of the PHS. 
+10. Regular service in the Army, Air Force, Navy, Coast Guard, and Marine Corps. 
+4.b. Other periods of creditable service in accordance with Ref (a) and Ref (b) include: 
+1. Officer, deck officer, or junior engineer service in the National Oceanic and Atmospheric 
+Administration.  
+2. Service on a military service retired list, temporary disability retired list, or honorary retired list 
+of any uniformed service or service as a member of the Fleet Reserve or Fleet Marine Corps 
+Reserve. 
+3. Any period of service during which a member is entitled to retired, retirement, or retainer pay 
+from any uniformed service. 
+4. Service as a cadet or midshipman at a military academy is always creditable service for an 
+enlisted member who is not commissioned.  
+5. The time that an enlisted member is retained after expiration of term of service of an Armed 
+Force for medical care or hospitalization for disease or injury incident to service. 
+6. Service otherwise creditable that is performed before a Marine reaches the statutory age for 
+enlistment, unless the enlistment contract was voided or invalidated for fraud. 
+7. Active service performed as a temporary member of the U.S Coast Guard Reserve. 
+8. Service terminated by desertion or dishonorable discharge unless the enlistment was fraudulent 
+and was voided for that reason. 
+9. Periods of service when a member is detailed to and receiving pay and allowances from any other 
+agency of the United States, even though accruing military pay, and allowances is suspended. 
+10. Service as a member of the Army, Navy, or Air Force Reserve Officers’ Training Corps (ROTC), 
+provided the member has concurrent Selected Reserve (drilling status) for duty performed on or 
+after 1 August 1979. 
+11. Service as an officer, Army field clerk, flight officer, aviation midshipman, or enlisted member of 
+a uniformed service (as described in Ref (b)). 
+12. Any period of service which was creditable under any federal statute in effect on 10 January 
+1962. 
+13. Service as an enlisted member in a Reserve Component (RC) before beginning Active Duty or 
+Active-Duty Training (ADT) if the Reserve enlistment was entered before 1 January 1985, 
+(including IRR service under DEP). Reference (b) contains additional restrictions that went into 
+effect after 1 January 1985.  
+Note 1: Constructive Service Credit would apply to certain medical and dental officers that are 
+entitled to extra credit to reflect time spent in medical or dental school. However, this is not a regular 
+occurrence. For further instruction see Ref (b). 
+Note 2: PEBD for Marine Corps Tuition Assistance Program (MCTAP) recipients within the PLC 
+program is date of commissioning unless individual was prior Drilling Reservist in which case PEBD 
+would remain the same as initial entry Ref (d).  
+5. Periods of Non-Creditable Service 
+1. The time served in an enlistment or commission that is terminated (excluding Administrative 
+Separation (ADSEP)), voided, or invalidated as fraudulent. 
+2. The period of service where underlying medical conditions require medical care or hospitalization 
+was due to misconduct. 
+3. The time served as a commissioned officer in the Philippine Army. 
+4. The period a Marine was on the Emergency Officers’ Retired List. 
+5. The period an individual was a member of a state, home, or territorial guard. 
+6. The time, subsequent to September 14, 1981, that a Marine serves while enrolled in the Armed 
+Forces Health Professions Scholarship (AFHPSP) and Financial Assistance Programs (FAP), or 
+while a Doctor of Medicine (DOM) student at the Uniformed Services University of Health 
+Sciences (USUHS). Use any service creditable on the date of the officer’s entry into DOM 
+USUHS to compute the officer’s basic pay for longevity purposes while a USUHS student, not to 
+exceed the maximum rate of O-1 pay (Table 1-7) or O-1E pay (Table 1-8), as applicable, or the 
+rate of pay of the member’s former pay grade, if greater, as outlined in reference (b) 
+7. Any period of service as a commissioned officer in the ROTC after 12 October 1964 and prior to 
+1 August 1979, even if the member held concurrent Reserve status. 
+8. The time served in an RC before beginning active duty or an initial period of ADT for enlistment 
+in an RC under 10 USC 12103 that was entered into between 1 January 1985 and 28 November 
+1989. 
+9. Enlisted service in an RC entered on or after 29 November 1989 and member doesn’t perform 
+IDT before beginning active duty or ADT under 10 USC 12103. 
+10. Enlisted service in an RC Service entered on or after 29 November 1989, under 10 USC 513 
+(excluding periods of Active Duty). 
+11. Time an individual was a member of the inactive National Guard. 
+12. Prior to February 11, 1996, commissioned or warrant officers received full credit for service days 
+regardless of absences or confinement, and enlisted members on active duty as a Reserve Officer. 
+After February 11, 1996, commissioned or warrant officers may not count periods of service 
+listed in Ref (b) other than computing service of basic pay. 
+6. Calculating Pay Entry Base Date  
+6.a. Identify the most recent date of entry to duty without a break in service to establish a “foundational” 
+PEBD. Use contractual documents to validate the date a member entered active duty. (i.e. DD Form 4 and 
+DD Form 1966).   
+6.b. If the member has reported periods of prior service, follow Steps 1-6. 
+1. Beginning Dates: List the starting date for each separate period of service (year, month, day).  
+Add all the years, months, and days separately.  Though the PEBD is determined on a 30-day month, 
+include the 31st day if the beginning date of a period of creditable service begins on that day. 
+2. Ending Dates (with Adjustments): List the ending date for each separate period of service 
+(year, month, day). Important Rule Changes: If an ending day is the 31st of any month, change it to the 
+30th. If an ending day is February 28th or 29th, change it to February 30th. Add all the adjusted ending 
+years, months, and days separately. 
+3. Subtract: Subtract the total of the beginning dates (from step 1) from the total of the adjusted 
+ending dates (from step 2). 
+4. Add Back Inclusive Days: For each separate period of service (each "gap" in service), add 1 
+day to the result from step 3. Why: Each period of service is at least one day long. Subtracting the start 
+date from the end date can result in zero days if it's only one day of service, so adding 1 ensures that 
+single day is counted. 
+5. Convert to Years, Months, and Days: The result from step 4 will be in years, months, and days. 
+Convert any extra months (more than 12) into years, and any extra days (more than 30) into months. 
+6. Calculate Adjusted PEBD: Subtract the total creditable service (the number of years, months, 
+and days calculated in step 5) from the members most recent ("foundational") PEBD. 
+Example Calculation: 
+Note 3: Adjusting the foundational PEBD to an earlier, or later, point in time, may result in an 
+increase or decrease to the longevity pay rate to which the Marine is entitled to receive pay. 
+Note 4: For any Marine with a break in service, reference source documents and compare with the 
+D188 remarks located within the Marine Corps Total Force System (MCTFS) to assist in validating 
+the PEBD. 
+7.  Calculating Pay Entry Base Date – Decision Tree  
+Note: Reference the Marine’s service contract (i.e. DD Form 214, , DD Form 4, for Enlisted or NAVMC 
+763 for Officers) to determine their accession/reaccessions and appointment/reappointment pathway, 
+respectively. 
+7.a Enlisted Accession or Reaccessions Pathway Table 
+7.b. Officer Accession or Reaccessions Pathway Table 
+Note 5: Rule 2, If PLC, and yes to Marine Corps Tuition Assistance Program (MCTAP), and serving in 
+the SMCR, then PEBD does not change Ref (d). For Law Officers using MCTAP reference MCRCO 
+1131.1A. 
+Note 6: For Reserve Officers, same rules as Active Duty Officers with adjustments based on component 
+and qualifying service Ref(b). 
+Note 7: For creditable service calculation of Reserve Enlisted and Reserve Officers review the Career 
+Retirement Credit Record (CRCR) located within the MCTFS RT07 view.  
+Note 8: Rule 4 includes commissioned with prior service, including Naval Academy Preparatory School 
+(NAPS). 
+8. Manpower Strategy Branch, Manpower & Reserve Affairs, has initiated coordination with all accession 
+and reaccessions stakeholders to develop higher level policy that establishes PEBD authorities and 
+governance, defines common PEBD related terminology, reinforces Creditable Service and PEBD 
+calculations, establishes roles and responsibilities, integrates accession and reaccessions reporting units 
+into Marine Corps Administrative Analysis Team (MCAAT) annual inspection cycle, and establishes 
+timely and regular PEBD reviews for all Marines. 
+8.a.  The authority to report and adjust PEBD is restricted to MCRC, TECOM (via the Marine Corps 
+Recruit Depots), the Marine Corps Base Quantico Installation Personnel Administration Center (IPAC), 
+and M&RA (Manpower Information System Support Offices (MISSO), and Manpower Management 
+Separation and Retirement (MMSR)). All requests for review or correction to PEBD must be submitted 
+via chain of command and endorsed by the supporting IPAC to Manpower Management Performance 
+Branch 21 (MMPB-21). All requests for review or correction must include all necessary source 
+documentation.  
+9. The point of contact regarding this guidance is Lieutenant Colonel Jordan R. Northrup, Manpower 
+Strategy Branch (MX), Manpower & Reserve Affairs (M&RA) at (703) 784-4314 or via e-mail at 
+jordan.r.northrup.mil@usmc.mil. 
+Michael R. Strobl 
+Assistant Deputy Commandant 
+Manpower & Reserve Affairs 
