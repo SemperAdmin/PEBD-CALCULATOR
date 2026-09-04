@@ -1,7 +1,8 @@
 # Handoff: PLC officer candidate creditability (37 U.S.C. 205(f)) and MCTFS cross-checks
 
 Branch: `claude/calculation-analysis-baseline-dgy21y`
-Status: specification only. No application code has changed yet. Implement locally from this document.
+Status: implemented on this branch. Corrected after reading DoDFMR Vol 7A Chapter 1 (May 2024), which the
+first draft of this document was written without. Paragraph cites below are to that chapter.
 
 ## Why this exists
 
@@ -11,54 +12,66 @@ officer records. The fact pattern below is anonymized. Do not add any real Marin
 
 ## Governing rule
 
-- 37 U.S.C. 205(a): every period of service as a member of a Reserve component counts toward basic pay
-  longevity, active or inactive.
-- 37 U.S.C. 205(f): for an officer commissioned after receiving PLC financial assistance under
-  10 U.S.C. 16401, service after 1 January 2000 performed concurrently as an enlisted PLC member and
-  Marine Corps Reserve member is excluded, except time on active duty and time as a Selected Reserve member.
-- Consequence: a PLC officer's PEBD is either the original PLC enlistment date (no financial assistance)
-  or the start of continuous commissioned service backed up only by OCS active duty for training
-  (financial assistance received, non-SelRes). A PEBD equal to the OCS report date has no rule behind it.
+- DoDFMR Vol 7A Ch 1 para 2.1.3.2: Marine Corps Reserve service, active or inactive, is creditable without restriction.
+- Para 2.1.4.12.2.1 and 2.2.1.8.1: for a Reserve enlistment under 10 U.S.C. 12103(b) or (d) entered on or after
+  29 November 1989, inactive Reserve time before beginning active duty or an initial period of ADT is creditable
+  only if the member performed IDT before that point. Without IDT, the pre-ADT time is excluded. Reserve time
+  after the initial ADT falls back under 2.1.3.2 and counts.
+- Para 2.4.1.1.2: an officer's initial basic pay date is the date of acceptance of the commission, not the date
+  of rank.
+- Para 2.1.4.10: ROTC service credits only with concurrent Selected Reserve drilling status on or after
+  1 August 1979.
+- 37 U.S.C. 205(f): an officer appointed under 10 U.S.C. 12203 after receiving PLC financial assistance under
+  10 U.S.C. 16401 loses post-1999 inactive PLC time, except active duty and Selected Reserve time. The DoDFMR
+  chapter does not mention PLC, 16401, or 12203. MCTFS follows the DoDFMR. Current PLC graduates receive regular
+  appointments under 10 U.S.C. 531, which 205(f) does not name.
+- Consequence for a PLC candidate with no IDT before OCS: the pre-OCS inactive time is excluded, the OCS weeks
+  credit, the post-OCS inactive time credits, and the PEBD lands on the first OCS report date, equal to AFADBD.
+  That is a computed result, not a shortcut. 205(f) moves the PEBD later only for a 12203 appointee with
+  financial assistance.
 
-Open legal questions to resolve with MMPB-21 before hard-coding beyond the spec:
-1. 205(f) names officers appointed under 10 U.S.C. 12203 (Reserve). Current PLC graduates receive regular
-   appointments under 10 U.S.C. 531. Confirm how DFAS applies 205(f) to 531 appointees.
-2. Confirm the three ROTC rows in SERVICE_TYPES against the current DoDFMR Vol 7A Chapter 1 text.
-   10 U.S.C. 2107 carries a parallel financial assistance exclusion. Leave the ROTC rows alone until confirmed.
+Superseded claims from the first draft, kept here so nobody re-derives them:
+- "A PEBD equal to the OCS report date has no rule behind it." Wrong. Para 2.2.1.8.1 produces exactly that date.
+- "Same status on either side of OCS must carry the same creditability." Wrong. The DoDFMR draws the line at
+  the initial ADT. The same-status warning was removed.
+- "Path A, no financial assistance, returns to the enlistment date." Wrong unless IDT was performed before OCS.
 
 ## Anonymized fact pattern used for the new example and tests
 
 | Date | Event |
 |---|---|
-| 20200915 | Enlisted USMCR as a PLC officer candidate, E1, inactive, non-drilling |
-| 20210522 to 20210730 | OCS active duty for training |
-| 20210731 to 20220616 | PLC officer candidate, inactive, non-drilling |
-| 20220617 | Date of rank, 2ndLt |
+| 20200915 | Enlisted USMCR as a PLC officer candidate, E1, inactive, no IDT |
+| 20210522 to 20210730 | OCS active duty for training (initial ADT) |
+| 20210731 to 20220616 | PLC officer candidate, inactive |
+| 20220617 | Commission accepted |
 | 20220725 | Reported to active duty (TBS), continuous to present |
 
 Expected results, verified against the shipped engine on this branch:
 
-| Path | Foundational PEBD | Creditable prior period | Credit | PEBD |
+| Path | Foundational PEBD | Creditable prior periods | Credit | PEBD |
 |---|---|---|---|---|
-| A. No 16401 financial assistance | 20220725 | Marine Corps Reserve 20200915 to 20220724 | 1y 10m 10d | 20200915 |
-| B. Financial assistance, non-SelRes, commissioned status bridges to active duty | 20220617 | OCS active duty 20210522 to 20210730 | 0y 2m 9d | 20220408 |
-| B-alt. Financial assistance, no bridging status | 20220725 | OCS active duty 20210522 to 20210730 | 0y 2m 9d | 20220516 |
+| DoDFMR, no IDT before OCS | 20220617 | OCS 20210522 to 20210730, post-OCS Reserve 20210731 to 20220616 | 1y 0m 25d | 20210522 |
+| IDT performed before OCS | 20220617 | All three rows | 1y 9m 2d | 20200915 |
+| 37 U.S.C. 205(f), 12203 appointee with 16401 assistance | 20220617 | OCS only | 0y 2m 9d | 20220408 |
+| 205(f), no bridging commissioned status | 20220725 | OCS only | 0y 2m 9d | 20220516 |
 
 ## Work items
 
-### 1. New service types (index.html SERVICE_TYPES near line 1711, test-calculations.js SERVICE_TYPES near line 11)
+### 1. New service types (index.html SERVICE_TYPES, test-calculations.js SERVICE_TYPES)
 
-Add four entries, category "Officer Candidate". Keep both copies identical. The suite asserts they match.
+Six entries, category "Officer Candidate". Keep both copies identical. Section 12 of the suite asserts they match.
 
-| Key | creditable |
-|---|---|
-| PLC / Officer Candidate (No 16401 Financial Assistance) | true |
-| PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999) | false |
-| PLC / Officer Candidate (16401 Financial Assistance, SelRes) | true |
-| Officer Candidate Active Duty for Training (OCS) | true |
+| Key | creditable | Authority |
+|---|---|---|
+| PLC / Officer Candidate (Inactive Before Initial ADT, No IDT) | false | 2.2.1.8.1 |
+| PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed) | true | 2.1.4.12.2.1 |
+| PLC / Officer Candidate (Inactive After Initial ADT) | true | 2.1.3.2 |
+| PLC / Officer Candidate (Inactive After Initial ADT, 37 USC 205(f): 16401 Financial Assistance, 12203 Appointee) | false | 37 U.S.C. 205(f) |
+| PLC / Officer Candidate (Selected Reserve, Drilling) | true | 2.1.3.2 |
+| Officer Candidate Active Duty for Training (OCS) | true | 2.1.3.2 |
 
-Keep `isServiceCreditable` (index.html near line 1758, test file near line 103) as the single decision point.
-Do not add creditability logic anywhere else.
+The ROTC post-1979 row was relabeled "ROTC (On/After 1 Aug 1979, Concurrent SelRes Drilling)" to carry the
+2.1.4.10 condition. Keep `isServiceCreditable` as the single decision point.
 
 ### 2. Pathway control (index.html select id pathwayType near line 1473)
 
@@ -79,37 +92,29 @@ assistance field in item 3).
 
 ### 4. DOEAF and AFADBD cross-checks
 
-Add two optional inputs beside the foundational PEBD (id foundationalPEBD near line 1461): DOEAF and AFADBD,
-YYYYMMDD, same validation as the other date fields. After a successful calculation emit non-blocking warnings:
+Optional DOEAF and AFADBD inputs beside the foundational PEBD. After a successful calculation, non-blocking notes:
 
-- Calculated PEBD is later than DOEAF and no non-creditable period was entered:
-  "PEBD is later than DOEAF with no excluded service to explain the gap. Verify creditability of each period."
-- Calculated PEBD equals AFADBD and at least one Reserve-category period was entered:
-  "PEBD equals the first active duty date while Reserve service is present. This is the signature of a PEBD set
-  to an OCS or IADT report date instead of computed. Recompute."
-- AFADBD is blank or 00000000 while an active-category period is entered:
-  "AFADBD is missing on a member with active service. Report as a separate MCTFS record error."
-
-Show the warnings in a list under the results and include them in the print report and the MMPB-21 package.
+- Calculated PEBD later than DOEAF with no non-creditable period entered: verify creditability of each period.
+- Calculated PEBD equal to AFADBD with Reserve service entered: shown as a confirmation prompt. This is the
+  expected outcome for a post-1989 Reserve enlistment with no IDT before the initial ADT (2.2.1.8.1). Confirm no
+  IDT was performed and no Reserve service after the initial ADT was excluded.
+- AFADBD 00000000, or blank while DOEAF is filled, with active service entered: report as a separate MCTFS error.
+- A 205(f) row entered while the financial assistance field says No.
 
 ### 5. Same-status consistency warning
 
-When two periods share a service type, sit on either side of an active-category period, and one is creditable
-while the other is not, emit: "Periods N and M carry the same status but different creditability. Both must be
-treated the same under 37 U.S.C. 205." Evaluate after item 1 lands, since the new PLC types make this detectable.
+Removed. The first draft assumed inactive Reserve time before and after OCS must share creditability. The DoDFMR
+splits them at the initial ADT, so the warning would flag correct entries.
 
 ### 6. Example and tests
 
-- Add a guided example to PEBD_EXAMPLES (index.html near line 2639) using path B from the fact pattern above,
-  with a notes string naming path A as the alternative. Add a matching example card in the examples panel and
-  a matching entry in the how-to walkthrough.
+- Guided example 7 uses the DoDFMR path from the fact pattern above and lands on 20210522. The card explains how
+  to switch row 3 to the 205(f) variant for 20220408.
 - Add tests to test-calculations.js:
-  - each of the four new types returns the expected creditability on both pathways
-  - path A computes 20200915
-  - path B computes 20220408
-  - path B-alt computes 20220516
-  - the SERVICE_TYPES tables in index.html and the test file still match
-- Run `node test-calculations.js`. Current baseline on this branch: 163 passed, 0 failed.
+  - each of the six new types returns the expected creditability on both pathways
+  - DoDFMR path computes 20210522, IDT path 20200915, 205(f) path 20220408, 205(f) anchored on active duty 20220516
+  - the SERVICE_TYPES table, the cross-check block, and every guided example are loaded out of index.html
+- Run `node test-calculations.js`. Current result on this branch: 208 passed, 0 failed.
 
 ### 7. Documentation
 
@@ -127,6 +132,6 @@ treated the same under 37 U.S.C. 205." Evaluate after item 1 lands, since the ne
 ## Definition of done
 
 - All seven items above landed on this branch with tests green.
-- Loading the new example and clicking Calculate shows 20220408, and switching the financial assistance
-  field to No with the period type changed to the no-assistance variant over the full Reserve span shows 20200915.
+- Loading the new example and clicking Calculate shows 20210522 with the AFADBD confirmation note, and
+  switching row 3 to the 205(f) variant with the financial assistance field set to Yes shows 20220408.
 - No real names, EDIPIs, dates of birth, or addresses anywhere in the diff.

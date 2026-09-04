@@ -1418,8 +1418,9 @@
                 <ol>
                     <li><strong>Enter the Foundational PEBD.</strong> This is the beginning date of the Marine's most recent period of continuous service for pay, in YYYYMMDD format (example: 20240115). Validate it against the DD Form 4 or DD Form 1966.</li>
                     <li><strong>Select Marine Status and Pathway Type.</strong> The pathway drives two rules - Military Academy service credits only on enlisted pathways (PAA 04-25 para 4.b.4), and the Officer pathway opens the PLC financial assistance field. Naval Academy Preparatory School (NAPS) time is enlisted service and credits on every pathway, including Officer (PAA 04-25 Note 8).</li>
-                    <li><strong>Answer the PLC financial assistance question for officer candidates.</strong> The one fact deciding a Platoon Leaders Class officer's PEBD is whether the officer took financial assistance under 10 U.S.C. 16401. No: every day of Marine Corps Reserve membership counts (37 U.S.C. 205(a)), so use the "No 16401 Financial Assistance" service type for the whole PLC span. Yes: post-1999 PLC time is excluded except OCS active duty and Selected Reserve time (37 U.S.C. 205(f)), so enter the inactive PLC time with the "16401 Financial Assistance, Non-SelRes" type and the OCS weeks with the "Officer Candidate Active Duty for Training (OCS)" type. The calculator will not score a PLC row until the question is answered. Confirm the answer from the PLC contract annex before filing a correction.</li>
-                    <li><strong>Transcribe DOEAF and AFADBD from MCTFS (optional).</strong> With these two dates entered, the result view lists record warnings: a PEBD later than DOEAF with nothing excluded, a PEBD equal to the first active duty date while Reserve service is present (the signature of a PEBD set to an OCS or IADT report date instead of computed), a zeroed AFADBD on a member with active service, and same-status periods on either side of active duty carrying different creditability. Enter 00000000 for AFADBD when the record shows zeros.</li>
+                    <li><strong>Enter Platoon Leaders Class time in three pieces.</strong> For a Reserve PLC enlistment on or after 29 Nov 1989: the inactive time before the first OCS increment is excluded unless the candidate performed IDT (DODFMR Vol 7A Ch 1 para 2.2.1.8.1), the OCS weeks are active duty for training and credit, and the inactive time after the first increment counts as ordinary Reserve service (para 2.1.3.2). The result normally lands on the first OCS report date. For an officer, the foundational PEBD is the date of acceptance of the commission, not the date of rank (para 2.4.1.1.2).</li>
+                    <li><strong>Answer the PLC financial assistance question for officer candidates.</strong> The calculator will not score a PLC row until it is answered. The answer changes the result only for an officer appointed under 10 U.S.C. 12203 who received financial assistance under 10 U.S.C. 16401: 37 U.S.C. 205(f) then also excludes the inactive PLC time after the first increment. Use the 205(f) service type for that period. The DODFMR chapter does not implement 205(f), so confirm the appointment authority on the NAVMC 763 and the assistance from the PLC contract annex before filing a correction.</li>
+                    <li><strong>Transcribe DOEAF and AFADBD from MCTFS (optional).</strong> With these two dates entered, the result view lists record notes: a PEBD later than DOEAF with nothing excluded, a PEBD equal to AFADBD (expected for a post-1989 Reserve enlistment with no IDT before the initial ADT, confirm the facts), a zeroed AFADBD on a member with active service, and a 205(f) row entered with the financial assistance field set to No. Enter 00000000 for AFADBD when the record shows zeros.</li>
                     <li><strong>Add each period of prior service.</strong> One row per separate period, with service type and inclusive start/end dates. The Creditable column updates as you type - a green check in the Days column means the dates are valid. Use "Add Service Period" for more rows.</li>
                     <li><strong>Record any time loss.</strong> Add a row for AWOL, confinement, or other lost time. Deductible loss is computed on the 30-day basis per DODFMR Vol 7A Ch 1 and reduces creditable service. Check "Officer Time?" for loss during commissioned service - it is recorded but not deducted.</li>
                     <li><strong>Click Calculate PEBD.</strong> The breakdown shows the PAA 04-25 six-step method: begin totals, end totals, difference, +1 inclusive day per period, time loss, and the normalized result subtracted from the foundational PEBD.</li>
@@ -1475,9 +1476,9 @@
                     <button class="example-load-btn" onclick="loadExample(5)">Load Example</button>
                 </div>
                 <div class="example-card">
-                    <h4>7. PLC Officer, 37 U.S.C. 205(f)</h4>
-                    <p>A PLC candidate who took 10 U.S.C. 16401 financial assistance. Only the OCS active duty credits before commissioning. The inactive PLC time on both sides of OCS is excluded. For path A, set the financial assistance field to No, change both PLC rows to the no-assistance variant, and recalculate: every Reserve day counts.</p>
-                    <div class="example-expect">Expected: 0y 2m 9d creditable, PEBD 20220408. Path A: 1y 9m 2d, PEBD 20200915</div>
+                    <h4>7. PLC Officer Candidate (DODFMR 2.2.1.8.1)</h4>
+                    <p>A Reserve PLC enlistment on or after 29 Nov 1989 with no IDT before OCS. The inactive time before the initial ADT is excluded, the OCS weeks credit, and the inactive time after OCS counts as ordinary Reserve service. The PEBD lands on the OCS report date, matching AFADBD. To see 37 U.S.C. 205(f) for a 12203 appointee with 16401 financial assistance, change row 3 to the 205(f) variant and recalculate.</p>
+                    <div class="example-expect">Expected: 1y 0m 25d creditable, PEBD 20210522. 205(f) variant: 0y 2m 9d, PEBD 20220408</div>
                     <button class="example-load-btn" onclick="loadExample(6)">Load Example</button>
                 </div>
             </div>
@@ -1526,7 +1527,7 @@
                         <option value="Yes">Yes - received financial assistance</option>
                         <option value="No">No - no financial assistance</option>
                     </select>
-                    <span class="field-hint">Required when any period uses a PLC / Officer Candidate type. Yes applies 37 U.S.C. 205(f): before commissioning only OCS active duty and Selected Reserve time credit. No credits every day of Reserve membership under 205(a).</span>
+                    <span class="field-hint">Required when any period uses a PLC / Officer Candidate type. Under the DoDFMR the answer changes nothing: inactive PLC time before the initial ADT is excluded without IDT (para 2.2.1.8.1) and Reserve time after it counts (para 2.1.3.2). Yes matters only for an officer appointed under 10 U.S.C. 12203, where 37 U.S.C. 205(f) also excludes inactive PLC time after the initial ADT. Use the 205(f) service type for that period.</span>
                 </div>
             </div>
         </div>
@@ -1791,7 +1792,7 @@
             "Cadet/Midshipman Service (Non-Commissioned)": { creditable: true, category: "Academy" },
             "Naval Academy Preparatory School (NAPS)": { creditable: true, category: "Academy" },
             "Temporary Coast Guard Reserve": { creditable: true, category: "Reserve" },
-            "ROTC (Post 1979 w/Reserve)": { creditable: true, category: "ROTC" },
+            "ROTC (On/After 1 Aug 1979, Concurrent SelRes Drilling)": { creditable: true, category: "ROTC" },
             "ROTC (1964-1979)": { creditable: false, category: "ROTC" },
             "ROTC (Pre-1964)": { creditable: false, category: "ROTC" },
             "Service with Retired Pay": { creditable: true, category: "Retired" },
@@ -1812,13 +1813,18 @@
             "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
             "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
             "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" },
-            // Marine Corps Platoon Leaders Class / officer candidate enlistments (37 U.S.C. 205).
-            // 205(a) credits every day as a Reserve component member. 205(f) excludes post-1999
-            // PLC time for officers who received financial assistance under 10 U.S.C. 16401,
-            // except active duty and Selected Reserve time.
-            "PLC / Officer Candidate (No 16401 Financial Assistance)": { creditable: true, category: "Officer Candidate" },
-            "PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)": { creditable: false, category: "Officer Candidate" },
-            "PLC / Officer Candidate (16401 Financial Assistance, SelRes)": { creditable: true, category: "Officer Candidate" },
+            // Marine Corps Platoon Leaders Class / officer candidate enlistments.
+            // DoDFMR Vol 7A Ch 1 para 2.2.1.8.1: for a Reserve enlistment on or after 29 Nov 1989
+            // under 10 U.S.C. 12103(b)/(d), inactive time before the initial ADT is excluded
+            // unless IDT was performed. Para 2.1.3.2: Reserve time after the initial ADT counts.
+            // 37 U.S.C. 205(f) (not implemented in the DoDFMR chapter): an officer appointed
+            // under 10 U.S.C. 12203 after 16401 financial assistance loses post-1999 inactive
+            // PLC time, except active duty and Selected Reserve time.
+            "PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)": { creditable: false, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Inactive Before Initial ADT, IDT Performed)": { creditable: true, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Inactive After Initial ADT)": { creditable: true, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Inactive After Initial ADT, 37 USC 205(f): 16401 Financial Assistance, 12203 Appointee)": { creditable: false, category: "Officer Candidate" },
+            "PLC / Officer Candidate (Selected Reserve, Drilling)": { creditable: true, category: "Officer Candidate" },
             "Officer Candidate Active Duty for Training (OCS)": { creditable: true, category: "Officer Candidate" }
         };
 
@@ -1845,15 +1851,6 @@
             const cat = SERVICE_TYPES[serviceType]?.category;
             return cat === "Reserve" || (cat === "Officer Candidate" && serviceType !== OCS_ADT_TYPE);
         }
-        // Periods describing the same underlying status share a family even when the
-        // user picked different catalog variants (PLC, DEP, ROTC).
-        function serviceStatusFamily(serviceType) {
-            if (serviceType === OCS_ADT_TYPE) return serviceType;
-            if (isOfficerCandidateType(serviceType)) return "PLC / Officer Candidate";
-            if (serviceType.startsWith("Delayed Entry Program")) return "Delayed Entry Program";
-            if (serviceType.startsWith("ROTC")) return "ROTC";
-            return serviceType;
-        }
         // Non-blocking warnings against the MCTFS record.
         // ctx: { calculatedPEBD, doeaf, afadbd, plcFinancialAssistance, periodDetails }
         // periodDetails: [{ period, serviceType, startDate, endDate, creditable }]
@@ -1869,8 +1866,11 @@
             if (parseDate(doeaf) && ctx.calculatedPEBD > doeaf && !hasExcluded) {
                 warnings.push('PEBD is later than DOEAF with no excluded service to explain the gap. Verify creditability of each period.');
             }
+            // A PEBD equal to the first active duty date is the expected outcome for a Reserve
+            // enlistment on or after 29 Nov 1989 with no IDT before the initial ADT
+            // (DoDFMR Vol 7A Ch 1 para 2.2.1.8.1). Confirm the facts rather than assume an error.
             if (parseDate(afadbd) && ctx.calculatedPEBD === afadbd && hasReserve) {
-                warnings.push('PEBD equals the first active duty date while Reserve service is present. This is the signature of a PEBD set to an OCS or IADT report date instead of computed. Recompute.');
+                warnings.push('PEBD equals AFADBD. Expected when the Reserve enlistment is on or after 29 Nov 1989 and no IDT was performed before the initial ADT (DoDFMR Vol 7A Ch 1 para 2.2.1.8.1). Confirm no IDT was performed and no Reserve service after the initial ADT was excluded.');
             }
             // A zeroed AFADBD is a record error. A blank AFADBD next to a filled DOEAF means the
             // user transcribed the MCTFS fields and the record had nothing to transcribe.
@@ -1878,29 +1878,13 @@
                 warnings.push('AFADBD is missing on a member with active service. Report as a separate MCTFS record error.');
             }
 
-            // PLC financial assistance answer versus the variant chosen on each row.
+            // The 37 U.S.C. 205(f) variant requires financial assistance under 10 U.S.C. 16401.
             const fa = ctx.plcFinancialAssistance || '';
             periods.forEach(p => {
-                const isFaVariant = p.serviceType.includes('(16401 Financial Assistance');
-                const isNoFaVariant = p.serviceType.includes('(No 16401');
-                if (fa === 'No' && isFaVariant) warnings.push(`Period ${p.period} uses a financial assistance variant but the financial assistance field says No.`);
-                if (fa === 'Yes' && isNoFaVariant) warnings.push(`Period ${p.period} uses the no-assistance variant but the financial assistance field says Yes.`);
-            });
-
-            // Same status on either side of an active period must carry the same creditability.
-            const sorted = periods.slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
-            for (let i = 0; i < sorted.length; i++) {
-                for (let j = i + 1; j < sorted.length; j++) {
-                    const a = sorted[i], b = sorted[j];
-                    if (isActiveStatusType(a.serviceType)) continue;
-                    if (serviceStatusFamily(a.serviceType) !== serviceStatusFamily(b.serviceType)) continue;
-                    if (a.creditable === b.creditable) continue;
-                    const activeBetween = sorted.some(x => isActiveStatusType(x.serviceType) && x.startDate > a.endDate && x.endDate < b.startDate);
-                    if (activeBetween) {
-                        warnings.push(`Periods ${a.period} and ${b.period} carry the same status but different creditability. Both must be treated the same under 37 U.S.C. 205.`);
-                    }
+                if (fa === 'No' && p.serviceType.includes('205(f)')) {
+                    warnings.push(`Period ${p.period} uses the 37 U.S.C. 205(f) variant but the financial assistance field says No.`);
                 }
-            }
+            });
             return warnings;
         }
         // --- END RECORD CROSS-CHECKS ---
@@ -2919,11 +2903,11 @@ ${recordWarningsHTML}
             {
                 foundational: '20220617', status: 'Officer',
                 pathway: 'Officer OCC/PLC/NROTC/Academy',
-                plcFinancialAssistance: 'Yes', doeaf: '20200915', afadbd: '20210522',
+                plcFinancialAssistance: 'No', doeaf: '20200915', afadbd: '20210522',
                 periods: [
-                    { type: 'PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)', start: '20200915', end: '20210521', notes: 'Inactive PLC time before OCS - excluded under 37 U.S.C. 205(f)' },
-                    { type: 'Officer Candidate Active Duty for Training (OCS)', start: '20210522', end: '20210730', notes: 'OCS active duty - credits' },
-                    { type: 'PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)', start: '20210731', end: '20220616', notes: 'Inactive PLC time after OCS - excluded. Path A (no assistance): both PLC rows credit, PEBD 20200915' }
+                    { type: 'PLC / Officer Candidate (Inactive Before Initial ADT, No IDT)', start: '20200915', end: '20210521', notes: 'Inactive PLC time before OCS, no IDT - excluded (DODFMR 2.2.1.8.1)' },
+                    { type: 'Officer Candidate Active Duty for Training (OCS)', start: '20210522', end: '20210730', notes: 'OCS active duty for training - credits' },
+                    { type: 'PLC / Officer Candidate (Inactive After Initial ADT)', start: '20210731', end: '20220616', notes: 'Inactive Reserve time after the initial ADT - credits (DODFMR 2.1.3.2). Foundational date is the date of acceptance of the commission (DODFMR 2.4.1.1.2)' }
                 ],
                 losses: []
             }
