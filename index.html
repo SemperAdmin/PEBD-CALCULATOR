@@ -1751,7 +1751,15 @@
             "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
             "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
             "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
-            "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" }
+            "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" },
+            // Marine Corps Platoon Leaders Class / officer candidate enlistments (37 U.S.C. 205).
+            // 205(a) credits every day as a Reserve component member. 205(f) excludes post-1999
+            // PLC time for officers who received financial assistance under 10 U.S.C. 16401,
+            // except active duty and Selected Reserve time.
+            "PLC / Officer Candidate (No 16401 Financial Assistance)": { creditable: true, category: "Officer Candidate" },
+            "PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)": { creditable: false, category: "Officer Candidate" },
+            "PLC / Officer Candidate (16401 Financial Assistance, SelRes)": { creditable: true, category: "Officer Candidate" },
+            "Officer Candidate Active Duty for Training (OCS)": { creditable: true, category: "Officer Candidate" }
         };
 
         // Academy service credits toward PEBD only on enlisted pathways (PAA 04-25)

@@ -51,7 +51,11 @@ const SERVICE_TYPES = {
     "Delayed Entry Program (Before January 1985)": { creditable: true, category: "DEP" },
     "Delayed Entry Program (1985-1989 No IDT)": { creditable: false, category: "DEP" },
     "Delayed Entry Program (Post 1989 w/IDT)": { creditable: true, category: "DEP" },
-    "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" }
+    "Delayed Entry Program (Post 1989 No IDT)": { creditable: false, category: "DEP" },
+    "PLC / Officer Candidate (No 16401 Financial Assistance)": { creditable: true, category: "Officer Candidate" },
+    "PLC / Officer Candidate (16401 Financial Assistance, Non-SelRes, Post-1999)": { creditable: false, category: "Officer Candidate" },
+    "PLC / Officer Candidate (16401 Financial Assistance, SelRes)": { creditable: true, category: "Officer Candidate" },
+    "Officer Candidate Active Duty for Training (OCS)": { creditable: true, category: "Officer Candidate" }
 };
 
 const TIME_LOSS_TYPES = {
@@ -261,7 +265,7 @@ assertEqual(calculateDays('2024010', '20240110'), 0, 'Invalid start returns 0');
 
 // ---------- 3. Service creditability ----------
 console.log('\n[3] Service creditability');
-assertEqual(Object.keys(SERVICE_TYPES).length, 43, 'Service type catalog holds 43 entries');
+assertEqual(Object.keys(SERVICE_TYPES).length, 47, 'Service type catalog holds 47 entries');
 assertEqual(isServiceCreditable('Regular Marine Corps', ENL), true, 'Regular Marine Corps creditable');
 assertEqual(isServiceCreditable('Military Academy Service', OFF), false, 'Academy on Officer pathway NOT creditable');
 assertEqual(isServiceCreditable('Military Academy Service', ENL), true, 'Academy on Enlisted pathway creditable');
