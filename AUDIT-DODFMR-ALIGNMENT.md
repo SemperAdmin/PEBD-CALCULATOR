@@ -12,7 +12,7 @@ against the governing text. Companion tool `pay-comparison.html` is out of scope
 | 37 U.S.C. 205 (subsections (a) and (f)) | Verbatim text via search index of uscode.house.gov | Primary for 205(f), which the chapter omits |
 | 10 U.S.C. 16401 | Title and purpose only | Supporting |
 | PAA 04-25 | Not reachable (SharePoint) | Unverified. Cited in the app for the Academy pathway rule, Note 8, and the six-step method |
-| MARADMIN 052/26 | Not reachable | Unverified. Cited in the app for the MMPB-21 workflow |
+| MARADMIN 052/26 (R 191450Z FEB 26) | Full text supplied, stored in `references/` | Primary for the correction workflow. Its reference list names 37 U.S.C. 205, DoDFMR Vol 7A Ch 1 of May 2024, MCRCO 1100.1B, MCO 1560.33 (Marine Corps Tuition Assistance Program), 10 U.S.C. 12103, and PAA 04-25 |
 | SOP.docx in this repository | Read | Describes the app. It is not a rule source and is not treated as one |
 
 Confidence scale: 1.0 means the app's behavior and the regulation text agree on every case I tried and I hold the text.
@@ -162,3 +162,18 @@ an unverified source.
 | 11. 205(f) application in practice | Open | MMPB-21 question, not code |
 
 Revised scores after the build: arithmetic engine 0.95, service type catalog 0.93, time loss catalog 0.93, cross-checks 0.9, test suite 0.95, weighted overall 0.94. Residuals: the made-good contract floor, the Feb 29 representation, the misconduct exception for medical retention, the active-only condition on temporary Coast Guard Reserve, ROTC pre-1964, and every PAA 04-25 and MARADMIN 052/26 cite, which remain unverified against their source text.
+
+## MARADMIN 052/26 alignment (added after the message text was supplied)
+
+| App element | MARADMIN | Verdict | Confidence |
+|---|---|---|---|
+| MMPB-21 mailbox | Para 3.c | Exact match, asserted by the suite | 1.0 |
+| Email package workflow lines | Paras 3.a, 3.c, 3.d | Corrected. The earlier text placed the MISSO 9 step on the sender; it belongs to MMPB-21 | 1.0 |
+| Two PAC paths | Para 3.c | Added. A matching PEBD with a missing period is a D188 remark update and Key Supporting Documents upload, no MMPB-21 action. An incorrect PEBD goes to MMPB-21 per the PRIUM | 0.95 |
+| Marine's EPAR | Para 3.a | Added as pre-filled text with the periods claimed and the documents to attach | 0.9 |
+| PEBD of record input | Para 3 | Added. The workflow turns on the comparison; the form never captured the record value before | 0.95 |
+| PLC financial assistance | Reference D, MCO 1560.33 | The Marine Corps lists the tuition assistance program among its PEBD references. Confidence in the 205(f) variant rises from 0.6 to 0.75. Whether MCTFS applies 205(f) to a 10 U.S.C. 531 appointee remains open | 0.75 |
+| DOEAF cross-check | Para 4, "missing data, particularly regarding prior service, can cause calculation errors even when no PEBD advisory is issued" | Supported | 0.9 |
+| Print report references | Reference list | Now carries all six references | 1.0 |
+
+Remaining unverified source: PAA 04-25 (reference F). MCRCO 1100.1B and the PRIUM are cited by name only.

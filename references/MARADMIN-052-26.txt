@@ -1,0 +1,102 @@
+MARADMINS : 052/26
+R 191450Z FEB 26
+MARADMIN 052/26
+MSGID/GENADMIN/CMC WASHINGTON DC MRA//
+SUBJ/MARINE CORPS TOTAL FORCE SYSTEM ADVISORY TO IDENTIFY REQUIRED
+CORRECTIONS TO PAY ENTRY BASE DATE//
+REF/A/MSGID/DOC/37 U.S.C § 205//
+REF/B/MSGID/DOC/DOD/20240501//
+REF/C/MSGID/DOC/MCRCO/20221101//
+REF/D/MSGID/DOC/CMC/20000504//
+REF/E/MSGID/DOC/10 USC 12103//
+REF/F/MSGID/DOC/PAA 04-25//
+NARR/REFERENCE A IS TITLE 37 U.S. CODE 205 COMPUTATION SERVICE
+CREDITABLE. REFERENCE B IS DODFMR 7000.14R, VOL 7A CHAPTER 1.
+REFERENCE C IS MCRC ORDER 1100.1B, MARINE CORPS RECRUITING COMMAND
+ENLISTMENT PROCESSING MANUAL. REFERENCE D IS MCO 1560.33, MARINE
+CORPS TUITION ASSISTANCE PROGRAM. REFERENCE E IS TITLE 10 U.S. CODE
+12103, RESERVE COMPONENT TERMS. REFERENCE F IS PERSONNEL ADMIN
+ADVISORY 04-25.
+POC/JORDAN R. NORTHRUP/LTCOL/MRA MX/TEL: (703) 784-4286/
+EMAIL: JORDAN.R.NORTHRUP.MIL@USMC.MIL//
+GENTEXT/Remarks/1. Purpose. This MARADMIN announces the future
+deployment of Marine Corps Total Force System (MCTFS) Advisory
+alerts concerning Pay Entry Base Date (PEBD) accuracy. The alerts
+are generated through an automated, data-driven process that
+analyzes data to identify and notify Marines, their commanders, and
+Personnel Administration Centers (PACs)/other reporting units of
+potential PEBD errors. This message provides critical guidance on
+understanding, interpreting, and acting upon MCTFS advisories. It is
+anticipated this advisory will go into production in Fiscal Year
+(FY) 26 Quarter 2.
+2. Background. Effective upon publication in FY25, Manpower and
+Reserve Affairs (M&RA) released Personnel Admin Advisory (PAA 04-25)
+on the proper calculation of creditable service. M&RA, Manpower
+Information Division developed a MCTFS Advisory Notice, labeled
+"PEBD Risk", to identify and notify Marines of potential PEBD risks,
+thus, enabling follow-on corrective action procedures.
+3. Execution. The PEBD error identification MCTFS advisory uses risk
+criteria, developed by the Manpower Analysis Branch (MPA) and based
+on PEBD-related data, to detect inconsistencies within individual
+personnel records in MCTFS. These risk criteria have been
+digitized into a logical framework and are applied during the 2nd
+File Purification Routine (PUREX) each month to scan the MCTFS
+database and flag potential PEBD errors. A Marine's Pay Entry Base
+Date (PEBD) must be supported by periods of creditable service as
+documented in the MCTFS D188 remark. When the service dates listed
+in the D188 remark do not align with the reported PEBD, the
+discrepancy must be identified and resolved through additional
+research.
+3.a. Actions for the Marine. Affected Marines will receive a
+notification via Marine Online (MOL) informing them of a potential
+error with their PEBD. Upon receiving a notification, Marines are
+urged to notify their servicing PAC or reporting unit, via
+Electronic Personnel Admin Request (EPAR), to verify and address
+PEBD discrepancies.
+3.b. Actions for the Command. Members with one of the following MOL
+permission templates-MOL Coordinator, Executive Officer, Sergeant
+Major, Company Commander, Company First Sergeant, or Platoon
+Commander-will receive advisory alerts via MOL regarding PEBD
+errors, enabling individuals with appropriate permission
+templates to track PEBD discrepancies at the command level.  Unit
+level administrative representatives will provide oversight and
+support to ensure that Marines and PACs comply with the advisory
+in MOL and take necessary actions to verify and correct
+administrative errors or data gaps.
+3.c. Actions for PACs and other reporting units. Once a Marine's
+PEBD is identified as having potential risk, PACs and other
+reporting units should use the Official Military Personnel File
+(OMPF) and the MCTFS D188 remark to analyze and validate periods of
+creditable service within the record. If periods of creditable
+service are missing, the PACs will update the D188 remark, as
+appropriate, and upload Key Supporting Documents to the members
+OMPF, if missing.; this corrective action will remove the
+inconsistencies from the Marine's record and will prevent further
+advisories for the same reason. Where instances of incorrect PEBD
+are found, the PACs and other reporting units, will follow
+instructions in the PRIUM and forward these cases to Manpower
+Management, Performance Branch (MMPB), Records and Performance
+Section, Research and Reconstruction Unit 21 (MMPB-21), at
+SMB_Pay_Entry_Base_Date_Correction@usmc.mil for validation and
+correction.
+3.d. Actions for MMPB-21. MMPB-21 will receive PEBD adjustment cases
+and assign an action officer to review case material. PEBDs
+requiring adjustment will be forwarded to Manpower Information
+System Support Office (MISSO) 9 for reporting.
+4. Administration and Logistics.  Marines, commands, IPACs, and
+other reporting units are urged to prioritize compliance with the
+instructions provided and facilitate necessary actions upon receipt
+of the MCTFS advisory. Units are encouraged to develop local
+tracking procedures for affected Marines. The accuracy of PEBD
+calculations depends on complete and accurate data within the MCTFS.
+Missing data, particularly regarding prior service, can cause
+calculation errors even when no PEBD advisory is issued. It is the
+Marine's responsibility to ensure all service data is annotated in
+their records. Service data gaps can be closed by Marines providing
+Key Supporting Documents to their servicing PAC for correction.
+MISSO and MMPB are available for Requests for Information and
+coaching.
+5. Command and Signal.
+5.a. This MARADMIN is applicable to the Marine Corps Total Force.
+5.b. Release authorized by Lieutenant General William J. Bowers,
+Deputy Commandant for Manpower and Reserve Affairs. //

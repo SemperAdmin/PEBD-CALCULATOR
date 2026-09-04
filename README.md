@@ -18,7 +18,7 @@ PEBD determines a service member's pay longevity and is calculated by subtractin
 - **CUI Markings** — Dynamic CUI//SP-PRVCY banners appear once the form contains data and carry through to printed reports (DoDI 5200.48)
 - **Content Security Policy** — Strict CSP meta, nosniff, and no-referrer headers (NIST SP 800-53 SC-18)
 - **Print Report** — Formatted, CUI-marked print report with governing references and calculation breakdown
-- **MMPB-21 Email Package** — Pre-filled, CUI-marked mailto escalation package per MARADMIN 052/26 Step 3
+- **MARADMIN 052/26 Workflow** — An optional PEBD of Record input drives the para 3.c routing note (D188 remark update at PAC level when the PEBD matches, MMPB-21 when it does not), a pre-filled EPAR text for the Marine's para 3.a request to the servicing PAC, and a CUI-marked mailto package for the PAC-to-MMPB-21 forward with the para 3.d MISSO 9 step stated
 - **Basic Pay Comparison Companion** — Hand off the foundational and calculated PEBD to `pay-comparison.html` for a month-by-month basic pay difference (embedded pay tables 1993-2026)
 - **Built-In Instructions** — A collapsible "How to Use" walkthrough on both pages covering every step from data entry to escalation
 - **Guided Examples** — Eleven one-click examples with verified expected results: seven on the calculator (including the PAA 04-25 and DODFMR official worked examples and a PLC officer candidate under DODFMR para 2.2.1.8.1) and four on the pay comparison (anniversary splits, mid-period promotion, the E0 four-month rule, and a Feb 29 PEBD)
@@ -31,7 +31,11 @@ PEBD determines a service member's pay longevity and is calculated by subtractin
 |-----------|-------------|
 | [PAA 04-25](https://usmc.sharepoint-mil.us/sites/dcmra_mra_mi_missa/Lists/PAA/DispForm.aspx?ID=127&e=qD8Oj2) | Creditable Service & PEBD calculation methodology |
 | [MARADMIN 052/26](https://www.marines.mil/News/Messages/Messages-Display/Article/4409903/marine-corps-total-force-system-advisory-to-identify-required-corrections-to-pa/) | MCTFS Advisory for PEBD corrections |
-| DODFMR Volume 7A, Chapter 1 | Time loss deduction and DEP creditability rules |
+| DODFMR Volume 7A, Chapter 1 (May 2024) | Time loss deduction and DEP creditability rules. MARADMIN 052/26 reference B |
+| MCRCO 1100.1B | Marine Corps Recruiting Command Enlistment Processing Manual. MARADMIN 052/26 reference C |
+| MCO 1560.33 | Marine Corps Tuition Assistance Program, the PLC financial assistance 37 U.S.C. 205(f) keys on. MARADMIN 052/26 reference D |
+| 10 U.S.C. 12103 | Reserve component enlistment terms, the authority the DEP and PLC creditability rules turn on. MARADMIN 052/26 reference E |
+| MCTFS PRIUM | Reporting instructions PAC follows when forwarding a PEBD case to MMPB-21 (MARADMIN 052/26 para 3.c) |
 | DODFMR Volume 7A, Chapter 1 paras 2.1.3.2, 2.1.4.10, 2.1.4.12, 2.2.1.8, 2.4.1.1.2 | Reserve service creditable active or inactive; ROTC with concurrent Selected Reserve drilling on or after 1 Aug 1979; post-1989 Reserve enlistments creditable before the initial ADT only with IDT; officer basic pay date starts at acceptance of the commission |
 | 37 U.S.C. 205 | Service creditable for basic pay. Subsection (f): post-1999 PLC time is excluded for an officer appointed under 10 U.S.C. 12203 after 16401 financial assistance, except active duty and Selected Reserve time. Not implemented in the DODFMR chapter |
 | 10 U.S.C. 16401 | Marine Corps Platoon Leaders Class financial assistance program |
@@ -60,6 +64,7 @@ PEBD-CALCULATOR/
 ├── pay-comparison.html     # Companion basic pay comparison tool
 ├── test-calculations.js    # Calculation logic test suite (225 checks)
 ├── AUDIT-DODFMR-ALIGNMENT.md # Line-by-line audit against DODFMR Vol 7A Ch 1 with confidence scores
+├── references/             # MARADMIN 052/26 text as published
 ├── HANDOFF-PLC-205F.md     # Specification behind the PLC / officer candidate handling
 ├── README.md
 ├── TERMS_OF_SERVICE.md     # Legal documents linked from the consent gate

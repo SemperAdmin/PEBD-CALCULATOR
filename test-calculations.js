@@ -684,6 +684,30 @@ w = buildRecordWarnings({
 });
 assertEqual(w, ['Period 1 uses the 37 U.S.C. 205(f) variant but the financial assistance field says No.'], '205(f) row with No warns');
 
+// MARADMIN 052/26 para 3.c routing on the PEBD of record.
+w = buildRecordWarnings({
+    calculatedPEBD: '20210522', doeaf: '', afadbd: '', pebdOfRecord: '20210522', plcFinancialAssistance: '',
+    periodDetails: [pd(1, OCS_ADT, '20210522', '20210730')]
+});
+assertEqual(w.length === 1 && w[0].startsWith('Calculated PEBD matches the PEBD of record'), true, 'Matching record routes to the D188 remark path');
+w = buildRecordWarnings({
+    calculatedPEBD: '20210522', doeaf: '', afadbd: '', pebdOfRecord: '20200915', plcFinancialAssistance: '',
+    periodDetails: [pd(1, OCS_ADT, '20210522', '20210730')]
+});
+assertEqual(w.length === 1 && w[0].includes('record is earlier, member may be overpaid') && w[0].includes('MMPB-21'), true, 'Earlier record routes to MMPB-21 as a possible overpayment');
+w = buildRecordWarnings({
+    calculatedPEBD: '20200915', doeaf: '', afadbd: '', pebdOfRecord: '20210522', plcFinancialAssistance: '',
+    periodDetails: [pd(1, OCS_ADT, '20210522', '20210730')]
+});
+assertEqual(w.length === 1 && w[0].includes('record is later, member may be underpaid'), true, 'Later record routes to MMPB-21 as a possible underpayment');
+
+// MARADMIN 052/26 mailbox and references, read out of the shipped page.
+const MAILBOX = (CALC_SOURCE.match(/mmpb21Mailto:\s*'([^']+)'/) || [])[1];
+assertEqual(MAILBOX, 'SMB_Pay_Entry_Base_Date_Correction@usmc.mil', 'MMPB-21 mailbox matches MARADMIN 052/26 para 3.c');
+['MCO 1560.33', 'MCRCO 1100.1B', '10 U.S.C. 12103', 'D188', 'Key Supporting Documents', 'MISSO 9', 'PRIUM'].forEach(ref => {
+    assertEqual(CALC_SOURCE.includes(ref), true, `Page carries MARADMIN 052/26 reference or term: ${ref}`);
+});
+
 // Lost time made good raises the contract-floor note.
 w = buildRecordWarnings({
     calculatedPEBD: '20140306', doeaf: '', afadbd: '', plcFinancialAssistance: '',
