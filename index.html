@@ -626,6 +626,29 @@
             background-color: var(--color-status-stale-bg);
         }
 
+        .field-hint {
+            font-size: 0.8rem;
+            color: var(--color-muted-foreground);
+            margin-top: 6px;
+        }
+
+        .record-checks {
+            margin: 30px 0 0 0;
+        }
+        .record-checks h3 { margin: 0 0 10px 0; }
+        .record-summary {
+            font-size: 0.9rem;
+            color: var(--color-muted-foreground);
+            margin: 0;
+        }
+        .record-warnings {
+            list-style: disc;
+            margin: 10px 0 0 22px;
+            padding: 0;
+            color: var(--color-status-aging-strong);
+        }
+        .record-warnings li { margin-bottom: 6px; }
+
         .empty-state {
             text-align: center;
             padding: 20px;
@@ -1470,10 +1493,32 @@
                 </div>
                 <div class="form-group">
                     <label for="pathwayType">Pathway Type:</label>
-                    <select id="pathwayType" onchange="updateAllPeriods()">
+                    <select id="pathwayType" onchange="updateAllPeriods(); refreshPathwayFields()">
                         <option value="Enlisted DEP/Direct/Reenlisted/Prior Service">Enlisted DEP/Direct/Reenlisted/Prior Service</option>
                         <option value="Officer OCC/PLC/NROTC/Academy">Officer OCC/PLC/NROTC/Academy</option>
                     </select>
+                    <span class="field-hint">Drives two rules only: Military Academy service is excluded on the Officer pathway (PAA 04-25 para 4.b.4), and the Officer pathway opens the PLC financial assistance field. PLC creditability itself comes from the service type chosen on each row (37 U.S.C. 205(f)).</span>
+                </div>
+            </div>
+            <div class="grid grid-3" style="margin-top: 16px;">
+                <div class="form-group">
+                    <label for="doeaf">DOEAF (YYYYMMDD, optional):</label>
+                    <input type="text" id="doeaf" placeholder="YYYYMMDD" maxlength="8" oninput="refreshCuiBanner(); refreshPathwayFields()">
+                    <span class="field-hint">Date of Entry Armed Forces from MCTFS. Used only to cross-check the result.</span>
+                </div>
+                <div class="form-group">
+                    <label for="afadbd">AFADBD (YYYYMMDD, optional):</label>
+                    <input type="text" id="afadbd" placeholder="YYYYMMDD or 00000000" maxlength="8" oninput="refreshCuiBanner(); refreshPathwayFields()">
+                    <span class="field-hint">Armed Forces Active Duty Base Date from MCTFS. Enter 00000000 when the record shows zeros.</span>
+                </div>
+                <div class="form-group hidden" id="plcFaGroup">
+                    <label for="plcFinancialAssistance">PLC financial assistance (10 U.S.C. 16401)?</label>
+                    <select id="plcFinancialAssistance" onchange="refreshPathwayFields()">
+                        <option value="">Not applicable / not answered</option>
+                        <option value="Yes">Yes - received financial assistance</option>
+                        <option value="No">No - no financial assistance</option>
+                    </select>
+                    <span class="field-hint">Required when any period uses a PLC / Officer Candidate type. Yes applies 37 U.S.C. 205(f): before commissioning only OCS active duty and Selected Reserve time credit. No credits every day of Reserve membership under 205(a).</span>
                 </div>
             </div>
         </div>
@@ -1636,6 +1681,13 @@
                     </div>
                 </div>
 
+                <!-- Record cross-checks: DOEAF, AFADBD, PLC financial assistance, same-status consistency -->
+                <div class="record-checks" id="recordChecks">
+                    <h3>Record Cross-Checks:</h3>
+                    <p class="record-summary" id="recordChecksSummary"></p>
+                    <ul class="record-warnings" id="recordWarningsList"></ul>
+                </div>
+
                 <!-- MMPB-21 Escalation Package (MARADMIN 052/26 Step 3) -->
                 <div class="companion-prompt">
                     <p class="companion-prompt-title">Escalate to MMPB-21</p>
@@ -1770,6 +1822,103 @@
             return SERVICE_TYPES[serviceType]?.creditable || false;
         }
 
+        // --- RECORD CROSS-CHECKS (loaded by test-calculations.js, keep DOM-free) ---
+        // Status helpers for the MCTFS cross-checks. Category "Active" and OCS active
+        // duty for training are active status. Reserve categories and inactive PLC
+        // officer candidate time are Reserve status.
+        const OCS_ADT_TYPE = "Officer Candidate Active Duty for Training (OCS)";
+        function isOfficerCandidateType(serviceType) {
+            return SERVICE_TYPES[serviceType]?.category === "Officer Candidate";
+        }
+        function isActiveStatusType(serviceType) {
+            return serviceType === OCS_ADT_TYPE || SERVICE_TYPES[serviceType]?.category === "Active";
+        }
+        function isReserveStatusType(serviceType) {
+            const cat = SERVICE_TYPES[serviceType]?.category;
+            return cat === "Reserve" || (cat === "Officer Candidate" && serviceType !== OCS_ADT_TYPE);
+        }
+        // Periods describing the same underlying status share a family even when the
+        // user picked different catalog variants (PLC, DEP, ROTC).
+        function serviceStatusFamily(serviceType) {
+            if (serviceType === OCS_ADT_TYPE) return serviceType;
+            if (isOfficerCandidateType(serviceType)) return "PLC / Officer Candidate";
+            if (serviceType.startsWith("Delayed Entry Program")) return "Delayed Entry Program";
+            if (serviceType.startsWith("ROTC")) return "ROTC";
+            return serviceType;
+        }
+        // Non-blocking warnings against the MCTFS record.
+        // ctx: { calculatedPEBD, doeaf, afadbd, plcFinancialAssistance, periodDetails }
+        // periodDetails: [{ period, serviceType, startDate, endDate, creditable }]
+        function buildRecordWarnings(ctx) {
+            const warnings = [];
+            const periods = ctx.periodDetails || [];
+            const doeaf = (ctx.doeaf || '').trim();
+            const afadbd = (ctx.afadbd || '').trim();
+            const hasExcluded = periods.some(p => !p.creditable);
+            const hasReserve = periods.some(p => isReserveStatusType(p.serviceType));
+            const hasActive = periods.some(p => isActiveStatusType(p.serviceType));
+
+            if (parseDate(doeaf) && ctx.calculatedPEBD > doeaf && !hasExcluded) {
+                warnings.push('PEBD is later than DOEAF with no excluded service to explain the gap. Verify creditability of each period.');
+            }
+            if (parseDate(afadbd) && ctx.calculatedPEBD === afadbd && hasReserve) {
+                warnings.push('PEBD equals the first active duty date while Reserve service is present. This is the signature of a PEBD set to an OCS or IADT report date instead of computed. Recompute.');
+            }
+            // A zeroed AFADBD is a record error. A blank AFADBD next to a filled DOEAF means the
+            // user transcribed the MCTFS fields and the record had nothing to transcribe.
+            if (hasActive && (afadbd === '00000000' || (afadbd === '' && doeaf !== ''))) {
+                warnings.push('AFADBD is missing on a member with active service. Report as a separate MCTFS record error.');
+            }
+
+            // PLC financial assistance answer versus the variant chosen on each row.
+            const fa = ctx.plcFinancialAssistance || '';
+            periods.forEach(p => {
+                const isFaVariant = p.serviceType.includes('(16401 Financial Assistance');
+                const isNoFaVariant = p.serviceType.includes('(No 16401');
+                if (fa === 'No' && isFaVariant) warnings.push(`Period ${p.period} uses a financial assistance variant but the financial assistance field says No.`);
+                if (fa === 'Yes' && isNoFaVariant) warnings.push(`Period ${p.period} uses the no-assistance variant but the financial assistance field says Yes.`);
+            });
+
+            // Same status on either side of an active period must carry the same creditability.
+            const sorted = periods.slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+            for (let i = 0; i < sorted.length; i++) {
+                for (let j = i + 1; j < sorted.length; j++) {
+                    const a = sorted[i], b = sorted[j];
+                    if (isActiveStatusType(a.serviceType)) continue;
+                    if (serviceStatusFamily(a.serviceType) !== serviceStatusFamily(b.serviceType)) continue;
+                    if (a.creditable === b.creditable) continue;
+                    const activeBetween = sorted.some(x => isActiveStatusType(x.serviceType) && x.startDate > a.endDate && x.endDate < b.startDate);
+                    if (activeBetween) {
+                        warnings.push(`Periods ${a.period} and ${b.period} carry the same status but different creditability. Both must be treated the same under 37 U.S.C. 205.`);
+                    }
+                }
+            }
+            return warnings;
+        }
+        // --- END RECORD CROSS-CHECKS ---
+
+        // Show the PLC financial assistance field on the Officer pathway or whenever a
+        // period row carries an officer candidate type. Validate the optional MCTFS dates.
+        function officerCandidateRowsPresent() {
+            return Array.from(document.querySelectorAll('select[data-field="serviceType"]')).some(s => isOfficerCandidateType(s.value));
+        }
+        function refreshPathwayFields() {
+            const pathway = document.getElementById('pathwayType').value;
+            const group = document.getElementById('plcFaGroup');
+            const fa = document.getElementById('plcFinancialAssistance');
+            if (!group || !fa) return;
+            const rowsPresent = officerCandidateRowsPresent();
+            group.classList.toggle('hidden', !(pathway.includes('Officer') || rowsPresent));
+            fa.classList.toggle('input-invalid', rowsPresent && !fa.value);
+            ['doeaf', 'afadbd'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const v = el.value.trim();
+                const zeroOk = id === 'afadbd' && v === '00000000';
+                el.classList.toggle('input-invalid', v.length === 8 && !zeroOk && !parseDate(v));
+            });
+        }
+
         // Toast notifications replace alert() dialogs
         function showToast(message, type = 'info', duration = 3500) {
             const container = document.getElementById('toastContainer');
@@ -1789,6 +1938,10 @@
         function hasFormData() {
             const pebd = document.getElementById('foundationalPEBD');
             if (pebd && pebd.value.trim()) return true;
+            for (const id of ['doeaf', 'afadbd', 'plcFinancialAssistance']) {
+                const el = document.getElementById(id);
+                if (el && el.value && el.value.trim()) return true;
+            }
             const inputs = document.querySelectorAll('[data-period][data-field], [data-timeloss][data-field]');
             for (const el of inputs) {
                 if (el.type === 'checkbox') { if (el.checked) return true; }
@@ -2116,6 +2269,7 @@
             } else {
                 daysCell.innerHTML = '';
             }
+            refreshPathwayFields();
         }
 
         // Combined consent gate functions (DoD notice + legal terms, one click)
@@ -2169,6 +2323,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializePeriods();
             initializeTimeLossPeriods();
+            refreshPathwayFields();
             checkLegalConsent();
             refreshCuiBanner();
         });
@@ -2184,9 +2339,20 @@
                 const foundationalPEBD = document.getElementById('foundationalPEBD').value.trim();
                 const marineStatus = document.getElementById('marineStatus').value;
                 const pathwayType = document.getElementById('pathwayType').value;
+                const doeaf = document.getElementById('doeaf').value.trim();
+                const afadbd = document.getElementById('afadbd').value.trim();
+                const plcFinancialAssistance = document.getElementById('plcFinancialAssistance').value;
 
                 if (!parseDate(foundationalPEBD)) {
                     showToast('Foundational PEBD is required as a valid date in YYYYMMDD format.', 'error');
+                    return;
+                }
+                if (doeaf && !parseDate(doeaf)) {
+                    showToast('DOEAF must be a valid date in YYYYMMDD format, or left blank.', 'error');
+                    return;
+                }
+                if (afadbd && afadbd !== '00000000' && !parseDate(afadbd)) {
+                    showToast('AFADBD must be a valid date in YYYYMMDD format, 00000000 for a zeroed record, or left blank.', 'error');
                     return;
                 }
 
@@ -2243,6 +2409,17 @@
                         }
                     }
                 });
+
+                // A PLC / Officer Candidate period cannot be scored until the 10 U.S.C. 16401
+                // financial assistance question is answered. It decides which 37 U.S.C. 205 rule applies.
+                if (periodDetails.some(p => isOfficerCandidateType(p.serviceType)) && !plcFinancialAssistance) {
+                    refreshPathwayFields();
+                    const fa = document.getElementById('plcFinancialAssistance');
+                    fa.classList.add('input-invalid');
+                    fa.focus();
+                    showToast('Answer the PLC financial assistance question before calculating. It decides which 37 U.S.C. 205 rule applies to the officer candidate periods.', 'warning', 6000);
+                    return;
+                }
 
                 // Collect time loss periods. Deductible, non-officer-time losses are
                 // computed on the 30-day-month basis per DODFMR Vol 7A Ch 1 para 2.4.1.3.1
@@ -2371,6 +2548,10 @@
                         timeLossApplied,
                         normalized,
                         numPeriods: beginningDates.length,
+                        doeaf,
+                        afadbd,
+                        plcFinancialAssistance,
+                        recordWarnings: buildRecordWarnings({ calculatedPEBD, doeaf, afadbd, plcFinancialAssistance, periodDetails }),
                         calculationDate: new Date().toLocaleString()
                     };
 
@@ -2504,6 +2685,22 @@
                 timeLossAnalysis.classList.add('hidden');
             }
 
+            // Record cross-checks (DOEAF / AFADBD / PLC financial assistance)
+            const summary = [
+                'PLC financial assistance (10 U.S.C. 16401): ' + (data.plcFinancialAssistance || 'Not applicable'),
+                'DOEAF: ' + (data.doeaf || 'not entered'),
+                'AFADBD: ' + (data.afadbd || 'not entered'),
+                data.recordWarnings.length ? data.recordWarnings.length + ' warning(s)' : 'No record warnings'
+            ];
+            document.getElementById('recordChecksSummary').textContent = summary.join(' | ');
+            const warnList = document.getElementById('recordWarningsList');
+            warnList.innerHTML = '';
+            data.recordWarnings.forEach(w => {
+                const li = document.createElement('li');
+                li.textContent = w;
+                warnList.appendChild(li);
+            });
+
             // Wire the Pay Comparison handoff link (dates only, no personal data in the URL)
             document.getElementById('openPayComparison').href =
                 'pay-comparison.html?pebdA=' + data.foundationalPEBD + '&pebdB=' + data.calculatedPEBD;
@@ -2563,6 +2760,14 @@
                         </table>
                     </div>` : '';
 
+            const recordWarningsHTML = `
+                    <div class="section">
+                        <div class="section-title">RECORD CROSS-CHECKS</div>
+                        ${data.recordWarnings.length
+                            ? '<ul>' + data.recordWarnings.map(w => `<li>${w}</li>`).join('') + '</ul>'
+                            : '<p>No record warnings. DOEAF, AFADBD, and the PLC financial assistance answer are consistent with the calculated PEBD.</p>'}
+                    </div>`;
+
             return `
                 <!DOCTYPE html>
                 <html>
@@ -2599,6 +2804,9 @@
                             <tr><td>Marine Status</td><td>${data.marineStatus}</td></tr>
                             <tr><td>Pathway Type</td><td>${data.pathwayType}</td></tr>
                             <tr><td>Foundational PEBD</td><td>${data.foundationalPEBD}</td></tr>
+                            <tr><td>PLC Financial Assistance (10 U.S.C. 16401)</td><td>${data.plcFinancialAssistance || 'Not applicable'}</td></tr>
+                            <tr><td>DOEAF (MCTFS)</td><td>${data.doeaf || 'Not entered'}</td></tr>
+                            <tr><td>AFADBD (MCTFS)</td><td>${data.afadbd || 'Not entered'}</td></tr>
                         </table>
                     </div>
 
@@ -2630,6 +2838,7 @@
                         </table>
                     </div>
 ${timeLossSectionHTML}
+${recordWarningsHTML}
 
                     <div style="margin-top: 20px; font-size: 9px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
                         <p><strong>IMPORTANT NOTES:</strong> This calculation is for reference only. Official PEBD adjustments require proper channels. Verify against source documents (DD Form 4, DD Form 214, NAVMC 763).</p>
@@ -2710,6 +2919,9 @@ ${timeLossSectionHTML}
             document.getElementById('foundationalPEBD').value = ex.foundational;
             document.getElementById('marineStatus').value = ex.status;
             document.getElementById('pathwayType').value = ex.pathway;
+            document.getElementById('plcFinancialAssistance').value = ex.plcFinancialAssistance || '';
+            document.getElementById('doeaf').value = ex.doeaf || '';
+            document.getElementById('afadbd').value = ex.afadbd || '';
 
             while (servicePeriodRows().length < ex.periods.length) addServicePeriod();
             const rows = servicePeriodRows();
@@ -2734,6 +2946,7 @@ ${timeLossSectionHTML}
                 row.querySelector('input[data-field="notes"]').value = t.notes || '';
                 updateTimeLossPeriod(i);
             });
+            refreshPathwayFields();
 
             document.getElementById('results').classList.add('hidden');
             document.getElementById('printBtn').disabled = true;
@@ -2766,12 +2979,18 @@ ${timeLossSectionHTML}
                 'Marine Status: ' + data.marineStatus,
                 'Pathway Type: ' + data.pathwayType,
                 'Foundational PEBD: ' + data.foundationalPEBD,
+                'PLC Financial Assistance (10 USC 16401): ' + (data.plcFinancialAssistance || 'Not applicable'),
+                'DOEAF (MCTFS): ' + (data.doeaf || 'not entered'),
+                'AFADBD (MCTFS): ' + (data.afadbd || 'not entered'),
                 'Service Periods (creditable): ' + data.numPeriods,
                 '',
                 '--- CALCULATED RESULT ---',
                 'Calculated PEBD: ' + data.calculatedPEBD,
                 'Net Creditable Service: ' + data.normalized.years + ' years, ' + data.normalized.months + ' months, ' + data.normalized.days + ' days',
                 'Total Time Loss (30-day basis): ' + (data.timeLossApplied ? fmtYMD(data.timeLossTotals) : 'none'),
+                '',
+                '--- RECORD CROSS-CHECKS ---',
+                ...(data.recordWarnings.length ? data.recordWarnings.map((w, k) => (k + 1) + '. ' + w) : ['No record warnings.']),
                 '',
                 '--- ATTACHMENT INSTRUCTIONS ---',
                 'Before sending, attach the printed report.',
@@ -2798,10 +3017,14 @@ ${timeLossSectionHTML}
             document.getElementById('foundationalPEBD').value = '';
             document.getElementById('marineStatus').value = 'Enlisted';
             document.getElementById('pathwayType').value = 'Enlisted DEP/Direct/Reenlisted/Prior Service';
+            document.getElementById('plcFinancialAssistance').value = '';
+            document.getElementById('doeaf').value = '';
+            document.getElementById('afadbd').value = '';
 
             // Rebuild the dynamic period tables
             initializePeriods();
             initializeTimeLossPeriods();
+            refreshPathwayFields();
 
             document.getElementById('results').classList.add('hidden');
             document.getElementById('printBtn').disabled = true;
